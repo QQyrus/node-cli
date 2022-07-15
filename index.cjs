@@ -25,7 +25,7 @@ program.command('web')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--suiteName <string>', 'Test suite name you can find by logging into Qyrus app.')
-  .option('--variableEnvName <string>', '(optional) Global variable name you can find by logging into Qyrus app.')
+  .option('--env <string>', '(optional) Global variable name you can find by logging into Qyrus app.')
   .option('--browserOS <string>', 'Browser operating system eg: windows/linux')
   .option('--browser <string>', 'Browser name eg: chrome/firefox/MicrosoftEdge?')
   .option('--onErrorContinue <boolean>', 'Continue execution on error?')
@@ -34,7 +34,7 @@ program.command('web')
     webUtil.trigger(options.endPoint, options.username, options.passcode, 
         options.teamName, options.projectName, options.suiteName, 
         options.browserOS, options.browser, options.onErrorContinue, 
-        options.emailId, options.variableEnvName);
+        options.emailId, options.env);
 });
 
 program.command('update-web-variables')

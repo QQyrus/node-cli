@@ -5,15 +5,6 @@ const path = require('path')
 const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
     qyrus_team_name, qyrus_project_name, appPath, execCmd) {
     
-    console.log("****** DEBUG AREA ******")
-    console.log(gatewayUrl);
-    console.log(qyrus_username);
-    console.log(qyrus_password);
-    console.log(qyrus_team_name);
-    console.log(qyrus_project_name);
-    console.log(appPath);
-    console.log("****** DEBUG AREA ******")
-    
     var contextPath = '';
     if ( execCmd === 'mobility' ) {
         contextPath = '';
