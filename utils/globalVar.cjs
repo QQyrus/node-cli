@@ -51,11 +51,12 @@ const trigger = function(endpoint, username, passcode, teamName,
             console.log('Failed to run test, Try again.');
             return;
         }
+        var body = '';
         res.on('data', chunk => {
             body += chunk.toString(); // convert Buffer to strin
         });
         res.on('end', () => {
-            console.log("done");
+            console.log("update to variable - "+varName+" on environment "+varEnvName+" is successfull!");
         });
      });
      reqPost.on('error', function(err) {

@@ -7,23 +7,13 @@ let count1 = 0;
 let oldSet = new Set();
 let newSet = new Set();
 let array3 =[];
-
+let baseContext = '';
 const trigger = function(endpoint, username, passcode, teamName, 
     projectName, testSuiteName, operatingSystem, 
-    browserName, onErrorContinue, emailId) {
-    console.log("***** DEBUG PROPERTIES *****");
-    console.log(endpoint);
-    console.log(username);
-    console.log(passcode);
-    console.log(teamName);
-    console.log(projectName);
-    console.log(testSuiteName);
-    console.log(operatingSystem);
-    console.log(browserName);
-    console.log(onErrorContinue);
-    console.log(emailId);
-    console.log("***** DEBUG PROPERTIES *****");
+    browserName, onErrorContinue, emailId, envName) {
     
+    console.log('\x1b[32m%s\x1b[0m',"Getting your environment ready, your test will start running soon.");
+
     var hostName = url.parse(endpoint).hostname;
     var port = url.parse(endpoint).port;
 
@@ -34,7 +24,7 @@ const trigger = function(endpoint, username, passcode, teamName,
     var optionspost = {
         host: hostName,
         port: port,
-        path: '/webrepoAutomationTrigger',
+        path: baseContext+'/webrepoAutomationTrigger',
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -45,7 +35,7 @@ const trigger = function(endpoint, username, passcode, teamName,
     var execStatus = {
         host: hostName,
         port: port,
-        path: '/checkExecutionStatus?username='+username+'&passcode='+passcode,
+        path: baseContext+'/checkExecutionStatus?username='+username+'&passcode='+passcode,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -56,7 +46,7 @@ const trigger = function(endpoint, username, passcode, teamName,
     var finalResult = {
         host: hostName,
         port: port,
-        path: '/checkExecutionResult?username='+username+'&passcode='+passcode+'&emailId='+emailId,
+        path: baseContext+'/checkExecutionResult?username='+username+'&passcode='+passcode+'&emailId='+emailId,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -67,7 +57,7 @@ const trigger = function(endpoint, username, passcode, teamName,
     var scriptResultStatus = {
         host: hostName,  
         port: port,
-        path: '/checkScriptExecutionStatus?username='+username+'&passcode='+passcode,
+        path: baseContext+'/checkScriptExecutionStatus?username='+username+'&passcode='+passcode,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -84,7 +74,7 @@ const trigger = function(endpoint, username, passcode, teamName,
         "operatingSystem": operatingSystem,
         "browser": browserName,
         "onErrorContinue": onErrorContinue,
-        "variableEnvironmentId": "c9516e41-eae7-46ac-98c1-defa05d039bf"
+        "variableEnvironmentId": envName
     };
     
     //http request to trigger the test
