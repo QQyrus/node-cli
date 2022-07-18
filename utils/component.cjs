@@ -6,7 +6,7 @@ const path = require('path')
 const url = require('url')
 const { exec } = require("child_process");
 
-let baseContext = '';
+let baseContext = '/cli-adapter-component/v1';
 
 const trigger = function(endpoint, username, passcode, teamName, project, 
     isComponentWeb, isComponentMobility, browser, operatingSystem, appName, 

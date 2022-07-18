@@ -5,9 +5,9 @@ const path = require('path')
 const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
     qyrus_team_name, qyrus_project_name, appPath, execCmd) {
     
-    var contextPath = '';
+    var contextPath = '/cli-adapter-component/v1';
     if ( execCmd === 'mobility' ) {
-        contextPath = '';
+        contextPath = '/cli-adapter-mobility/v1';
     }
 
     var appPath = appPath;

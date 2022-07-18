@@ -7,7 +7,8 @@ let count1 = 0;
 let oldSet = new Set();
 let newSet = new Set();
 let array3 =[];
-let baseContext = '';
+let baseContext = '/cli-adapter-web-repository/v1';
+
 const trigger = function(endpoint, username, passcode, teamName, 
     projectName, testSuiteName, operatingSystem, 
     browserName, onErrorContinue, emailId, envName) {
