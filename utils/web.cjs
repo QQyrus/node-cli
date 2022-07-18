@@ -245,13 +245,11 @@ function checkFinalStatus (finalResult,triggerResponse,testSuite,emailId) {
                 console.log('Execution of TestSuite ',testSuite,' is now Complete!');
                 console.log("Test Passed! Click on the below link to download the run report");
                 console.log(parsedJson.report);
-                console.log('Reports has been sent to the emailId:', emailId);
                 return;
             } else {
                 console.log('Execution of TestSuite ',testSuite,' is now Complete!');
                 console.log("Test Failed! Click on the below link to download the run report");
                 console.log(parsedJson.report);
-                console.log('Reports has been sent to the emailId:', emailId);
                 return;
             }
         }); 

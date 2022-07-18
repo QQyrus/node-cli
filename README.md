@@ -211,5 +211,20 @@ Options:
 // ./index.cjs component --endPoint http://localhost:8087 --username prajwalt@quinnox.com --passcode UGFzc3dvcmRAMQ== --teamName "CTC - STG Common Area" --projectName CliTest --componentWeb true --componentMobility true --appName qyrus_training.apk --appActivity "com.quinnox.qyrus_training.SplashScreen" --devicePoolName samsung --deviceName "Galaxy A32" --testName DemoTest --browser chrome --browserOS windows
 ```
 
+## To install binary by using the script
+```shell
+For macOS:
+curl -s https://raw.githubusercontent.com/QQyrus/node-cli/master/scripts/install_mac.sh | bash -s v1.0.1
+
+To operate with the command on macOS:
+qyrus-cli help
+
+For Linux:
+curl -s https://raw.githubusercontent.com/QQyrus/node-cli/master/scripts/install_linux.sh | bash -s v1.0.1
+
+To operate with the command on linux:
+/tmp/qyrus-cli help
+```
+
 ## Contact Us
 support@qyrus.com
