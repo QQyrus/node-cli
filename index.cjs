@@ -8,6 +8,7 @@ var globalVarUtil = require('./utils/globalVar.cjs');
 var globalVarMobilityUtil = require('./utils/globalVarMobility.cjs');
 var appUploadMobilityUtil = require('./utils/appUploadMobility.cjs');
 var globalVarComponentUtil = require('./utils/globalVarComponent.cjs');
+var connCheck = require('./utils/conn.cjs');
 
 const program = new Command();
 
@@ -163,6 +164,14 @@ program.command('upload-app-component')
     var execCmd = 'component';
     appUploadMobilityUtil.trigger(options.endPoint, options.username, options.passcode, 
         options.teamName, options.projectName, options.appPath, execCmd);
+});
+
+//--- Connectivity check
+program.command('conn-check')
+  .description('helps you to check the connectivity with Qyrus platform.')
+  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
+  .action((options) => {
+    connCheck.trigger(options.endPoint);
 });
 
 program.parse();

@@ -69,7 +69,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
 
     console.log('\x1b[32m%s\x1b[0m',"Getting your environment ready, your test will start running soon.");
 
-    var reqPost = http.request ( apiCallConfig, function(response) {
+    var reqPost = https.request ( apiCallConfig, function(response) {
         if (response.statusCode != 200) {
             console.log("Failed to run test, Try again.");
             process.exitCode = 1;
@@ -105,7 +105,7 @@ function checkExecStatus (host_name, port, testRunResponseBody, qyrus_suite_name
             'Content-Type': 'application/json'
         }
     }
-    var reqPost = http.request(apiCallConfig, function(response) {
+    var reqPost = https.request(apiCallConfig, function(response) {
         if(response.statusCode!=200){
             console.log('Failed to run check execution status fully, Try again.');
             process.exitCode = 1;
@@ -145,7 +145,7 @@ function completedTest (host_name, port, execStatusResponse, qyrus_suite_name, e
             'Content-Type': 'application/json'
         }
     }
-    var reqPost = http.request(apiCallConfig, function(response) {
+    var reqPost = https.request(apiCallConfig, function(response) {
         if(response.statusCode!=200){
             console.log('Failed to run test, Try again.');
             return;

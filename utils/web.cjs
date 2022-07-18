@@ -79,7 +79,7 @@ const trigger = function(endpoint, username, passcode, teamName,
     };
     
     //http request to trigger the test
-    var reqPost = http.request(optionspost, function(res) {
+    var reqPost = https.request(optionspost, function(res) {
         //If the response from the request is not 200 then fail the pipeline 
         if(res.statusCode!=200) {
             console.log('Failed to run test, Try again.');
@@ -118,7 +118,7 @@ function checkExecStatus (execStatus,triggerResponse,testSuite,
     scriptResultStatus,emailId,
     username,passcode) {
     //http request to check the status of test
-    var reqPost = http.request(execStatus, function(res) {
+    var reqPost = https.request(execStatus, function(res) {
         /* If the response from the request is not 200 then fail the pipeline */
         if(res.statusCode!=200){
             return;
@@ -159,7 +159,7 @@ function checkExecStatus (execStatus,triggerResponse,testSuite,
 }
 
 function checkScriptStatus(scriptResultStatus, triggerResponse) {
-    var reqPost = http.request(scriptResultStatus, function (res) {
+    var reqPost = https.request(scriptResultStatus, function (res) {
         /* If the response from the request is not 200 then fail the pipeline */
         if (res.statusCode != 200) {
             return;
@@ -228,7 +228,7 @@ function checkRunStatus (status){
 }
 
 function checkFinalStatus (finalResult,triggerResponse,testSuite,emailId) {
-    var reqPost = http.request(finalResult, function(res) {
+    var reqPost = https.request(finalResult, function(res) {
         /* If the response from the request is not 200 then fail the pipeline */
         if(res.statusCode!=200){
             tl.setResult(tl.TaskResult.Failed, 'Failed to run test, Try again.');
