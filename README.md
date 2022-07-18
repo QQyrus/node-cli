@@ -213,7 +213,8 @@ Options:
 
 ## To install binary by using the script
 ```shell
-curl https://raw.githubusercontent.com/QQyrus/node-cli/develop/scripts/install_mac.sh | bash
+curl -s https://raw.githubusercontent.com/QQyrus/node-cli/master/scripts/install_mac.sh | bash -s v1.0.1
+curl -s https://raw.githubusercontent.com/QQyrus/node-cli/master/scripts/install_linux.sh | bash -s v1.0.1
 ```
 
 ## Contact Us
