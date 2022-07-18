@@ -66,6 +66,7 @@ program.command('mobility')
   .option('--suiteName <string>', 'Test suite name you can find by logging into Qyrus app.')
   .option('--appName <string>', 'Enter android/iOS app name')
   .option('--appActivity <string>', 'Enter android app activity which will be in the form of com.example.splash_screen')
+  .option('--appPackage <string>', 'Enter android app package which will be in the form of com.android.chrome (Optional, To run tests on preinstalled apps)')
   .option('--devicePoolName <string>', 'Specify your device pool name which you created on Qyrus, a device pool will have list of devices added and a test run will happen on a device from the pool.')
   .option('--enableDebug <string>', 'Prints additional debug information if this option is enabled. eg: yes/no')
   .option('--bundleId <string>', 'Enter iOS app bundleId which will be in the form of com.example.splash_screen (Optional, during android runs)')
@@ -74,7 +75,7 @@ program.command('mobility')
     mobilityUtil.trigger(options.endPoint, options.username, options.passcode,
       options.teamName, options.projectName, options.suiteName, 
       options.appName, options.appActivity, options.devicePoolName,
-      options.enableDebug, options.bundleId, options.emailId);
+      options.enableDebug, options.bundleId, options.emailId, options.appPackage);
 });
 
 program.command('update-mobility-variables')

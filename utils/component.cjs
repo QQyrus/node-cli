@@ -76,7 +76,7 @@ const trigger = function(endpoint, username, passcode, teamName, project,
     var reqPost = https.request(optionspost, function(res) {
         /* If the response from the request is not 200 then fail the pipeline */
         if(res.statusCode!=200){
-            tl.setResult(tl.TaskResult.Failed, 'Failed to run test, Try again.');
+            console.log('Failed to run test, Try again.');
             return;
         }
         console.log('Triggered the test ', testName,' Successfully!');
@@ -150,20 +150,18 @@ function checkFinalStatus (finalResult,triggerResponse,testSuite,emailId) {
         res.on('end', () => {
             var parsedJson = JSON.parse(body);
             if (parsedJson.finalStatus === 'Pass' ) {
-                console.log('Execution of test suite ',testSuite,' is now complete!');
-                console.log("Test Passed! Click on the below link to download the run report");
+                console.log('\x1b[32m%s\x1b[0m','Execution of test suite ',testSuite,' is now complete!');
+                console.log('\x1b[32m%s\x1b[0m','Click on the below link to download the run report');
                 console.log(parsedJson.report);
                 //there should be an if condition
-                console.log('Reports has been sent to the emailId:', emailId);
-                console.log('Test Passed, Check the CTC dashboard for more information.');
+                console.log('\x1b[32m%s\x1b[0m','Test Passed!, Check the CTC dashboard for more information.');
                 return;
             } else {
-                console.log('Execution of test suite ',testSuite,' is now complete!');
-                console.log("Test Failed! Click on the below link to download the run report");
+                console.log('\x1b[31m%s\x1b[0m','Execution of test suite ',testSuite,' is now complete!');
+                console.log('\x1b[31m%s\x1b[0m','Click on the below link to download the run report');
                 console.log(parsedJson.report);
                 //there should be an if condition
-                console.log('Reports has been sent to the emailId:', emailId);
-                console.log('Test Failed, Check the CTC dashboard for more information.');
+                console.log('\x1b[31m%s\x1b[0m','Test Failed, Check the CTC dashboard for more information.');
                 return;
             }
         }); 

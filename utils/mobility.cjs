@@ -10,14 +10,14 @@ let baseContext = '/cli-adapter-mobility/v1';
 
 const trigger = function(gatewayUrl, qyrus_username, qyrus_password, 
     qyrus_team_name, qyrus_project_name, qyrus_suite_name, appName, 
-    app_activity, device_pool_name, enable_debug, bundle_id, emailId) {
+    app_activity, device_pool_name, enable_debug, bundle_id, emailId, appPackage) {
     
     const gatewayURLParse = new URL(gatewayUrl);
     let host_name = gatewayURLParse.hostname;
     let port = gatewayURLParse.port;
 
     // testing parameters
-    if ( appName == null || qyrus_username == null || qyrus_password == null || gatewayUrl == null ) {
+    if ( qyrus_username == null || qyrus_password == null || gatewayUrl == null ) {
         console.log('ERROR : One or more parameters are invalid');
         process.exitCode = 1;
     }
@@ -28,6 +28,14 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
 
     if ( bundle_id == null ) {
         bundle_id = '';
+    }
+
+    if ( appName == null ) {
+        appName = '';
+    }
+
+    if ( appPackage == null ) {
+        appPackage = '';
     }
 
     if ( enable_debug == 'yes' ) {
@@ -44,7 +52,6 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
         console.log('Host Name :',host_name);
         console.log('Port :',port);
     }
-    var appName = appName;
 
     let apiCallConfig = {
         host: host_name,
@@ -64,6 +71,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
         "devicePoolName": device_pool_name,
         "appFileName": appName,
         "appActivity": app_activity,
+        "appPackage": appPackage,
         "bundleId": bundle_id
     }
 
