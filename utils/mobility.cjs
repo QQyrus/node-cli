@@ -6,6 +6,7 @@ const path = require('path')
 const url = require('url')
 const { exec } = require("child_process");
 
+let baseContext = '/cli-adapter-mobility/v1';
 
 const trigger = function(gatewayUrl, qyrus_username, qyrus_password, 
     qyrus_team_name, qyrus_project_name, qyrus_suite_name, appName, 
@@ -48,7 +49,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
     let apiCallConfig = {
         host: host_name,
         port: port,
-        path: '/mobilityTrigger',
+        path: baseContext+'/mobilityTrigger',
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -68,7 +69,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
 
     console.log('\x1b[32m%s\x1b[0m',"Getting your environment ready, your test will start running soon.");
 
-    var reqPost = http.request ( apiCallConfig, function(response) {
+    var reqPost = https.request ( apiCallConfig, function(response) {
         if (response.statusCode != 200) {
             console.log("Failed to run test, Try again.");
             process.exitCode = 1;
@@ -98,13 +99,13 @@ function checkExecStatus (host_name, port, testRunResponseBody, qyrus_suite_name
     let apiCallConfig = {
         host: host_name,
         port: port,
-        path: '/checkExecutionStatus',
+        path: baseContext+'/checkExecutionStatus',
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         }
     }
-    var reqPost = http.request(apiCallConfig, function(response) {
+    var reqPost = https.request(apiCallConfig, function(response) {
         if(response.statusCode!=200){
             console.log('Failed to run check execution status fully, Try again.');
             process.exitCode = 1;
@@ -138,13 +139,13 @@ function completedTest (host_name, port, execStatusResponse, qyrus_suite_name, e
     let apiCallConfig = {
         host: host_name,
         port: port,
-        path: '/checkExecutionResult?emailId='+emailId,
+        path: baseContext+'/checkExecutionResult?emailId='+emailId,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         }
     }
-    var reqPost = http.request(apiCallConfig, function(response) {
+    var reqPost = https.request(apiCallConfig, function(response) {
         if(response.statusCode!=200){
             console.log('Failed to run test, Try again.');
             return;

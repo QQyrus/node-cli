@@ -6,7 +6,7 @@ const path = require('path')
 const url = require('url')
 const { exec } = require("child_process");
 
-let baseContext = '';
+let baseContext = '/cli-adapter-component/v1';
 
 const trigger = function(endpoint, username, passcode, teamName, project, 
     isComponentWeb, isComponentMobility, browser, operatingSystem, appName, 
@@ -73,7 +73,7 @@ const trigger = function(endpoint, username, passcode, teamName, project,
         "bundleId": bundleId
     };
 
-    var reqPost = http.request(optionspost, function(res) {
+    var reqPost = https.request(optionspost, function(res) {
         /* If the response from the request is not 200 then fail the pipeline */
         if(res.statusCode!=200){
             tl.setResult(tl.TaskResult.Failed, 'Failed to run test, Try again.');
@@ -100,7 +100,7 @@ function checkExecStatus (execStatus,triggerResponse,testSuite,
     finalResult,emailId) {
     //http request to check the status of test
     
-    var reqPost = http.request(execStatus, function(res) {
+    var reqPost = https.request(execStatus, function(res) {
         /* If the response from the request is not 200 then fail the pipeline */
         if(res.statusCode!=200){
             console.log('Failed to run test, Try again.');
@@ -136,7 +136,7 @@ function checkExecStatus (execStatus,triggerResponse,testSuite,
 }
 
 function checkFinalStatus (finalResult,triggerResponse,testSuite,emailId) {
-    var reqPost = http.request(finalResult, function(res) {
+    var reqPost = https.request(finalResult, function(res) {
         /* If the response from the request is not 200 then fail the pipeline */
         if(res.statusCode!=200){
             console.log('Failed to run test, Try again.');

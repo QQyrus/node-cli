@@ -8,13 +8,14 @@ var globalVarUtil = require('./utils/globalVar.cjs');
 var globalVarMobilityUtil = require('./utils/globalVarMobility.cjs');
 var appUploadMobilityUtil = require('./utils/appUploadMobility.cjs');
 var globalVarComponentUtil = require('./utils/globalVarComponent.cjs');
+var connCheck = require('./utils/conn.cjs');
 
 const program = new Command();
 
 program
   .name('qyrus-cli')
   .description('Helps you to manage variables, apps and to run tests on Qyrus platform')
-  .version('0.0.1');
+  .version('1.0.1');
 
 // Web Commands
 program.command('web')
@@ -165,28 +166,12 @@ program.command('upload-app-component')
         options.teamName, options.projectName, options.appPath, execCmd);
 });
 
+//--- Connectivity check
+program.command('conn-check')
+  .description('helps you to check the connectivity with Qyrus platform.')
+  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
+  .action((options) => {
+    connCheck.trigger(options.endPoint);
+});
+
 program.parse();
-
-//To trigger test
-// ./index.cjs web --endPoint http://localhost:8087 --username prajwalt@quinnox.com --passcode UGFzc3dvcmRAMQ== --teamName "CTC - STG Common Area" --projectName Test --suiteName Test --browserOS Windows --browser Chrome --onErrorContinue true --emailId saiprasadt@quinnox.com
-
-//To update env variables web
-// ./index.cjs update-web-variables --endPoint http://localhost:8087 --username prajwalt@quinnox.com --passcode UGFzc3dvcmRAMQ== --teamName "CTC - STG Common Area" --projectName Test --variableEnvName Test --variableName url --variableType Custom --variableValue PrajwalT
-
-
-//upload app mobility
-// ./index.cjs upload-app-mobility --endPoint http://localhost:8081 --username prajwalt@quinnox.com --passcode UGFzc3dvcmRAMQ== --teamName "CTC - STG Common Area" --projectName TestAndroid --appPath /Users/saiprasadt/Downloads/qyrus_training.apk
-
-//To update env variables mobility
-// ./index.cjs update-mobility-variables --endPoint http://localhost:8081 --username prajwalt@quinnox.com --passcode UGFzc3dvcmRAMQ== --teamName "CTC - STG Common Area" --projectName TestAndroid --variableName URL --variableType BaseURL --variableValue "https://qyrus.com"
-
-// trigger test mobility
-// ./index.cjs mobility --endPoint http://localhost:8081 --username prajwalt@quinnox.com --passcode UGFzc3dvcmRAMQ== --teamName "CTC - STG Common Area" --projectName TestAndroid --suiteName Demo --appName qyrus_training.apk --appActivity "com.quinnox.qyrus_training.SplashScreen" --devicePoolName Samsung --enableDebug no --emailId someemail@test.com
-
-
-
-//To update env variables component
-// ./index.cjs update-component-variables --endPoint http://localhost:8087 --username prajwalt@quinnox.com --passcode UGFzc3dvcmRAMQ== --teamName "CTC - STG Common Area" --projectName CliTest --variableName URL --variableType BaseURL --variableValue "https://qyrus.com"
-
-//trigger test component
-// ./index.cjs component --endPoint http://localhost:8087 --username prajwalt@quinnox.com --passcode UGFzc3dvcmRAMQ== --teamName "CTC - STG Common Area" --projectName CliTest --componentWeb true --componentMobility true --appName qyrus_training.apk --appActivity "com.quinnox.qyrus_training.SplashScreen" --devicePoolName samsung --deviceName "Galaxy A32" --testName DemoTest --browser chrome --browserOS windows
