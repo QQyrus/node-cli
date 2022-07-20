@@ -2,7 +2,7 @@ var https = require('https');
 var http = require('http');
 var url = require('url');
 
-let baseContext = '/cli-adapter-component/v1';
+let baseContext = '/cli-adapter-mobility/v1';
 
 const trigger = function(endpoint, username, passcode, teamName, 
     projectName, varName, varType, 
@@ -37,7 +37,7 @@ const trigger = function(endpoint, username, passcode, teamName,
      var reqPost = https.request(optionspost, function(res) {
         //If the response from the request is not 200 then fail the pipeline 
         if(res.statusCode!=200) {
-            console.log('Failed to run test, Try again.');
+            console.log('Failed to update variable!, Try again.');
             return;
         }
         var body = '';
