@@ -6,19 +6,29 @@ const path = require('path')
 const url = require('url')
 const { exec } = require("child_process");
 
-let baseContext = '/cli-adapter-component/v1';
+//let baseContext = '/cli-adapter-component/v1';
+//For Dev
+let baseContext = '';
 
 const trigger = function(endpoint, username, passcode, teamName, project, 
     isComponentWeb, isComponentMobility, browser, operatingSystem, appName, 
-    appActivity, deviceName, devicePoolName, testName, bundleId, emailId) {
+    appActivity, deviceName, devicePoolName, testName, bundleId, emailId, appPackage) {
     
         console.log('\x1b[32m%s\x1b[0m',"Getting your environment ready, your test will start running soon.");
 
     var host_name = url.parse(endpoint).hostname;
     var port = url.parse(endpoint).port;
 
+    if ( appName == null ) {
+        appName = '';
+    }
+
     if ( bundleId == null ) {
         bundleId = '';
+    }
+
+    if ( appPackage == null ) {
+        appPackage = '';
     }
 
     /* construct URL details for rest */
@@ -70,10 +80,11 @@ const trigger = function(endpoint, username, passcode, teamName, project,
         "componentWeb" : isComponentWeb,
         "componentMobility" : isComponentMobility,
         "testName": testName,
-        "bundleId": bundleId
+        "bundleId": bundleId,
+        "appPackage": appPackage
     };
 
-    var reqPost = https.request(optionspost, function(res) {
+    var reqPost = http.request(optionspost, function(res) {
         /* If the response from the request is not 200 then fail the pipeline */
         if(res.statusCode!=200){
             console.log('Failed to run test, Try again.');
@@ -100,7 +111,7 @@ function checkExecStatus (execStatus,triggerResponse,testSuite,
     finalResult,emailId) {
     //http request to check the status of test
     
-    var reqPost = https.request(execStatus, function(res) {
+    var reqPost = http.request(execStatus, function(res) {
         /* If the response from the request is not 200 then fail the pipeline */
         if(res.statusCode!=200){
             console.log('Failed to run test, Try again.');
@@ -136,7 +147,7 @@ function checkExecStatus (execStatus,triggerResponse,testSuite,
 }
 
 function checkFinalStatus (finalResult,triggerResponse,testSuite,emailId) {
-    var reqPost = https.request(finalResult, function(res) {
+    var reqPost = http.request(finalResult, function(res) {
         /* If the response from the request is not 200 then fail the pipeline */
         if(res.statusCode!=200){
             console.log('Failed to run test, Try again.');
