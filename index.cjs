@@ -15,7 +15,7 @@ const program = new Command();
 program
   .name('qyrus-cli')
   .description('Helps you to manage variables, apps and to run tests on Qyrus platform')
-  .version('1.0.3');
+  .version('1.0.4');
 
 // Web Commands
 program.command('web')
@@ -64,7 +64,7 @@ program.command('mobility')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--suiteName <string>', 'Test suite name you can find by logging into Qyrus app.')
-  .option('--appName <string>', 'Enter android/iOS app name')
+  .option('--appName <string>', '(Optional) Enter android/iOS app name')
   .option('--appActivity <string>', 'Enter android app activity which will be in the form of com.example.splash_screen')
   .option('--appPackage <string>', 'Enter android app package which will be in the form of com.android.chrome (Optional, To run tests on preinstalled apps)')
   .option('--devicePoolName <string>', 'Specify your device pool name which you created on Qyrus, a device pool will have list of devices added and a test run will happen on a device from the pool.')
