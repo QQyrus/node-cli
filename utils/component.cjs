@@ -12,7 +12,7 @@ const trigger = function(endpoint, username, passcode, teamName, project,
     isComponentWeb, isComponentMobility, browser, operatingSystem, appName, 
     appActivity, deviceName, devicePoolName, testName, bundleId, emailId, appPackage) {
     
-        console.log('\x1b[32m%s\x1b[0m',"Getting your environment ready, your test will start running soon.");
+    console.log('\x1b[32m%s\x1b[0m',"Getting your environment ready, your test will start running soon.");
 
     var host_name = url.parse(endpoint).hostname;
     var port = url.parse(endpoint).port;
@@ -27,6 +27,10 @@ const trigger = function(endpoint, username, passcode, teamName, project,
 
     if ( appPackage == null ) {
         appPackage = '';
+    }
+
+    if ( appActivity == null ) {
+        appActivity = '';
     }
 
     /* construct URL details for rest */

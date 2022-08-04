@@ -15,7 +15,7 @@ const program = new Command();
 program
   .name('qyrus-cli')
   .description('Helps you to manage variables, apps and to run tests on Qyrus platform')
-  .version('1.1.4');
+  .version('1.2.4');
 
 // Web Commands
 program.command('web')
