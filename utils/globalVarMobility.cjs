@@ -38,6 +38,7 @@ const trigger = function(endpoint, username, passcode, teamName,
         //If the response from the request is not 200 then fail the pipeline 
         if(res.statusCode!=200) {
             console.log('Failed to update variable!, Try again.');
+            process.exitCode = 1;
             return;
         }
         var body = '';
@@ -50,6 +51,8 @@ const trigger = function(endpoint, username, passcode, teamName,
      });
      reqPost.on('error', function(err) {
         console.log("ERROR : "+err);
+        process.exitCode = 1;
+        return
     }); 
     reqPost.write(JSON.stringify(triggerObject));
     reqPost.end();

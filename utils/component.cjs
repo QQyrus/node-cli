@@ -164,6 +164,7 @@ function checkFinalStatus (finalResult,triggerResponse,testSuite,emailId) {
                 console.log(parsedJson.report);
                 //there should be an if condition
                 console.log('\x1b[32m%s\x1b[0m','Test Passed!, Check the CTC dashboard for more information.');
+                process.exitCode = 0;
                 return;
             } else {
                 console.log('\x1b[31m%s\x1b[0m','Execution of test suite ',testSuite,' is now complete!');
@@ -171,6 +172,7 @@ function checkFinalStatus (finalResult,triggerResponse,testSuite,emailId) {
                 console.log(parsedJson.report);
                 //there should be an if condition
                 console.log('\x1b[31m%s\x1b[0m','Test Failed, Check the CTC dashboard for more information.');
+                process.exitCode = 1;
                 return;
             }
         }); 
