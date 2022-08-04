@@ -25,6 +25,8 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
             }, function(error, response, body) {
                 if (response.statusCode!=200) {
                     console.log('Failed to upload app! Try again.');
+                    console.log(response.body);
+                    process.exitCode = 1;
                     return;
                 } else {
                     //get the appName
@@ -34,6 +36,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
             });
     } else {
         console.log('App not found in artifacts!');
+        process.exitCode = 1;
         return;
     } 
 }

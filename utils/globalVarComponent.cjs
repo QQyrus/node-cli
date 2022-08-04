@@ -30,7 +30,7 @@ const trigger = function(endpoint, username, passcode, teamName,
         "projectName": projectName,
         "varName": varName,
         "varType": varType,
-        "varValue": varValue
+        "varValue": varValue.trim()
     };
 
      //http request to update the global variables
@@ -38,6 +38,7 @@ const trigger = function(endpoint, username, passcode, teamName,
         //If the response from the request is not 200 then fail the pipeline 
         if(res.statusCode!=200) {
             console.log('Failed to update variables, Try again.');
+            process.exitCode = 1;
             return;
         }
         var body = '';
@@ -46,11 +47,15 @@ const trigger = function(endpoint, username, passcode, teamName,
         });
         res.on('end', () => {
             console.log("update to variable - "+varName+" - is successfull!");
+            process.exitCode = 0;
+            return;
         });
      });
      reqPost.on('error', function(err) {
         console.log("ERROR : "+err);
-    }); 
+        process.exitCode = 1;
+        return;
+    });
     reqPost.write(JSON.stringify(triggerObject));
     reqPost.end();
 }
