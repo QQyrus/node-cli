@@ -25,11 +25,13 @@ const trigger = function(endPoint) {
         res.on('data', function(d) {
             testSuiteName+=d;
             console.log('\x1b[32m%s\x1b[0m','Connection successful!');
+            process.exitCode = 0;
         });
     });
     req.end();
     req.on('error', function(e) {
         console.error(e);
+        process.exitCode = 1;
     });
 }
 
