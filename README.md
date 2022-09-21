@@ -187,28 +187,31 @@ Options:
 ## Samples
 ```shell
 //To trigger test
-// ./index.cjs web --endPoint http://localhost:8087 --username prajwalt@quinnox.com --passcode UGFzc3dvcmRAMQ== --teamName "CTC - STG Common Area" --projectName Test --suiteName Test --browserOS Windows --browser Chrome --onErrorContinue true --emailId saiprasadt@quinnox.com
+// ./index.cjs web --endPoint http://localhost:8087 --username demo@domain.com --passcode ******** --teamName "CTC - STG Common Area" --projectName Test --suiteName Test --browserOS Windows --browser Chrome --onErrorContinue true --emailId saiprasadt@quinnox.com
 
 //To update env variables web
-// ./index.cjs update-web-variables --endPoint http://localhost:8087 --username prajwalt@quinnox.com --passcode UGFzc3dvcmRAMQ== --teamName "CTC - STG Common Area" --projectName Test --variableEnvName Test --variableName url --variableType Custom --variableValue PrajwalT
-
+// ./index.cjs update-web-variables --endPoint http://localhost:8087 --username demo@domain.com --passcode ******** --teamName "CTC - STG Common Area" --projectName Test --variableEnvName Test --variableName url --variableType Custom --variableValue PrajwalT
 
 //upload app mobility
-// ./index.cjs upload-app-mobility --endPoint http://localhost:8081 --username prajwalt@quinnox.com --passcode UGFzc3dvcmRAMQ== --teamName "CTC - STG Common Area" --projectName TestAndroid --appPath /Users/saiprasadt/Downloads/qyrus_training.apk
+// ./index.cjs upload-app-mobility --endPoint http://localhost:8081 --username demo@domain.com --passcode ******** --teamName "CTC - STG Common Area" --projectName TestAndroid --appPath /Users/saiprasadt/Downloads/qyrus_training.apk
+
+//delete app mobility
+./index.cjs delete-app-mobility --endPoint http://localhost:8081 --username demo@domain.com --passcode ******** --teamName "Some Team" --projectName "Some Project" --appName qyrus_training.apk
 
 //To update env variables mobility
-// ./index.cjs update-mobility-variables --endPoint http://localhost:8081 --username prajwalt@quinnox.com --passcode UGFzc3dvcmRAMQ== --teamName "CTC - STG Common Area" --projectName TestAndroid --variableName URL --variableType BaseURL --variableValue "https://qyrus.com"
+// ./index.cjs update-mobility-variables --endPoint http://localhost:8081 --username demo@domain.com --passcode ******** --teamName "CTC - STG Common Area" --projectName TestAndroid --variableName URL --variableType BaseURL --variableValue "https://qyrus.com"
 
 // trigger test mobility
-// ./index.cjs mobility --endPoint http://localhost:8081 --username prajwalt@quinnox.com --passcode UGFzc3dvcmRAMQ== --teamName "CTC - STG Common Area" --projectName TestAndroid --suiteName Demo --appName qyrus_training.apk --appActivity "com.quinnox.qyrus_training.SplashScreen" --devicePoolName Samsung --enableDebug no --emailId someemail@test.com
-
-
+// ./index.cjs mobility --endPoint http://localhost:8081 --username demo@domain.com --passcode ******** --teamName "CTC - STG Common Area" --projectName TestAndroid --suiteName Demo --appName qyrus_training.apk --appActivity "com.quinnox.qyrus_training.SplashScreen" --devicePoolName Samsung --enableDebug no --emailId someemail@test.com
 
 //To update env variables component
-// ./index.cjs update-component-variables --endPoint http://localhost:8087 --username prajwalt@quinnox.com --passcode UGFzc3dvcmRAMQ== --teamName "CTC - STG Common Area" --projectName CliTest --variableName URL --variableType BaseURL --variableValue "https://qyrus.com"
+// ./index.cjs update-component-variables --endPoint http://localhost:8087 --username demo@domain.com --passcode ******** --teamName "CTC - STG Common Area" --projectName CliTest --variableName URL --variableType BaseURL --variableValue "https://qyrus.com"
+
+//delete app component
+./index.cjs delete-app-component --endPoint http://localhost:8081 --username demo@domain.com --passcode ******** --teamName "Some Team" --projectName "Some Project" --appName qyrus_training.apk
 
 //trigger test component
-// ./index.cjs component --endPoint http://localhost:8087 --username prajwalt@quinnox.com --passcode UGFzc3dvcmRAMQ== --teamName "CTC - STG Common Area" --projectName CliTest --componentWeb true --componentMobility true --appName qyrus_training.apk --appActivity "com.quinnox.qyrus_training.SplashScreen" --devicePoolName samsung --deviceName "Galaxy A32" --testName DemoTest --browser chrome --browserOS windows
+// ./index.cjs component --endPoint http://localhost:8087 --username demo@domain.com --passcode ******** --teamName "CTC - STG Common Area" --projectName CliTest --componentWeb true --componentMobility true --appName qyrus_training.apk --appActivity "com.quinnox.qyrus_training.SplashScreen" --devicePoolName samsung --deviceName "Galaxy A32" --testName DemoTest --browser chrome --browserOS windows
 ```
 
 ## To install binary by using the script

@@ -7,6 +7,7 @@ var componentUtil = require('./utils/component.cjs');
 var globalVarUtil = require('./utils/globalVar.cjs');
 var globalVarMobilityUtil = require('./utils/globalVarMobility.cjs');
 var appUploadMobilityUtil = require('./utils/appUploadMobility.cjs');
+var appDeleteUtil = require('./utils/appDelete.cjs');
 var globalVarComponentUtil = require('./utils/globalVarComponent.cjs');
 var connCheck = require('./utils/conn.cjs');
 
@@ -15,7 +16,7 @@ const program = new Command();
 program
   .name('qyrus-cli')
   .description('Helps you to manage variables, apps and to run tests on Qyrus platform')
-  .version('1.3.4');
+  .version('1.4.4');
 
 // Web Commands
 program.command('web')
@@ -108,6 +109,20 @@ program.command('upload-app-mobility')
         options.teamName, options.projectName, options.appPath, execCmd);
 });
 
+program.command('delete-app-mobility')
+  .description('helps you delete apps iOS/android to mobility service')
+  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
+  .option('-u, --username <string>', 'Qyrus admin provided email')
+  .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
+  .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
+  .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
+  .option('--appName <string>', 'Existing app name eg: Demo.apk/Demo.ipa')
+  .action((options) => {
+    var execCmd = 'mobility';
+    appDeleteUtil.trigger(options.endPoint, options.username, options.passcode, 
+        options.teamName, options.projectName, options.appName, execCmd);
+});
+
 // Component Commands
 program.command('update-component-variables')
   .description('helps you update global variables on component service')
@@ -166,6 +181,20 @@ program.command('upload-app-component')
     var execCmd = 'component';
     appUploadMobilityUtil.trigger(options.endPoint, options.username, options.passcode, 
         options.teamName, options.projectName, options.appPath, execCmd);
+});
+
+program.command('delete-app-component')
+  .description('helps you delete apps iOS/android to component service')
+  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
+  .option('-u, --username <string>', 'Qyrus admin provided email')
+  .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
+  .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
+  .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
+  .option('--appName <string>', 'Existing app name eg: Demo.apk/Demo.ipa')
+  .action((options) => {
+    var execCmd = 'component';
+    appDeleteUtil.trigger(options.endPoint, options.username, options.passcode, 
+        options.teamName, options.projectName, options.appName, execCmd);
 });
 
 //--- Connectivity check

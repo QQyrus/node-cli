@@ -32,6 +32,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
                     //get the appName
                     var appName = path.parse(appPath).base;
                     console.log("App - "+appName+" uploaded to Qyrus successfully!");
+                    process.exitCode = 0;
                 }
             });
     } else {
