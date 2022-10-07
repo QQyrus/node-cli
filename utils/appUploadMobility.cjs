@@ -20,7 +20,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
                 username: qyrus_username,
                 password: qyrus_password,
                 teamName: qyrus_team_name,
-                projectName: qyrus_project_name
+                projectName: qyrus_project_name.trim()
             },
             }, function(error, response, body) {
                 if (response.statusCode!=200) {
