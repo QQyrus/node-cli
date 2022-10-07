@@ -10,7 +10,7 @@ let baseContext = '/cli-adapter-mobility/v1';
 
 const trigger = function(gatewayUrl, qyrus_username, qyrus_password, 
     qyrus_team_name, qyrus_project_name, qyrus_suite_name, appName, 
-    app_activity, device_pool_name, enable_debug, bundle_id, emailId, appPackage) {
+    app_activity, device_pool_name, enable_debug, bundle_id, emailId, appPackage, envName) {
     
     const gatewayURLParse = new URL(gatewayUrl);
     let host_name = gatewayURLParse.hostname;
@@ -36,6 +36,10 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
 
     if ( appPackage == null ) {
         appPackage = '';
+    }
+
+    if ( envName == null ) {
+        envName = '';
     }
 
     if ( enable_debug == 'yes' ) {
@@ -72,7 +76,8 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
         "appFileName": appName,
         "appActivity": app_activity,
         "appPackage": appPackage,
-        "bundleId": bundle_id
+        "bundleId": bundle_id,
+        "envName": envName
     }
 
     console.log('\x1b[32m%s\x1b[0m',"Getting your environment ready, your test will start running soon.");

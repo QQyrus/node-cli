@@ -6,10 +6,14 @@ let baseContext = '/cli-adapter-component/v1';
 
 const trigger = function(endpoint, username, passcode, teamName, 
     projectName, varName, varType, 
-    varValue) {
+    varValue, envName) {
     
     var hostName = url.parse(endpoint).hostname;
     var port = url.parse(endpoint).port;
+    
+    if ( envName == null ) {
+        envName = ''
+    }
 
     // construct URL details for rest 
     var optionspost = {
@@ -30,7 +34,8 @@ const trigger = function(endpoint, username, passcode, teamName,
         "projectName": projectName,
         "varName": varName,
         "varType": varType,
-        "varValue": varValue.trim()
+        "varValue": varValue.trim(),
+        "envName": envName
     };
 
      //http request to update the global variables

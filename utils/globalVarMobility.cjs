@@ -6,8 +6,12 @@ let baseContext = '/cli-adapter-mobility/v1';
 
 const trigger = function(endpoint, username, passcode, teamName, 
     projectName, varName, varType, 
-    varValue) {
+    varValue, envName) {
     
+    if ( envName == null) {
+        envName = '';
+    }
+
     var hostName = url.parse(endpoint).hostname;
     var port = url.parse(endpoint).port;
 
@@ -30,7 +34,8 @@ const trigger = function(endpoint, username, passcode, teamName,
         "projectName": projectName,
         "varName": varName,
         "varType": varType,
-        "varValue": varValue
+        "varValue": varValue,
+        "envName": envName
     };
 
      //http request to update the global variables
