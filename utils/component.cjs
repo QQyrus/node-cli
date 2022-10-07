@@ -10,7 +10,7 @@ let baseContext = '/cli-adapter-component/v1';
 
 const trigger = function(endpoint, username, passcode, teamName, project, 
     isComponentWeb, isComponentMobility, browser, operatingSystem, appName, 
-    appActivity, deviceName, devicePoolName, testName, bundleId, emailId, appPackage) {
+    appActivity, deviceName, devicePoolName, testName, bundleId, emailId, appPackage, envName) {
     
     console.log('\x1b[32m%s\x1b[0m',"Getting your environment ready, your test will start running soon.");
 
@@ -31,6 +31,10 @@ const trigger = function(endpoint, username, passcode, teamName, project,
 
     if ( appActivity == null ) {
         appActivity = '';
+    }
+
+    if ( envName == null ) {
+        envName = '';
     }
 
     /* construct URL details for rest */
@@ -83,7 +87,8 @@ const trigger = function(endpoint, username, passcode, teamName, project,
         "componentMobility" : isComponentMobility,
         "testName": testName,
         "bundleId": bundleId,
-        "appPackage": appPackage
+        "appPackage": appPackage,
+        "envName": envName
     };
 
     var reqPost = https.request(optionspost, function(res) {

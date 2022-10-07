@@ -16,7 +16,7 @@ const program = new Command();
 program
   .name('qyrus-cli')
   .description('Helps you to manage variables, apps and to run tests on Qyrus platform')
-  .version('1.4.4');
+  .version('1.4.5');
 
 // Web Commands
 program.command('web')
@@ -72,11 +72,12 @@ program.command('mobility')
   .option('--enableDebug <string>', 'Prints additional debug information if this option is enabled. eg: yes/no')
   .option('--bundleId <string>', 'Enter iOS app bundleId which will be in the form of com.example.splash_screen (Optional, during android runs)')
   .option('--emailId <string>', '(optional) email id to which the reports need to be sent post execution')
+  .option('--envName <string>', 'environment name to run the tests with. (Optional if its Global)')
   .action((options) => {
     mobilityUtil.trigger(options.endPoint, options.username, options.passcode,
       options.teamName, options.projectName, options.suiteName, 
       options.appName, options.appActivity, options.devicePoolName,
-      options.enableDebug, options.bundleId, options.emailId, options.appPackage);
+      options.enableDebug, options.bundleId, options.emailId, options.appPackage, options.envName);
 });
 
 program.command('update-mobility-variables')
@@ -89,10 +90,11 @@ program.command('update-mobility-variables')
   .option('--variableName <string>', 'Existing variable name eg: Demo')
   .option('--variableType <string>', 'Existing variable type eg: Custom, BaseURL, Password.')
   .option('--variableValue <string>', 'Value to update the existing variable.')
+  .option('--envName <string>', 'environment name to which the value needs to be updated. (Optional if its Global)')
   .action((options) => {
     globalVarMobilityUtil.trigger(options.endPoint, options.username, options.passcode, 
         options.teamName, options.projectName, options.variableName, 
-        options.variableType, options.variableValue);
+        options.variableType, options.variableValue, options.envName);
 });
 
 program.command('upload-app-mobility')
@@ -134,10 +136,11 @@ program.command('update-component-variables')
   .option('--variableName <string>', 'Existing variable name eg: Demo')
   .option('--variableType <string>', 'Existing variable type eg: Custom, BaseURL, Password.')
   .option('--variableValue <string>', 'Value to update the existing variable.')
+  .option('--envName <string>', 'environment name to which the value needs to be updated. (Optional if its Global)')
   .action((options) => {
     globalVarComponentUtil.trigger(options.endPoint, options.username, options.passcode, 
         options.teamName, options.projectName, options.variableName, 
-        options.variableType, options.variableValue);
+        options.variableType, options.variableValue, options.envName);
 });
 
 program.command('component')
@@ -159,6 +162,7 @@ program.command('component')
   .option('--browserOS <string>', 'Browser operating system eg: windows/linux')
   .option('--browser <string>', 'Browser name eg: chrome/firefox/MicrosoftEdge?')
   .option('--emailId <string>', '(optional) email id to which the reports need to be sent post execution')
+  .option('--envName <string>', 'environment name to run the tests with. (Optional if its Global)')
   
   .action((options) => {
     componentUtil.trigger(options.endPoint, options.username, options.passcode,
@@ -166,7 +170,7 @@ program.command('component')
       options.componentMobility, options.browser, options.browserOS,
       options.appName, options.appActivity, options.deviceName, 
       options.devicePoolName, options.testName, options.bundleId,
-      options.emailId, options.appPackage);
+      options.emailId, options.appPackage, options.envName);
 });
 
 program.command('upload-app-component')
