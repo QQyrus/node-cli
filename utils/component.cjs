@@ -6,10 +6,10 @@ const path = require('path')
 const url = require('url')
 const { exec } = require("child_process");
 
-//let baseContext = '/cli-adapter-component/v1';
+let baseContext = '/cli-adapter-component/v1';
 let triggerTestResponseBody = '';
 let execStatusResponseBody = '';
-let baseContext = '';
+//let baseContext = '';
 let runIds = [];
 
 const trigger = async function(endpoint, username, passcode, teamName, project, 
@@ -158,7 +158,7 @@ function triggerTest (endpoint, username, passcode, teamName, project,
             "envName": envName
         };
         
-        var reqPost = http.request(optionspost, function(res) {
+        var reqPost = https.request(optionspost, function(res) {
             /* If the response from the request is not 200 then fail the pipeline */
             if(res.statusCode!=200){
                 console.log('Failed to run test, Try again.');
@@ -188,7 +188,7 @@ function triggerTest (endpoint, username, passcode, teamName, project,
 function checkExecStatus (execStatus,triggerResponse) {
     return new Promise((resolve) => {
         //https request to check the status of test
-        var reqPost = http.request(execStatus, function(res) {
+        var reqPost = https.request(execStatus, function(res) {
             /* If the response from the request is not 200 then fail the pipeline */
             if(res.statusCode!=200){
                 console.log('Failed to check execution status, Try again.');
@@ -229,7 +229,7 @@ function checkFinalStatus (finalResult,triggerResponse,testSuite) {
         var parsedJson = JSON.parse(triggerResponse);
         runIds.push(Number(parsedJson.runId));
        
-        var reqPost = http.request(finalResult, function(res) {
+        var reqPost = https.request(finalResult, function(res) {
             /* If the response from the request is not 200 then fail the pipeline */
             if(res.statusCode!=200){
                 console.log('Failed to check final test result, Try again.');
@@ -270,7 +270,7 @@ function checkFinalStatus (finalResult,triggerResponse,testSuite) {
 }
 
 function consolidateReportsFn (consolidatedReportCallOptions,payload) {
-    var reqPost = http.request(consolidatedReportCallOptions, function(res) {
+    var reqPost = https.request(consolidatedReportCallOptions, function(res) {
         /* If the response from the request is not 200 then fail the pipeline */
         if(res.statusCode!=200){
             console.log('Failed to send consolidated report.');
