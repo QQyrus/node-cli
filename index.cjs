@@ -163,6 +163,7 @@ program.command('component')
   .option('--browser <string>', 'Browser name eg: chrome/firefox/MicrosoftEdge?')
   .option('--emailId <string>', '(optional) email id to which the reports need to be sent post execution')
   .option('--envName <string>', 'environment name to run the tests with. (Optional if its Global)')
+  .option('--consolidateReports <string>', 'To send reports for multiple steps, Note: emailId is mandatory')
   
   .action((options) => {
     componentUtil.trigger(options.endPoint, options.username, options.passcode,
@@ -170,7 +171,8 @@ program.command('component')
       options.componentMobility, options.browser, options.browserOS,
       options.appName, options.appActivity, options.deviceName, 
       options.devicePoolName, options.testName, options.bundleId,
-      options.emailId, options.appPackage, options.envName);
+      options.emailId, options.appPackage, options.envName,
+      options.consolidateReports);
 });
 
 program.command('upload-app-component')
