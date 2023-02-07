@@ -7,6 +7,8 @@ var componentUtil = require('./utils/component.cjs');
 var globalVarUtil = require('./utils/globalVar.cjs');
 var globalVarMobilityUtil = require('./utils/globalVarMobility.cjs');
 var appUploadMobilityUtil = require('./utils/appUploadMobility.cjs');
+var appCountMobilityUtil = require('./utils/appCount.cjs');
+var apkMobilityUtil = require('./utils/getApk.cjs');
 var appDeleteUtil = require('./utils/appDelete.cjs');
 var globalVarComponentUtil = require('./utils/globalVarComponent.cjs');
 var connCheck = require('./utils/conn.cjs');
@@ -125,6 +127,30 @@ program.command('delete-app-mobility')
         options.teamName, options.projectName, options.appName, execCmd);
 });
 
+program.command('get-apk-count-mobility')
+  .description('helps you to get apps iOS/android to mobility service')
+  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
+  .option('-u, --username <string>', 'Qyrus admin provided email')
+  .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
+  .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
+  .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
+  .action((options) => {
+    var execCmd = 'mobility';
+    appCountMobilityUtil.trigger(options.endPoint, options.username, options.passcode, 
+        options.teamName, options.projectName, execCmd);
+});
+
+program.command('get-apk-mobility')
+  .description('helps you to get apps iOS/android to mobility service')
+  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
+  .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
+  .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
+  .action((options) => {
+    var execCmd = 'mobility';
+    apkMobilityUtil.trigger(options.endPoint, options.teamName, options.projectName, execCmd);
+});
+
+
 // Component Commands
 program.command('update-component-variables')
   .description('helps you update global variables on component service')
@@ -201,6 +227,29 @@ program.command('delete-app-component')
     var execCmd = 'component';
     appDeleteUtil.trigger(options.endPoint, options.username, options.passcode, 
         options.teamName, options.projectName, options.appName, execCmd);
+});
+
+program.command('get-apk-count-component')
+  .description('helps you to get apps iOS/android to component service')
+  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
+  .option('-u, --username <string>', 'Qyrus admin provided email')
+  .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
+  .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
+  .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
+  .action((options) => {
+    appCountMobilityUtil.trigger(options.endPoint, options.username, options.passcode, 
+        options.teamName, options.projectName);
+});
+
+program.command('get-apk-component')
+  .description('helps you to get apps iOS/android to mobility service')
+  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
+  .option('-u, --username <string>', 'Qyrus admin provided email')
+  .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
+  .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
+  .action((options) => {
+    apkMobilityUtil.trigger(options.endPoint, options.teamName, options.projectName
+      );
 });
 
 //--- Connectivity check
