@@ -12,6 +12,9 @@ var apkMobilityUtil = require('./utils/getApk.cjs');
 var appDeleteUtil = require('./utils/appDelete.cjs');
 var globalVarComponentUtil = require('./utils/globalVarComponent.cjs');
 var connCheck = require('./utils/conn.cjs');
+var roverUtil = require('./utils/rover.cjs');
+var appUploadRoverUtil = require('./utils/appUploadRover.cjs');
+var appDeleteRoverUtil = require('./utils/appDeleteRover.cjs');
 
 const program = new Command();
 
@@ -250,6 +253,52 @@ program.command('get-apk-component')
   .action((options) => {
     apkMobilityUtil.trigger(options.endPoint, options.teamName, options.projectName
       );
+});
+
+program.command('rover')
+  .description('helps you trigger mobility tests on the platform')
+  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
+  .option('-u, --username <string>', 'Qyrus admin provided email')
+  .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
+  .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
+  .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
+  .option('--appName <string>', 'Specify your android app name.')
+  .option('--deviceId <string>', 'Specify your device Id which you created on Qyrus.')
+  .option('--deviceName <string>', 'Specify your device name which you created on Qyrus.')
+  .option('--dataListId <string>', 'Specify the data list Id.')
+  .option('--explorationName <string>', 'Enter the exploration name which you are going to create.')
+  .option('--enableDebug <string>', 'Prints additional debug information if this option is enabled. eg: yes/no')
+  .action((options) => {
+    roverUtil.trigger(options.endPoint, options.username, options.passcode,
+      options.teamName, options.projectName, options.appName, options.deviceId, options.deviceName, options.dataListId, options.explorationName,options.enableDebug
+    );
+});
+
+program.command('upload-app-rover')
+  .description('helps you upload apps iOS/android to component service')
+  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
+  .option('-u, --username <string>', 'Qyrus admin provided email')
+  .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
+  .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
+  .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
+  .option('--appPath <string>', 'Specify the app path.')
+  .option('--appType <string>', 'Specify the app type.')
+  .action((options) => {
+    appUploadRoverUtil.trigger(options.endPoint, options.username, options.passcode, 
+        options.teamName, options.projectName, options.appPath, options.appType);
+});
+
+program.command('delete-app-rover')
+  .description('helps you delete apps iOS/android to component service')
+  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
+  .option('-u, --username <string>', 'Qyrus admin provided email')
+  .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
+  .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
+  .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
+  .option('--appName <string>', 'Existing app name eg: Demo.apk/Demo.ipa')
+  .action((options) => {
+    appDeleteRoverUtil.trigger(options.endPoint, options.username, options.passcode, 
+        options.teamName, options.projectName, options.appName);
 });
 
 //--- Connectivity check
