@@ -8,7 +8,8 @@ var globalVarUtil = require('./utils/globalVar.cjs');
 var globalVarMobilityUtil = require('./utils/globalVarMobility.cjs');
 var appUploadMobilityUtil = require('./utils/appUpload.cjs');
 var appCountMobilityUtil = require('./utils/appCount.cjs');
-var apkMobilityUtil = require('./utils/getApk.cjs');
+var apkMobilityUtil = require('./utils/getApkMobility.cjs');
+var apkComponentUtil= require('./utils/getApkComponent.cjs');
 var appDeleteUtil = require('./utils/appDelete.cjs');
 var globalVarComponentUtil = require('./utils/globalVarComponent.cjs');
 var connCheck = require('./utils/conn.cjs');
@@ -143,7 +144,7 @@ program.command('get-apk-count-mobility')
 });
 
 program.command('get-apk-mobility')
-  .description('helps you to get uploaded app names from mobility services for iOS & Android based projects')
+  .description('helps you to get uploaded app names from mobility services for iOS/android to mobility service')
   .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
@@ -245,14 +246,13 @@ program.command('get-apk-count-component')
 });
 
 program.command('get-apk-component')
-  .description('helps you to get uploaded app names from component services for iOS & Android based projects')
+  .description('helps you to get uploaded app names from component services for iOS/android to mobility service')
   .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
   .option('-u, --username <string>', 'Qyrus admin provided email')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .action((options) => {
-    apkMobilityUtil.trigger(options.endPoint, options.teamName, options.projectName
-      );
+    apkComponentUtil.trigger(options.endPoint, options.username, options.teamName, options.projectName);
 });
 
 program.command('rover')
