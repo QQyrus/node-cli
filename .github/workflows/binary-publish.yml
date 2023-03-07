@@ -1,13 +1,14 @@
 name: Publish binaries
 
 on:
-  push:
-    # branches: [master,develop]
-    tags:
+  pull_request:
+    branches:
       - 'v*.*.*'
+    types: [closed]
 
 jobs:
   build:
+    if: github.event.pull_request.merged == true
     name: Publish node cli binaries
     runs-on: ubuntu-latest
 
