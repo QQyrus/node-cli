@@ -212,6 +212,18 @@ Options:
 
 //trigger test component
 // ./index.cjs component --endPoint http://localhost:8087 --username demo@domain.com --passcode ******** --teamName "CTC - STG Common Area" --projectName CliTest --componentWeb true --componentMobility true --appName qyrus_training.apk --appActivity "com.quinnox.qyrus_training.SplashScreen" --devicePoolName samsung --deviceName "Galaxy A32" --testName DemoTest --browser chrome --browserOS windows
+
+//To get Apk Component
+// ./index.cjs get-apk-component --endPoint http://localhost:8087 --username "demo@domain.com" --teamName "example" --projectName "example"
+
+//To get Apk mobility
+// ./index.cjs get-apk-mobility --endPoint http://localhost:8081 --teamName "test" --projectName "test"
+
+//To get App Count Component
+// ./index.cjs get-apk-count-component --endPoint http://localhost:8087 --username "demo@domain.com" --passcode "*******" --teamName "test" --projectName "test"
+
+//To get App Count Mobility
+// ./index.cjs get-apk-count-mobility --endPoint http://localhost:8081 --username "demo@domain.com" --passcode "******" --teamName "test" --projectName "Test"
 ```
 
 ## To install binary by using the script
