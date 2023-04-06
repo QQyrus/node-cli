@@ -203,6 +203,65 @@ Options:
   --explorationName <string>     Specify your explorationName which you want to create on Qyrus
   -h, --help                     display help for command
 ```
+```shell
+  
+./index.cjs help apiFunctional trigger
+Usage: qyrus-cli apiFunctional trigger [options]
+
+helps you trigger apiFunctional service
+
+Options:
+  --endPoint <string>       Qyrus endpoint provided by Qyrus admin
+  -u, --username <string>   Qyrus admin provided email
+  -p, --passcode <string>   Qyrus admin provided passcode in base64 format
+  --teamName <string>       Team name you can find by logging into Qyrus app.
+  --projectName <string>    Project name you can find by logging into Qyrus app.
+  --testSuiteName <string>   Enter testSuite name created under project
+  --testScriptName <string>   Enter testScript Name
+  --emailId <string>          (optional) email id to which the reports need to be sent post execution
+  -h, --help                display help for command
+```
+```shell
+
+./index.cjs help apiPerformance trigger
+Usage: qyrus-cli apiPerformance trigger [options]
+
+helps you trigger apiPerformance service
+
+Options:
+  --endPoint <string>           Qyrus endpoint provided by Qyrus admin
+  -u, --username <string>       Qyrus admin provided email
+  -p, --passcode <string>       Qyrus admin provided passcode in base64 format
+  --teamName <string>           Team name you can find by logging into Qyrus app.
+  --projectName <string>        Project name you can find by logging into Qyrus app.
+  --testSuiteName <string>      Enter testSuite name created under project
+  --testScriptName <string>     Enter testScript Name
+  --thread <long>               Enter thread value
+  --latencyThreshold <long>     Enter latencyThreshold value 
+  --emailId <string>            (optional) email id to which the reports need to be sent post execution
+  -h, --help                    display help for command
+```
+```shell
+
+./index.cjs help apiProcess trigger
+Usage: qyrus-cli apiProcess trigger [options]
+
+helps you trigger apiProcess service
+
+Options:
+  --endPoint <string>           Qyrus endpoint provided by Qyrus admin
+  -u, --username <string>       Qyrus admin provided email
+  -p, --passcode <string>       Qyrus admin provided passcode in base64 format
+  --teamName <string>           Team name you can find by logging into Qyrus app.
+  --projectName <string>        Project name you can find by logging into Qyrus app.
+  --testSuiteName <string>      Enter testSuite name created under project
+  --testScriptName <string>     Enter testScript Name
+  --emailId <string>            (optional) email id to which the reports need to be sent post execution
+  -h, --help                    display help for command
+```
+```shell
+
+```
 
 ## Samples
 ```shell
@@ -247,6 +306,15 @@ Options:
 
 //trigger test Rover
 // ./index.cjs rover --endPoint http://localhost:8097 --username "demo@domain.com" --passcode "*********" --teamName "test" --projectName "test" --appName "test.apk" --deviceId "985b208e" --deviceName "Oneplus 9 5G" --dataListId " " --explorationName "Example apps222"
+
+//trigger test apiFunctional
+//./index.cjs apiFunctional --endPoint http://localhost:8094 --username "bhavanar@quinnox.com" --passcode "******" --teamName "Qyrus Walkthrough - New" --projectName "Test" --testSuiteName "test" --testScriptName "get all teams"--emailId "bhavanar@quinnox.com" --enableDebug yes                          
+
+//trigger test apiPerformance
+//./index.cjs apiPerformance --endPoint http://localhost:8095 --username "bhavanar@quinnox.com" --passcode "*******" --teamName "Qyrus Walkthrough - New" --projectName "test" --testSuiteName "test" --testScriptName "Get a example product"--thread 1 --latencyThreshold 1 --emailId "bhavanar@quinnox.com " --enableDebug yes
+
+//trigger test apiProcess
+//./index.cjs apiProcess --endPoint http://localhost:8096 --username "bhavanar@quinnox.com" --passcode "********" --teamName "Qyrus Walkthrough - New" --projectName "test" --testSuiteName "jh" --testScriptName "_example_user_login"--emailId "bhavanar@quinnox.com " --enableDebug yes
 ```
 
 ## To install binary by using the script
