@@ -184,6 +184,26 @@ Options:
   -h, --help                     display help for command
 ```
 
+```shell
+./index.cjs help rover
+Usage: qyrus-cli rover [options]
+
+helps you trigger rover tests on the platform
+
+Options:
+  --endPoint <string>            Qyrus endpoint provided by Qyrus admin
+  -u, --username <string>        Qyrus admin provided email
+  -p, --passcode <string>        Qyrus admin provided passcode in base64 format
+  --teamName <string>            Team name you can find by logging into Qyrus app.
+  --projectName <string>         Project name you can find by logging into Qyrus app.
+  --appName <string>             Enter android app name
+  --deviceId <string>            Specify your device Id which belongs to a pool
+  --deviceName <string>          Specify your device name which belongs to a pool
+  --dataListId <string>          Specify your dataListId
+  --explorationName <string>     Specify your explorationName which you want to create on Qyrus
+  -h, --help                     display help for command
+```
+
 ## Samples
 ```shell
 //To trigger test
@@ -224,6 +244,9 @@ Options:
 
 //To get App Count Mobility
 // ./index.cjs get-apk-count-mobility --endPoint http://localhost:8081 --username "demo@domain.com" --passcode "******" --teamName "test" --projectName "Test"
+
+//trigger test Rover
+// ./index.cjs rover --endPoint http://localhost:8097 --username "demo@domain.com" --passcode "*********" --teamName "test" --projectName "test" --appName "test.apk" --deviceId "985b208e" --deviceName "Oneplus 9 5G" --dataListId " " --explorationName "Example apps222"
 ```
 
 ## To install binary by using the script
