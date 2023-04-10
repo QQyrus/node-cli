@@ -14,6 +14,9 @@ var appDeleteUtil = require('./utils/appDelete.cjs');
 var globalVarComponentUtil = require('./utils/globalVarComponent.cjs');
 var connCheck = require('./utils/conn.cjs');
 var roverUtil = require('./utils/rover.cjs');
+var apiFunctionalUtil = require('./utils/apiFunctional.cjs');
+var apiProcessUtil = require('./utils/apiProcess.cjs');
+var apiPerformanceUtil = require('./utils/apiPerformance.cjs');
 
 const program = new Command();
 
@@ -254,7 +257,7 @@ program.command('get-apk-component')
   .action((options) => {
     apkComponentUtil.trigger(options.endPoint, options.username, options.teamName, options.projectName);
 });
-
+// Rover Commands
 program.command('rover')
   .description('helps you trigger mobility tests on the platform')
   .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
@@ -301,6 +304,61 @@ program.command('delete-app-rover')
     var execCmd = 'rover';
     appDeleteUtil.trigger(options.endPoint, options.username, options.passcode, 
         options.teamName, options.projectName, options.appName,execCmd);
+});
+//ApiFunctional Commands
+program.command('apiFunctional')
+  .description('helps you trigger apiFunctional tests on the platform')
+  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
+  .option('-u, --username <string>', 'Qyrus admin provided email')
+  .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
+  .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
+  .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
+  .option('--testSuiteName <string>', 'Specify your SuiteName name.')
+  .option('--testScriptName <string>', 'Specify your testScript name.')
+  .option('--emailId <string>', '(optional) email id to which the reports need to be sent post execution')
+  .option('--enableDebug <string>', 'Prints additional debug information if this option is enabled. eg: yes/no')
+  .action((options) => {
+    apiFunctionalUtil.trigger(options.endPoint, options.username, options.passcode,
+      options.teamName, options.projectName, options.testSuiteName, options.testScriptName,options.emailId, options.enableDebug
+    );
+});
+
+//ApiProcess Commands
+program.command('apiProcess')
+  .description('helps you trigger apiFunctional tests on the platform')
+  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
+  .option('-u, --username <string>', 'Qyrus admin provided email')
+  .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
+  .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
+  .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
+  .option('--testSuiteName <string>', 'Specify your SuiteName name.')
+  .option('--testScriptName <string>', 'Specify your testScript name.')
+  .option('--emailId <string>', '(optional) email id to which the reports need to be sent post execution')
+  .option('--enableDebug <string>', 'Prints additional debug information if this option is enabled. eg: yes/no')
+  .action((options) => {
+    apiProcessUtil.trigger(options.endPoint, options.username, options.passcode,
+      options.teamName, options.projectName, options.testSuiteName, options.testScriptName,options.emailId, options.enableDebug
+    );
+});
+
+//ApiPerformance Commands
+program.command('apiPerformance')
+  .description('helps you trigger apiFunctional tests on the platform')
+  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
+  .option('-u, --username <string>', 'Qyrus admin provided email')
+  .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
+  .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
+  .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
+  .option('--testSuiteName <string>', 'Specify your SuiteName name.')
+  .option('--testScriptName <string>', 'Specify your testScript name.')
+  .option('--thread <long>', 'Specify your thread.')
+  .option('--latencyThreshold <long>', 'Specify your latencyThreshold value.')
+  .option('--emailId <string>', '(optional) email id to which the reports need to be sent post execution')
+  .option('--enableDebug <string>', 'Prints additional debug information if this option is enabled. eg: yes/no')
+  .action((options) => {
+    apiPerformanceUtil.trigger(options.endPoint, options.username, options.passcode,
+      options.teamName, options.projectName, options.testSuiteName, options.testScriptName, options.thread, options.latencyThreshold,options.emailId, options.enableDebug
+    );
 });
 
 //--- Connectivity check
