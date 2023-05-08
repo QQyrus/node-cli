@@ -18,8 +18,8 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
 
     // testing parameters
     if ( qyrus_username == null || qyrus_password == null || gatewayUrl == null ) {
-        console.log('ERROR : One or more parameters are invalid');
-        process.exitCode = 1;
+        console.error('ERROR : One or more parameters are invalid');
+        process.exit(1);
     }
 
     if ( app_activity == null ) {
@@ -64,7 +64,8 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        rejectUnauthorized: false
     }
     let testObject = {
         "userName": qyrus_username,
@@ -84,7 +85,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
 
     var reqPost = https.request ( apiCallConfig, function(response) {
         if (response.statusCode != 200) {
-            console.log("Failed to run test, Try again.");
+            console.error("Failed to run test, Try again.");
             process.exitCode = 1;
             return;
         }
@@ -116,7 +117,8 @@ function checkExecStatus (host_name, port, testRunResponseBody, qyrus_suite_name
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        rejectUnauthorized: false
     }
     var reqPost = https.request(apiCallConfig, function(response) {
         if(response.statusCode!=200){
@@ -156,7 +158,8 @@ function completedTest (host_name, port, execStatusResponse, qyrus_suite_name, e
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        rejectUnauthorized: false
     }
     var reqPost = https.request(apiCallConfig, function(response) {
         if(response.statusCode!=200){
@@ -176,7 +179,8 @@ function completedTest (host_name, port, execStatusResponse, qyrus_suite_name, e
                 console.log('\x1b[34m%s\x1b[0m',parsedJson.report);
                 process.exitCode = 0;
                 return;
-            } else {
+            } 
+            else {
                 console.log('\x1b[31m%s\x1b[0m','Execution of test suite ',qyrus_suite_name,' is now complete!');
                 console.log('\x1b[31m%s\x1b[0m',"Test Failed! Click on the below link to download the run report");
                 console.log(parsedJson.report);
@@ -186,7 +190,7 @@ function completedTest (host_name, port, execStatusResponse, qyrus_suite_name, e
         });
     });
     reqPost.on('error', function(error) {
-        console.log("Error in checking the execution status : "+error);
+        console.error("Error in checking the execution status : "+error);
         process.exitCode = 1;
         return;
     });
