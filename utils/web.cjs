@@ -7,7 +7,7 @@ let count1 = 0;
 let oldSet = new Set();
 let newSet = new Set();
 let array3 =[];
-let baseContext = '/cli-adapter-webrepository/v1';
+let baseContext = '/cli-adapter-web-repository/v1';
 
 const trigger = function(endpoint, username, passcode, teamName, 
     projectName, testSuiteName, operatingSystem, 
@@ -30,7 +30,7 @@ const trigger = function(endpoint, username, passcode, teamName,
         headers: {
             'Content-Type': 'application/json'
         },
-        rejectUnauthorized: false
+        //rejectUnauthorized: false
     };
 
     //construct URL details to check execution status 
@@ -42,7 +42,7 @@ const trigger = function(endpoint, username, passcode, teamName,
         headers: {
             'Content-Type': 'application/json'
         },
-        rejectUnauthorized: false
+        //rejectUnauthorized: false
     };
 
     // construct URL details to check final exec result 
@@ -54,7 +54,7 @@ const trigger = function(endpoint, username, passcode, teamName,
         headers: {
             'Content-Type': 'application/json'
         },
-        rejectUnauthorized: false
+        //rejectUnauthorized: false
     };
 
     //get script result status 
@@ -66,7 +66,7 @@ const trigger = function(endpoint, username, passcode, teamName,
         headers: {
             'Content-Type': 'application/json'
         },
-        rejectUnauthorized: false
+        //rejectUnauthorized: false
     };
 
     //construct body for rest call
@@ -84,7 +84,6 @@ const trigger = function(endpoint, username, passcode, teamName,
     
     //http request to trigger the test
     var reqPost = https.request(optionspost, function(res) {
-        console.log(res.statusCode)
         //If the response from the request is not 200 then fail the pipeline 
         if(res.statusCode!=200) {
             console.log('Failed to run test, Try again.');
