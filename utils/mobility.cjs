@@ -65,7 +65,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
         headers: {
             'Content-Type': 'application/json'
         },
-        rejectUnauthorized: false
+        //rejectUnauthorized: false
     }
     let testObject = {
         "userName": qyrus_username,
@@ -118,7 +118,7 @@ function checkExecStatus (host_name, port, testRunResponseBody, qyrus_suite_name
         headers: {
             'Content-Type': 'application/json'
         },
-        rejectUnauthorized: false
+        //rejectUnauthorized: false
     }
     var reqPost = https.request(apiCallConfig, function(response) {
         if(response.statusCode!=200){
@@ -159,7 +159,7 @@ function completedTest (host_name, port, execStatusResponse, qyrus_suite_name, e
         headers: {
             'Content-Type': 'application/json'
         },
-        rejectUnauthorized: false
+        //rejectUnauthorized: false
     }
     var reqPost = https.request(apiCallConfig, function(response) {
         if(response.statusCode!=200){
@@ -179,8 +179,7 @@ function completedTest (host_name, port, execStatusResponse, qyrus_suite_name, e
                 console.log('\x1b[34m%s\x1b[0m',parsedJson.report);
                 process.exitCode = 0;
                 return;
-            } 
-            else {
+            }else {
                 console.log('\x1b[31m%s\x1b[0m','Execution of test suite ',qyrus_suite_name,' is now complete!');
                 console.log('\x1b[31m%s\x1b[0m',"Test Failed! Click on the below link to download the run report");
                 console.log(parsedJson.report);

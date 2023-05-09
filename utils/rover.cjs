@@ -24,7 +24,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
         headers: {
             'Content-Type': 'application/json'
         },
-        rejectUnauthorized: false
+        //rejectUnauthorized: false
     }
     let execStatus = {
         host: host_name,
@@ -34,7 +34,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
         headers: {
             'Content-Type': 'application/json'
         },
-        rejectUnauthorized: false
+        //rejectUnauthorized: false
     }
     // testing parameters
     if ( qyrus_username == null || qyrus_password == null || gatewayUrl == null ||
