@@ -9,7 +9,6 @@ const { exec } = require("child_process");
 let baseContext = '/cli-adapter-component/v1';
 let triggerTestResponseBody = '';
 let execStatusResponseBody = '';
-//let baseContext = '';
 let runIds = [];
 
 const trigger = async function(endpoint, username, passcode, teamName, project, 
@@ -28,8 +27,7 @@ const trigger = async function(endpoint, username, passcode, teamName, project,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        },
-        //rejectUnauthorized: false
+        }
     };
 
     var finalResult = {
@@ -39,8 +37,7 @@ const trigger = async function(endpoint, username, passcode, teamName, project,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        },
-        //rejectUnauthorized: false
+        }
     };
 
     /* construct URL details for rest */
@@ -51,8 +48,7 @@ const trigger = async function(endpoint, username, passcode, teamName, project,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        },
-        //rejectUnauthorized: false
+        }
     };
 
     //iteration on testNames
@@ -138,8 +134,7 @@ function triggerTest (endpoint, username, passcode, teamName, project,
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            },
-            //rejectUnauthorized: false  
+            } 
         };
          
         /* construct body for rest call */
@@ -170,7 +165,6 @@ function triggerTest (endpoint, username, passcode, teamName, project,
                 return;
             }
             console.log('Triggered the test ', testName,' Successfully!');
-            //let body = '';
             res.on('data', chunk => {
                 triggerTestResponseBody += chunk.toString(); // convert Buffer to string
             });
@@ -178,7 +172,6 @@ function triggerTest (endpoint, username, passcode, teamName, project,
                 console.log('Execution of test ', testName,' is in progress.');
                 resolve();
                 return;
-                //checkExecStatus(execStatus,body,testName,finalResult,emailId);
             });
             
         });
