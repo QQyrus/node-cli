@@ -96,7 +96,6 @@ const trigger = function(endpoint, username, passcode, teamName,
             let varId2 = varId1[3]
             let jsonObject = { "runId" : varId2 , "token" : varObject.token }
             finalbody = JSON.stringify(jsonObject)
-            //console.log('Triggered the TestSuite Response Object : ', finalbody);     
         });
         res.on('end', () => {
             console.log('Execution of TestSuite ', testSuiteName,' is in Progress...');

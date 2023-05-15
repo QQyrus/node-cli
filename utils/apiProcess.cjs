@@ -6,7 +6,7 @@ const path = require('path')
 const url = require('url')
 const { exec } = require("child_process");
 
-let baseContext = '/cli-adapter-api-testing/v1';
+let baseContext = '/cli-adapter-api-process/v1';
 
 const trigger = function(gatewayUrl, username, password, team_name, project_name, testSuiteName, testScriptName, emailId, enable_debug) {
     
@@ -69,6 +69,7 @@ const trigger = function(gatewayUrl, username, password, team_name, project_name
         headers: {
             'Content-Type': 'application/json'
         }
+
     }
     let testObject = {
         "userName": username,
@@ -149,7 +150,7 @@ function checkExecStatus (host_name, port, testRunResponseBody, testSuiteName, e
 //run the below method if the test status is completed.
 function completedTest (host_name, port, execStatusResponse, testSuiteName, emailId) {
     
-    const URI = baseContext+'checkExecutionResult?emailId='+emailId; 
+    const URI = baseContext+'/checkExecutionResult?emailId='+emailId; 
     const encodedURI = encodeURI(URI);
     let apiCallConfig = {
         host: host_name,

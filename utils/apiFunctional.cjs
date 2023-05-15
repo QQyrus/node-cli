@@ -5,8 +5,9 @@ const request = require('request')
 const path = require('path')
 const url = require('url')
 const { exec } = require("child_process");
+const { log } = require('console');
 
-let baseContext = '/cli-adapter-api-testing/v1';
+let baseContext = '/cli-adapter-api-functional/v1';
 
 const trigger = function(gatewayUrl, username, password, team_name, project_name, testSuiteName, testScriptName, emailId, enable_debug) {
     
@@ -78,7 +79,6 @@ const trigger = function(gatewayUrl, username, password, team_name, project_name
         "testSuiteName": testSuiteName,
         "testScriptName": testScriptName
     }
-
     console.log('\x1b[32m%s\x1b[0m',"Getting your environment ready, your test will start running soon.");
 
     var reqPost = https.request ( apiCallConfig, function(response) {
@@ -108,6 +108,7 @@ const trigger = function(gatewayUrl, username, password, team_name, project_name
 
 //method to check the execution status
 function checkExecStatus (host_name, port, testRunResponseBody, testSuiteName, emailId) {
+    //console.log(host_name, port, testRunResponseBody, testSuiteName, emailId);
     let apiCallConfig = {
         host: host_name,
         port: port,
@@ -118,6 +119,7 @@ function checkExecStatus (host_name, port, testRunResponseBody, testSuiteName, e
         }
     }
     var reqPost = https.request(apiCallConfig, function(response) {
+        console.log(response.statusCode)
         if(response.statusCode!=200){
             console.log('Failed to run check execution status fully, Try again.');
             process.exitCode = 1;
@@ -129,6 +131,7 @@ function checkExecStatus (host_name, port, testRunResponseBody, testSuiteName, e
         });
         response.on('end', () => {   
             if(responseBody.trim() === "COMPLETED"){
+                console.log(responseBody);
                 completedTest(host_name, port, testRunResponseBody, testSuiteName, emailId);
                 return;
             }
@@ -148,8 +151,7 @@ function checkExecStatus (host_name, port, testRunResponseBody, testSuiteName, e
 
 //run the below method if the test status is completed.
 function completedTest (host_name, port, execStatusResponse, testSuiteName, emailId) {
-    
-    const URI = baseContext+'checkExecutionResult?emailId='+emailId; 
+    const URI = baseContext+'/checkExecutionResult?emailId='+emailId; 
     const encodedURI = encodeURI(URI);
     let apiCallConfig = {
         host: host_name,

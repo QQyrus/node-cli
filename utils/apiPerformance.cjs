@@ -6,7 +6,7 @@ const path = require('path')
 const url = require('url')
 const { exec } = require("child_process");
 
-let baseContext = '/cli-adapter-api-testing/v1';
+let baseContext = '/cli-adapter-api-performance/v1';
 
 const trigger = function(gatewayUrl, username, password, team_name, project_name, testSuiteName, testScriptName, thread, latencyThreshold, emailId, enable_debug) {
     
@@ -175,6 +175,7 @@ function completedTest (host_name, port, execStatusResponse, testSuiteName, emai
             'Content-Type': 'application/json'
         }
     }
+    
     var reqPost = https.request(apiCallConfig, function(response){
         if(response.statusCode!=200){
             console.log('Failed to run test, Try again.');
