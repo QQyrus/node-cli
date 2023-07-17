@@ -11,7 +11,8 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password, qyrus_team_
         'method': 'GET',
         'url': gatewayUrl+contextPath+'/get-apk-count?username='+qyrus_username+'&password='+qyrus_password+'&teamName='+qyrus_team_name+'&projectName='+qyrus_project_name,
         'headers': {
-        }
+        },
+        rejectUnauthorized: false
     };
     request(options, function (error, response) {
         if (error) {

@@ -10,7 +10,8 @@ const trigger = function(gatewayUrl, qyrus_team_name, qyrus_project_name, execCm
         'url': gatewayUrl+contextPath+'/getapk?teamName='+qyrus_team_name+'&projectName='+qyrus_project_name,
         'headers': {
             
-        }
+        },
+        rejectUnauthorized: false
     };
     request(options, function (error, response) {
         if (response.statusCode !=200) {

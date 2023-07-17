@@ -26,6 +26,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
                     appType: appType
                     
                 },
+                rejectUnauthorized: false
             },
                 function(error,response) {
                     returnStatus(error,response,appPath);
@@ -39,8 +40,9 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
                     password: qyrus_password,
                     teamName: qyrus_team_name,
                     projectName: qyrus_project_name.trim()
-                    
+
                 },
+                rejectUnauthorized: false
             },
                 function(error,response) {
                     returnStatus(error,response,appPath);

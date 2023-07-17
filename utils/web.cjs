@@ -1,5 +1,5 @@
 var url = require('url');
-var https = require('https');
+var https = require('http');
 var http = require('http');
 var delay = require('q');
 
@@ -7,7 +7,7 @@ let count1 = 0;
 let oldSet = new Set();
 let newSet = new Set();
 let array3 =[];
-let baseContext = '/cli-adapter-web-repository/v1';
+let baseContext = '/';
 
 const trigger = function(endpoint, username, passcode, teamName, 
     projectName, testSuiteName, operatingSystem, 
@@ -29,7 +29,8 @@ const trigger = function(endpoint, username, passcode, teamName,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        rejectUnauthorized: false
     };
 
     //construct URL details to check execution status 
@@ -40,7 +41,8 @@ const trigger = function(endpoint, username, passcode, teamName,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        rejectUnauthorized: false
     };
 
     // construct URL details to check final exec result 
@@ -51,7 +53,8 @@ const trigger = function(endpoint, username, passcode, teamName,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        rejectUnauthorized: false
     };
 
     //get script result status 
@@ -62,7 +65,8 @@ const trigger = function(endpoint, username, passcode, teamName,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        rejectUnauthorized: false
     };
 
     //construct body for rest call
@@ -82,6 +86,7 @@ const trigger = function(endpoint, username, passcode, teamName,
     var reqPost = https.request(optionspost, function(res) {
         //If the response from the request is not 200 then fail the pipeline 
         if(res.statusCode!=200) {
+            console.log(res.statusCode)
             console.log('Failed to run test, Try again.');
             return;
         }
