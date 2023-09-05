@@ -26,7 +26,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
         "appPackage": appPackage,
         "bundleId": bundle_id,
         "envName": envName,
-        "useFirstAvailableDevice": firstAvailable && firstAvailable.toLowerCase() == 'yes'
+        "useFirstAvailableDevice": firstAvailable != null && firstAvailable.toLowerCase() == 'yes'
     }    
     
     if(fromFile != null)
@@ -43,18 +43,19 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
 
 
     var reqPost = https.request ( apiCallConfig, function(response) {
-        if (response.statusCode != 200) {
-            console.error("Failed to run test, Try again.");
-            process.exitCode = 1;
-            return;
-        }
-        console.log('\x1b[32m%s\x1b[0m','Triggered the test suite ', testObject.testSuiteName,' Successfully!');
         let responseBody = '';
         response.on('data', chunk => {
             responseBody += chunk.toString();
         });
         response.on('end', () => {
-            console.log('\x1b[32m%s\x1b[0m','Execution of test suite ', testObject.testSuiteName,' is in progress.');
+            if (response.statusCode != 200) {
+                // const message = JSON.parse(responseBody).message;
+                console.error(responseBody);
+                process.exitCode = 1;
+                return;
+            }
+            console.log('\x1b[32m%s\x1b[0m','Triggered the test suite', testObject.testSuiteName,'Successfully!');
+            // console.log('\x1b[32m%s\x1b[0m','Execution of test suite ', testObject.testSuiteName,' is in progress.');
             checkExecStatus(apiCallConfig.host, apiCallConfig.port, responseBody, testObject.testSuiteName, emailId);
         });
     });
@@ -111,17 +112,17 @@ function setTestObjectData(testObject, configuration) {
         testObject["envName"] = configuration.executionInfo.envName != null ? configuration.executionInfo.envName : ''
     let firstAvailable = testObject.firstAvailable;
     if(firstAvailable == null) {
-        firstAvailable = configuration.executionInfo.firstAvailableDevice.toString();
-        testObject["useFirstAvailableDevice"] = firstAvailable != null ? firstAvailable.toLowerCase() == 'yes' : false;   
+        firstAvailable = configuration.executionInfo.firstAvailableDevice
+        testObject["useFirstAvailableDevice"] = firstAvailable != null ? firstAvailable.toString().toLowerCase() == 'yes' : false;   
     }
     validateFirstAvailableDeviceValue(firstAvailable);
     return testObject;
 }
 
 function validateFirstAvailableDeviceValue(firstAvailable) {
-    const invalidValue = firstAvailable == null || firstAvailable.toLowerCase() != 'yes' || firstAvailable.toLowerCase() != 'no';
+    const invalidValue = firstAvailable == null || (firstAvailable.toLowerCase() != 'yes' && firstAvailable.toLowerCase() != 'no');
     if(invalidValue) {
-        console.error('ERROR : Invalid value for first available device');
+        console.error('ERROR : Invalid value for first available device:', firstAvailable);
         process.exit(1);
     }
 }
@@ -166,7 +167,7 @@ function printDebugInformation(enableDebug,testObject, apiCallConfig) {
         console.log('Device Pool Name :' ,testObject.devicePoolName);
         console.log('Host Name :', apiCallConfig.host);
         console.log('Port :',apiCallConfig.port);
-        console.log('First available device: ', testObject.firstAvailableDevice);
+        console.log('First available device: ', testObject.useFirstAvailableDevice);
     }
 }
 
@@ -182,21 +183,22 @@ function checkExecStatus (host_name, port, testRunResponseBody, qyrus_suite_name
         }
     }
     var reqPost = https.request(apiCallConfig, function(response) {
-        if(response.statusCode!=200){
-            console.log('Failed to run check execution status fully, Try again.');
-            process.exitCode = 1;
-            return;
-        }
         let responseBody = '';
         response.on('data', chunk => {
             responseBody += chunk.toString(); // convert Buffer to string
         });
         response.on('end', () => {   
-            if(responseBody.trim() === "COMPLETED"){
+            if(response.statusCode!=200){
+                console.log(responseBody);
+                process.exitCode = 1;
+                return;
+            }
+            if(responseBody.trim().toUpperCase() === "COMPLETED"){
                 completedTest(host_name, port, testRunResponseBody, qyrus_suite_name, emailId);
                 return;
             }
             else {
+                console.log('Current execution status:', responseBody);
                 setTimeout(() => {  checkExecStatus(host_name, port, testRunResponseBody, qyrus_suite_name, emailId); }, 30000);
             }
         });

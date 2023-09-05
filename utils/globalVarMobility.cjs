@@ -71,7 +71,7 @@ const trigger = function(endpoint, username, passcode, teamName,
             body += chunk.toString(); // convert Buffer to strin
         });
         res.on('end', () => {
-            console.log("update to variable - "+varName+" - is successfull!");
+            console.log("update to variable -", triggerObject.varName, "- is successfull!");
         });
      });
      reqPost.on('error', function(err) {
