@@ -80,13 +80,13 @@ program.command('mobility')
   .option('--bundleId <string>', 'Enter iOS app bundleId which will be in the form of com.example.splash_screen (Optional, during android runs)')
   .option('--emailId <string>', '(optional) email id to which the reports need to be sent post execution')
   .option('--envName <string>', 'environment name to run the tests with. (Optional if its Global)')
-  .option('--firstAvailable <string>', 'use first vailable device')
+  .option('--firstAvailableDevice <string>', 'use first available device')
   .option('--file <string>', 'calls something for fun right now' )
   .action((options) => {
     mobilityUtil.trigger(options.endPoint, options.username, options.passcode,
       options.teamName, options.projectName, options.suiteName, 
       options.appName, options.appActivity, options.devicePoolName,
-      options.enableDebug, options.bundleId, options.emailId, options.appPackage, options.envName, options.firstAvailable, options.file);
+      options.enableDebug, options.bundleId, options.emailId, options.appPackage, options.envName, options.firstAvailableDevice, options.file);
 });
 
 program.command('update-mobility-variables')

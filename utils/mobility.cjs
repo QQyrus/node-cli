@@ -26,18 +26,18 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
         "appPackage": appPackage,
         "bundleId": bundle_id,
         "envName": envName,
-        "useFirstAvailableDevice": firstAvailable
+        "useFirstAvailableDevice": firstAvailable && firstAvailable.toLowerCase() == 'yes'
     }    
     
     if(fromFile != null)
         configuration = getFileResults(fromFile)               
-    testObject = setTestObjectData(testObject,configuration)
+    testObject = setTestObjectData(testObject,configuration);
     gatewayUrl = gatewayUrl != null ? gatewayUrl : configuration.configuration.endpoint
     validateConfigurationInfo(testObject.userName, testObject.encodedPassword,gatewayUrl);
-
+    
     let apiCallConfig = buildAPICallConfiguration(gatewayUrl)
     enableDebug = enable_debug != null ? enable_debug : configuration.executionInfo.enableDebug
-    printDebugInformation(enable_debug, testObject, apiCallConfig)    
+    printDebugInformation(enableDebug, testObject, apiCallConfig)    
 
     console.log('\x1b[32m%s\x1b[0m',"Getting your environment ready, your test will start running soon.");
 
@@ -48,14 +48,14 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
             process.exitCode = 1;
             return;
         }
-        console.log('\x1b[32m%s\x1b[0m','Triggerd the test suite ', qyrus_suite_name,' Successfully!');
+        console.log('\x1b[32m%s\x1b[0m','Triggered the test suite ', testObject.testSuiteName,' Successfully!');
         let responseBody = '';
         response.on('data', chunk => {
             responseBody += chunk.toString();
         });
         response.on('end', () => {
-            console.log('\x1b[32m%s\x1b[0m','Execution of test suite ', qyrus_suite_name,' is in progress.');
-            checkExecStatus(host_name, port, responseBody, qyrus_suite_name, emailId);
+            console.log('\x1b[32m%s\x1b[0m','Execution of test suite ', testObject.testSuiteName,' is in progress.');
+            checkExecStatus(apiCallConfig.host, apiCallConfig.port, responseBody, testObject.testSuiteName, emailId);
         });
     });
     reqPost.on('error', function(error) {
@@ -109,9 +109,21 @@ function setTestObjectData(testObject, configuration) {
         testObject["bundleId"] = configuration.appInfo.bundleId != null ? configuration.appInfo.bundleId : ''
     if(testObject.envName == null)
         testObject["envName"] = configuration.executionInfo.envName != null ? configuration.executionInfo.envName : ''
-    if(testObject.firstAvailable == null)
-        testObject["useFirstAvailableDevice"] = configuration.executionInfo.firstAvailableDevice != null ? configuration.executionInfo.firstAvailableDevice : false      
-    return testObject
+    let firstAvailable = testObject.firstAvailable;
+    if(firstAvailable == null) {
+        firstAvailable = configuration.executionInfo.firstAvailableDevice.toString();
+        testObject["useFirstAvailableDevice"] = firstAvailable != null ? firstAvailable.toLowerCase() == 'yes' : false;   
+    }
+    validateFirstAvailableDeviceValue(firstAvailable);
+    return testObject;
+}
+
+function validateFirstAvailableDeviceValue(firstAvailable) {
+    const invalidValue = firstAvailable == null || firstAvailable.toLowerCase() != 'yes' || firstAvailable.toLowerCase() != 'no';
+    if(invalidValue) {
+        console.error('ERROR : Invalid value for first available device');
+        process.exit(1);
+    }
 }
 
 function validateConfigurationInfo  (username,password,URL)
@@ -143,17 +155,18 @@ function buildAPICallConfiguration(gatewayUrl) {
 function printDebugInformation(enableDebug,testObject, apiCallConfig) {
     if ( enableDebug == 'yes' ) {
         console.log('******* QYRUS Cloud - INPUT PARAMETERS *******');
-        console.log('App Name :',testObject.appName);
+        console.log('App Name :',testObject.appFileName);
         console.log('Username :',testObject.userName);
         console.log('Password :',testObject.encodedPassword);
         console.log('Team Name :',testObject.teamName);
         console.log('Project Name :',testObject.projectName);
-        console.log('Suite Name :',testObject.suiteName);
+        console.log('Suite Name :',testObject.testSuiteName);
         console.log('App Activity :',testObject.appActivity);
         console.log('Bundle ID :',testObject.bundleId);
         console.log('Device Pool Name :' ,testObject.devicePoolName);
         console.log('Host Name :', apiCallConfig.host);
         console.log('Port :',apiCallConfig.port);
+        console.log('First available device: ', testObject.firstAvailableDevice);
     }
 }
 
