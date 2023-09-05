@@ -100,10 +100,11 @@ program.command('update-mobility-variables')
   .option('--variableType <string>', 'Existing variable type eg: Custom, BaseURL, Password.')
   .option('--variableValue <string>', 'Value to update the existing variable.')
   .option('--envName <string>', 'environment name to which the value needs to be updated. (Optional if its Global)')
+  .option('--file <string>', 'calls something for fun right now' )
   .action((options) => {
     globalVarMobilityUtil.trigger(options.endPoint, options.username, options.passcode, 
         options.teamName, options.projectName, options.variableName, 
-        options.variableType, options.variableValue, options.envName);
+        options.variableType, options.variableValue, options.envName, options.file);
 });
 
 program.command('upload-app-mobility')
