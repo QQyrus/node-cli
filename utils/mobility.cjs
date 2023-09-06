@@ -116,6 +116,7 @@ function setTestObjectData(testObject, configuration) {
         testObject["useFirstAvailableDevice"] = firstAvailable != null ? firstAvailable.toString().toLowerCase() == 'yes' : false;   
     }
     validateFirstAvailableDeviceValue(firstAvailable);
+    validateDevicePoolValue(testObject.useFirstAvailableDevice, testObject.devicePoolName);
     return testObject;
 }
 
@@ -123,6 +124,14 @@ function validateFirstAvailableDeviceValue(firstAvailable) {
     const invalidValue = firstAvailable == null || (firstAvailable.toLowerCase() != 'yes' && firstAvailable.toLowerCase() != 'no');
     if(invalidValue) {
         console.error('ERROR : Invalid value for first available device:', firstAvailable);
+        process.exit(1);
+    }
+}
+
+function validateDevicePoolValue(useFirstAvailableDevice, devicePoolName) {
+    const invalidValue = !useFirstAvailableDevice && (devicePoolName == null || devicePoolName == '');
+    if(invalidValue) {
+        console.error('ERROR : Device pool name is missing');
         process.exit(1);
     }
 }
@@ -167,7 +176,7 @@ function printDebugInformation(enableDebug,testObject, apiCallConfig) {
         console.log('Device Pool Name :' ,testObject.devicePoolName);
         console.log('Host Name :', apiCallConfig.host);
         console.log('Port :',apiCallConfig.port);
-        console.log('First available device: ', testObject.useFirstAvailableDevice);
+        console.log('First available device: ', testObject.useFirstAvailableDevice ? "yes" : "no");
     }
 }
 
