@@ -244,19 +244,25 @@ function completedTest (host_name, port, execStatusResponse, qyrus_suite_name, e
         });
         response.on('end', () => {
             var parsedJson = JSON.parse(responseBody);
+            let exitCode = 1;
             if (parsedJson.finalStatus === 'Pass' ) {
-                console.log('\x1b[32m%s\x1b[0m','Execution of test suite ',qyrus_suite_name,' is now complete!');
+                console.log('\x1b[32m%s\x1b[0m','Execution of test suite', qyrus_suite_name, 'is now complete!');
                 console.log('\x1b[32m%s\x1b[0m',"Test Passed! Click on the below link to download the run report");
                 console.log('\x1b[34m%s\x1b[0m',parsedJson.report);
-                process.exitCode = 0;
-                return;
-            }else {
-                console.log('\x1b[31m%s\x1b[0m','Execution of test suite ',qyrus_suite_name,' is now complete!');
-                console.log('\x1b[31m%s\x1b[0m',"Test Failed! Click on the below link to download the run report");
-                console.log(parsedJson.report);
-                process.exitCode = 1;
+                exitCode = 0;
                 return;
             }
+            else if(parsedJson.finalStatus === 'Error in Test') {
+                console.log('\x1b[31m%s\x1b[0m','Unable to execute test suite', qyrus_suite_name);
+                console.log('\x1b[31m%s\x1b[0m',"Cause of error:", parsedJson.errorMessage);
+            }
+            else {
+                console.log('\x1b[31m%s\x1b[0m','Execution of test suite', qyrus_suite_name, 'is now complete!');
+                console.log('\x1b[31m%s\x1b[0m',"Test Failed! Click on the below link to download the run report");
+                console.log(parsedJson.report);   
+            }
+            process.exitCode = exitCode;
+            return;
         });
     });
     reqPost.on('error', function(error) {
