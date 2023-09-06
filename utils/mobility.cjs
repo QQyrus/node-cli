@@ -70,7 +70,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
 }
 
 function getFileResults(fromFile) {
-    let fileInfo = fs.readFileSync(`../${fromFile}`, (err,file) => {
+    let fileInfo = fs.readFileSync(fromFile, (err,file) => {
         if (err) {
             console.error("There was an error while trying to read your file.  Check your file and filepath.")  
             process.exit(1)

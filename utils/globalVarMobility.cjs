@@ -85,7 +85,7 @@ const trigger = function(endpoint, username, passcode, teamName,
 
 function getFileResults(fromFile) {
     console.log("You are running with a file.")
-    let fileInfo = fs.readFileSync(`../${fromFile}`, (err,file) => {
+    let fileInfo = fs.readFileSync(fromFile, (err,file) => {
         if (err) {
             console.error("There was an error while trying to read your file.  Check your file and filepath.")  
             process.exit(1)
