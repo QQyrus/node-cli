@@ -202,7 +202,7 @@ function checkExecStatus (host_name, port, testRunResponseBody, qyrus_suite_name
                 process.exitCode = 1;
                 return;
             }
-            if(responseBody.trim().toUpperCase() === "COMPLETED"){
+            if(responseBody.trim() === "COMPLETED"){
                 completedTest(host_name, port, testRunResponseBody, qyrus_suite_name, emailId);
                 return;
             }
