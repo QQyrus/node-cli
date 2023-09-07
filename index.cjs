@@ -9,7 +9,8 @@ var globalVarMobilityUtil = require('./utils/globalVarMobility.cjs');
 var appUploadMobilityUtil = require('./utils/appUpload.cjs');
 var appCountMobilityUtil = require('./utils/appCount.cjs');
 var apkMobilityUtil = require('./utils/getApkMobility.cjs');
-var importMobilityScriptFromFile = require('./utils/importMobilityScriptFromFile.cjs');
+let importMobilityScriptFromFile = require('./utils/importMobilityScriptFromFile.cjs');
+let importMobilityScriptFromFile = require('./utils/updateMobilityScriptFromFile.cjs');
 var apkComponentUtil= require('./utils/getApkComponent.cjs');
 var appDeleteUtil = require('./utils/appDelete.cjs');
 var globalVarComponentUtil = require('./utils/globalVarComponent.cjs');
@@ -173,6 +174,22 @@ program.command('import-mobility-script-from-file')
   .action((options) => {
     importMobilityScriptFromFile.trigger(options.endPoint, options.username, options.passcode, 
         options.teamName, options.projectName, options.suiteName, options.importScriptFile, options.file);
+});
+
+program.command('update-mobility-script-from-file')
+  .description('updates script steps using file data in mobility service')
+  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
+  .option('-u, --username <string>', 'Qyrus admin provided email')
+  .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
+  .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
+  .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
+  .option('--suiteName <string>', 'Test suite name you can find by logging into Qyrus app.')
+  .option('--scriptName <string>', 'Test script name you can find by logging into Qyrus app.')
+  .option('--importScriptFile <string>', 'File path to import script data' )
+  .option('--file <string>', '(Optional) File path to read configuration to run command' )
+  .action((options) => {
+    updateMobilityScriptFromFile.trigger(options.endPoint, options.username, options.passcode, 
+        options.teamName, options.projectName, options.suiteName, options.ScriptName, options.importScriptFile, options.file);
 });
 
 

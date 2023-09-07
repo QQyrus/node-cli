@@ -3,7 +3,7 @@ const request = require('request');
 
 const contextPath = '/cli-adapter-mobility/v1';
 
-const trigger = function (URL, username, password, teamName, projectName, suiteName, scriptFilePath, configurationFilePath) {
+const trigger = function (URL, username, password, teamName, projectName, suiteName, scriptName, scriptFilePath, configurationFilePath) {
     let inputData = {
         URL: URL,
         username: username,
@@ -11,12 +11,13 @@ const trigger = function (URL, username, password, teamName, projectName, suiteN
         teamName: teamName,
         projectName: projectName,
         suiteName: suiteName,
+        scriptName: scriptName,
         scriptFilePath: scriptFilePath
     }
     if(configurationFilePath != null)
         inputData = readInputDataFromFile(inputData, configurationFilePath);
     if (fs.existsSync(inputData.scriptFilePath)) {
-        callAPIToImportScriptFromFile(inputData);
+        callAPIToUpdateScriptFromFile(inputData);
     }
     else {
         console.log('File to import script not found!');
@@ -60,6 +61,8 @@ function setInputDataFromConfigurationFile(inputData, configurationFileData) {
         inputData.projectName = configurationFileData.scriptInfo.projectName;
     if (inputData.suiteName == null)
         inputData.suiteName = configurationFileData.scriptInfo.suiteName;
+    if (inputData.scriptName == null)
+        inputData.scriptName = configurationFileData.scriptInfo.scriptName;
     if (inputData.scriptFilePath == null)
         inputData.scriptFilePath = configurationFileData.scriptInfo.scriptFilePath;
     return inputData;
@@ -78,28 +81,29 @@ function invalidValue(data) {
 }
 
 function validateScriptInfo(inputData) {
-    const invalidScriptInfo = invalidValue(inputData.teamName) || invalidValue(inputData.projectName) || invalidValue(inputData.suiteName) || invalidValue(inputData.scriptFilePath);
+    const invalidScriptInfo = invalidValue(inputData.teamName) || invalidValue(inputData.projectName) || invalidValue(inputData.suiteName) || invalidValue(inputData.scriptName) || invalidValue(inputData.scriptFilePath);
     if (invalidScriptInfo) {
-        console.error('ERROR : Invalid script info for importing script from file');
+        console.error('ERROR : Invalid script info for updating script from file');
         process.exit(1);
     }
 }
 
-function callAPIToImportScriptFromFile(inputData) {
+function callAPIToUpdateScriptFromFile(inputData) {
     request.post({
-        url: `${inputData.URL}${contextPath}/import-script-from-file`,
+        url: `${inputData.URL}${contextPath}/update-script-from-file`,
         formData: {
             file: fs.createReadStream(inputData.scriptFilePath),
             username: inputData.username,
             password: inputData.password,
             teamName: inputData.teamName,
             projectName: inputData.projectName,
-            suiteName: inputData.suiteName
+            suiteName: inputData.suiteName,
+            scriptName: inputData.scriptName
         }
     },
         (error, response) => {
             if (response.statusCode != 200) {
-                console.log('\x1b[31m%s\x1b[0m', 'Failed to import script from file!');
+                console.log('\x1b[31m%s\x1b[0m', 'Failed to update script from file!');
                 console.log('\x1b[31m%s\x1b[0m', 'Error:', response.body);
                 process.exitCode = 1;
                 return;
