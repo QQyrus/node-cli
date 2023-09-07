@@ -86,6 +86,7 @@ function validateScriptInfo(inputData) {
 }
 
 function callAPIToImportScriptFromFile(inputData) {
+    console.log("Importing script...");
     request.post({
         url: `${inputData.URL}${contextPath}/import-script-from-file`,
         formData: {

@@ -89,6 +89,7 @@ function validateScriptInfo(inputData) {
 }
 
 function callAPIToUpdateScriptFromFile(inputData) {
+    console.log("Updating script...");
     request.post({
         url: `${inputData.URL}${contextPath}/update-script-from-file`,
         formData: {
