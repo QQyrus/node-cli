@@ -9,6 +9,7 @@ var globalVarMobilityUtil = require('./utils/globalVarMobility.cjs');
 var appUploadMobilityUtil = require('./utils/appUpload.cjs');
 var appCountMobilityUtil = require('./utils/appCount.cjs');
 var apkMobilityUtil = require('./utils/getApkMobility.cjs');
+var importMobilityScriptFromFile = require('./utils/importMobilityScriptFromFile.cjs');
 var apkComponentUtil= require('./utils/getApkComponent.cjs');
 var appDeleteUtil = require('./utils/appDelete.cjs');
 var globalVarComponentUtil = require('./utils/globalVarComponent.cjs');
@@ -81,7 +82,7 @@ program.command('mobility')
   .option('--emailId <string>', '(optional) email id to which the reports need to be sent post execution')
   .option('--envName <string>', 'environment name to run the tests with. (Optional if its Global)')
   .option('--firstAvailableDevice <string>', 'use first available device')
-  .option('--file <string>', 'calls something for fun right now' )
+  .option('--file <string>', '(Optional) File path to read configuration to run command' )
   .action((options) => {
     mobilityUtil.trigger(options.endPoint, options.username, options.passcode,
       options.teamName, options.projectName, options.suiteName, 
@@ -100,7 +101,7 @@ program.command('update-mobility-variables')
   .option('--variableType <string>', 'Existing variable type eg: Custom, BaseURL, Password.')
   .option('--variableValue <string>', 'Value to update the existing variable.')
   .option('--envName <string>', 'environment name to which the value needs to be updated. (Optional if its Global)')
-  .option('--file <string>', 'calls something for fun right now' )
+  .option('--file <string>', '(Optional) File path to read configuration to run command' )
   .action((options) => {
     globalVarMobilityUtil.trigger(options.endPoint, options.username, options.passcode, 
         options.teamName, options.projectName, options.variableName, 
@@ -157,6 +158,21 @@ program.command('get-apk-mobility')
   .action((options) => {
     var execCmd = 'mobility';
     apkMobilityUtil.trigger(options.endPoint, options.teamName, options.projectName, execCmd);
+});
+
+program.command('import-mobility-script-from-file')
+  .description('imports script using file data into mobility service')
+  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
+  .option('-u, --username <string>', 'Qyrus admin provided email')
+  .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
+  .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
+  .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
+  .option('--suiteName <string>', 'Test suite name you can find by logging into Qyrus app.')
+  .option('--importScriptFile <string>', 'File path to import script data' )
+  .option('--file <string>', '(Optional) File path to read configuration to run command' )
+  .action((options) => {
+    importMobilityScriptFromFile.trigger(options.endPoint, options.username, options.passcode, 
+        options.teamName, options.projectName, options.suiteName, options.importScriptFile, options.file);
 });
 
 
