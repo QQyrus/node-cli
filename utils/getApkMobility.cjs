@@ -62,7 +62,7 @@ function setInputDataFromConfigurationFile(inputData, configurationFileData) {
 function validateInputData(inputData) {
     const invalidConfigurationInfo = invalidValue(inputData.URL) || invalidValue(inputData.teamName) || invalidValue(inputData.projectName);
     if (invalidConfigurationInfo) {
-        console.error('ERROR : Invalid login info.  Check your username, password and login URL.');
+        console.error('ERROR : Invalid input data');
         process.exit(1);
     }
 }

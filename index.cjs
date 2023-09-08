@@ -145,10 +145,11 @@ program.command('get-apk-count-mobility')
   .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
+  .option('--file <string>', '(Optional) File path to read configuration to run command' )
   .action((options) => {
     var execCmd = 'mobility';
     appCountMobilityUtil.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, execCmd);
+        options.teamName, options.projectName, execCmd, options.file);
 });
 
 program.command('get-apk-mobility')
