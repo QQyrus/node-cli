@@ -1,5 +1,7 @@
 const fs = require('fs');
-const request = require('request');
+const http = require('http');
+const https = require('https');
+const FormData = require('form-data');
 
 const contextPath = '/cli-adapter-mobility/v1';
 
@@ -90,31 +92,59 @@ function validateScriptInfo(inputData) {
 
 function callAPIToUpdateScriptFromFile(inputData) {
     console.log("Updating script...");
-    request.post({
-        url: `${inputData.URL}${contextPath}/update-script-from-file`,
-        formData: {
-            file: fs.createReadStream(inputData.scriptFilePath),
-            username: inputData.username,
-            password: inputData.password,
-            teamName: inputData.teamName,
-            projectName: inputData.projectName,
-            suiteName: inputData.suiteName,
-            scriptName: inputData.scriptName
-        }
-    },
-        (error, response) => {
-            if (response.statusCode != 200) {
-                console.log('\x1b[31m%s\x1b[0m', 'Failed to update script from file!');
-                console.log('\x1b[31m%s\x1b[0m', 'Error:', response.body);
-                process.exitCode = 1;
-                return;
-            } 
-            else {
-                console.log('\x1b[32m%s\x1b[0m', response.body)
-                process.exitCode = 0;
-            }
-        }
-    )
+    const formData = buildFormData(inputData);
+    const options = buildAPIOptions(inputData, formData.getHeaders());
+    const request = https.request(options, (response) => {
+        let responseBody = '';
+        response.on('data', chunk => {
+            responseBody += chunk.toString();
+        });
+        response.on('end', () => {   
+            provideUserFeedbackAfterAPICompletion(response.statusCode, responseBody)
+        });
+    });
+    request.on('error', (error) => {
+        console.log('Error making API request:', error.message);
+        process.exitCode = 1;
+    });
+    formData.pipe(request);
+}
+
+function buildFormData(inputData) {
+    const formData = new FormData();
+    formData.append('file', fs.createReadStream(inputData.scriptFilePath));
+    formData.append('username', inputData.username);
+    formData.append('password', inputData.password);
+    formData.append('teamName', inputData.teamName);
+    formData.append('projectName', inputData.projectName);
+    formData.append('suiteName', inputData.suiteName);
+    formData.append('scriptName', inputData.scriptName);
+    return formData;
+}
+
+function buildAPIOptions(inputData, headers) {
+    const url = new URL(inputData.URL);
+    const options = {
+        host: url.hostname,
+        port: url.port,
+        path: `${contextPath}/update-script-from-file`,
+        headers: headers,
+        method: 'POST',
+        rejectUnauthorized: false
+    };
+    return options;
+}
+
+function provideUserFeedbackAfterAPICompletion(statusCode, responseBody) {
+    if (statusCode != 200) {
+        console.log('\x1b[31m%s\x1b[0m', 'Failed to update script from file!');
+        console.log('\x1b[31m%s\x1b[0m', 'Cause of error:', responseBody);
+        process.exitCode = 1;
+    } 
+    else {
+        console.log('\x1b[32m%s\x1b[0m', responseBody)
+        process.exitCode = 0;
+    }
 }
 
 module.exports = {
