@@ -69,7 +69,8 @@ const trigger = function(gatewayUrl, username, password, team_name, project_name
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        rejectUnauthorized: false
     }
     let testObject = {
         "userName": username,
@@ -116,10 +117,10 @@ function checkExecStatus (host_name, port, testRunResponseBody, testSuiteName, e
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        rejectUnauthorized: false
     }
-    var reqPost = https.request(apiCallConfig, function(response) {
-        console.log(response.statusCode)
+    var reqPost = https.request(apiCallConfig, function(response) 
         if(response.statusCode!=200){
             console.log('Failed to run check execution status fully, Try again.');
             process.exitCode = 1;
@@ -160,7 +161,8 @@ function completedTest (host_name, port, execStatusResponse, testSuiteName, emai
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        rejectUnauthorized: false
     }
     var reqPost = https.request(apiCallConfig, function(response){
         if(response.statusCode!=200){

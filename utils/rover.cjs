@@ -23,7 +23,8 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        rejectUnauthorized: false
     }
     let execStatus = {
         host: host_name,
@@ -32,7 +33,8 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        rejectUnauthorized: false
     }
     // testing parameters
     if ( qyrus_username == null || qyrus_password == null || gatewayUrl == null ||

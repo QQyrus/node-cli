@@ -10,6 +10,25 @@ const trigger = function(endpoint, username, passcode, teamName,
     varValue, envName, fromFile) {   
 
     
+    if ( envName == null) {
+        envName = '';
+    }
+
+    var hostName = url.parse(endpoint).hostname;
+    var port = url.parse(endpoint).port;
+
+    // construct URL details for rest 
+    var optionspost = {
+        host: hostName,
+        port: port,
+        path: baseContext+'/variables',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        rejectUnauthorized: false
+    };
+
     //construct body for rest call
     var triggerObject = {
         "userName": username,
@@ -144,6 +163,7 @@ function buildAPICallConfiguration(gatewayUrl) {
         headers: {
             'Content-Type': 'application/json'
         },
+        rejectUnauthorized: false
         
     }
     return apiCallConfig

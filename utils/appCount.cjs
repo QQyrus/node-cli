@@ -19,7 +19,10 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password, qyrus_team_
 
     var options = {
         'method': 'GET',
-        'url': inputData.URL+contextPath+'/get-apk-count?username='+inputData.username+'&password='+inputData.password+'&teamName='+inputData.teamName+'&projectName='+inputData.projectName
+        'url': inputData.URL+contextPath+'/get-apk-count?username='+inputData.username+'&password='+inputData.password+'&teamName='+inputData.teamName+'&projectName='+inputData.projectName,
+        'headers': {
+        },
+        rejectUnauthorized: false
     };
     request(options, function (error, response) {
         if (error) {
