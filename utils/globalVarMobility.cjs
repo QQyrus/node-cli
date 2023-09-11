@@ -115,7 +115,6 @@ function buildAPICallConfiguration(gatewayUrl) {
         headers: {
             'Content-Type': 'application/json'
         },
-        rejectUnauthorized: false
         
     }
     return apiCallConfig

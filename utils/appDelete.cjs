@@ -21,8 +21,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password, qyrus_team_
         'method': 'POST',
         'url': inputData.URL+contextPath+'/deleteApp?username='+inputData.username+'&password='+inputData.password+'&teamName='+inputData.teamName+'&projectName='+inputData.projectName+'&appName='+inputData.appName,
         'headers': {
-        },
-        rejectUnauthorized: false
+        }
     };
 
     if(execCmd === 'rover'){

@@ -23,8 +23,7 @@ const trigger = function(endpoint, username, passcode, teamName,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        },
-        rejectUnauthorized: false
+        }
     };
 
     //construct body for rest call

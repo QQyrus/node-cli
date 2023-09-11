@@ -188,8 +188,7 @@ function checkExecStatus (host_name, port, testRunResponseBody, qyrus_suite_name
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        },
-        rejectUnauthorized: false
+        }
     }
     var reqPost = https.request(apiCallConfig, function(response) {
         let responseBody = '';
@@ -230,8 +229,7 @@ function completedTest (host_name, port, execStatusResponse, qyrus_suite_name, e
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        },
-        rejectUnauthorized: false
+        }
     }
     var reqPost = https.request(apiCallConfig, function(response) {
         if(response.statusCode!=200){

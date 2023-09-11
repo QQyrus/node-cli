@@ -15,11 +15,7 @@ const trigger = function(gatewayUrl, qyrus_team_name, qyrus_project_name, execCm
     }
     var options = {
         'method': 'GET',
-        'url': inputData.URL+contextPath+'/getapk?teamName='+inputData.teamName+'&projectName='+inputData.projectName,
-        'headers': {
-            
-        },
-        rejectUnauthorized: false
+        'url': inputData.URL+contextPath+'/getapk?teamName='+inputData.teamName+'&projectName='+inputData.projectName
     };
     request(options, function (error, response) {
         if (response.statusCode !=200) {
