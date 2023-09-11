@@ -25,12 +25,12 @@ const trigger = function(endpoint, username, passcode, teamName, projectName, va
 
     endpoint = endpoint != null ? endpoint : configuration.configuration.endpoint
     validateConfigurationInfo(triggerObject.userName, triggerObject.encodedPassword,endpoint);
-    let apiCallConfig = buildAPICallConfiguration(endpoint)
+    let apiCallConfig = buildAPICallConfiguration(endpoint);
     
     if ( envName == null) {
         envName = '';
     }
-    console.log("Updating global variable...")
+    console.log("Updating global variable...");
      //http request to update the global variables
      var reqPost = https.request(apiCallConfig, function(res) {
         //If the response from the request is not 200 then fail the pipeline 
@@ -75,7 +75,7 @@ function getFileResults(fromFile) {
 
 }
 
-function setTriggerObjectData(triggerObject, Configuration) {
+function setTriggerObjectData(triggerObject, configuration) {
     if(triggerObject.userName == null)
         triggerObject["userName"] = configuration.configuration.username
     if(triggerObject.encodedPassword == null)
