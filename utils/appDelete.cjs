@@ -98,7 +98,7 @@ function invalidValue(data) {
 function validateAppInfo(inputData) {
     const invalidScriptInfo = invalidValue(inputData.teamName) || invalidValue(inputData.projectName) || invalidValue(inputData.appName);
     if (invalidScriptInfo) {
-        console.error('ERROR : Invalid project info');
+        console.error('ERROR : Invalid app info');
         process.exit(1);
     }
 }
