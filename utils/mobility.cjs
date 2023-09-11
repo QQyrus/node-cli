@@ -49,7 +49,6 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
         });
         response.on('end', () => {
             if (response.statusCode != 200) {
-                // const message = JSON.parse(responseBody).message;
                 console.error(responseBody);
                 process.exitCode = 1;
                 return;

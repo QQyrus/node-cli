@@ -120,7 +120,7 @@ function checkExecStatus (host_name, port, testRunResponseBody, testSuiteName, e
         },
         rejectUnauthorized: false
     }
-    var reqPost = https.request(apiCallConfig, function(response) 
+    var reqPost = https.request(apiCallConfig, function(response) {
         if(response.statusCode!=200){
             console.log('Failed to run check execution status fully, Try again.');
             process.exitCode = 1;

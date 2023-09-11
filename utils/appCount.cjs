@@ -12,7 +12,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password, qyrus_team_
         username: qyrus_username,
         password: qyrus_password,
         teamName: qyrus_team_name,
-        projectName: qyrus_project_name,
+        projectName: qyrus_project_name
     }
     if(configurationFilePath != null)
         inputData = readInputDataFromFile(inputData, configurationFilePath);
@@ -29,7 +29,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password, qyrus_team_
             process.exitCode = 1;
             throw new Error(error);
         }
-        console.log("Fething the App count Sucessfully!");
+        console.log("Fetched the App count Sucessfully!");
         console.log(response.body);
         process.exitCode = 0;
     });
