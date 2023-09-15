@@ -155,7 +155,7 @@ program.command('get-apk-count-mobility')
 });
 
 program.command('get-apk-mobility')
-  .description('helps you to get uploaded app names from mobility services for iOS/android to mobility service')
+  .description('helps you to get uploaded apps from mobility service for iOS/Android project')
   .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
@@ -173,11 +173,11 @@ program.command('import-mobility-script-from-file')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--suiteName <string>', 'Test suite name you can find by logging into Qyrus app.')
-  .option('--importScriptFile <string>', 'File path to import script data' )
+  .option('--scriptFile <string>', 'File path to import script data' )
   .option('--file <string>', '(Optional) File path to read configuration to run command' )
   .action((options) => {
     importMobilityScriptFromFile.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, options.suiteName, options.importScriptFile, options.file);
+        options.teamName, options.projectName, options.suiteName, options.scriptFile, options.file);
 });
 
 program.command('update-mobility-script-from-file')
@@ -189,11 +189,11 @@ program.command('update-mobility-script-from-file')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--suiteName <string>', 'Test suite name you can find by logging into Qyrus app.')
   .option('--scriptName <string>', 'Test script name you can find by logging into Qyrus app.')
-  .option('--importScriptFile <string>', 'File path to import script data' )
+  .option('--scriptFile <string>', 'File path to update script data' )
   .option('--file <string>', '(Optional) File path to read configuration to run command' )
   .action((options) => {
     updateMobilityScriptFromFile.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, options.suiteName, options.ScriptName, options.importScriptFile, options.file);
+        options.teamName, options.projectName, options.suiteName, options.ScriptName, options.scriptFile, options.file);
 });
 
 
