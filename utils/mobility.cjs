@@ -144,7 +144,6 @@ function validateConfigurationInfo  (username,password,URL)
 }
 
 function buildAPICallConfiguration(gatewayUrl) {
-    console.log("building this ", gatewayUrl)
     const gatewayURLParse = new URL(gatewayUrl);
     let host_name = gatewayURLParse.hostname;
     let port = gatewayURLParse.port;
@@ -188,7 +187,8 @@ function checkExecStatus (host_name, port, testRunResponseBody, qyrus_suite_name
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        rejectUnauthorized: false
     }
     var reqPost = https.request(apiCallConfig, function(response) {
         let responseBody = '';
@@ -229,7 +229,8 @@ function completedTest (host_name, port, execStatusResponse, qyrus_suite_name, e
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        rejectUnauthorized: false
     }
     var reqPost = https.request(apiCallConfig, function(response) {
         if(response.statusCode!=200){
