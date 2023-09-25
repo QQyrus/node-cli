@@ -95,13 +95,13 @@ Options:
   --devicePoolName <string>  Specify your device pool name which you created on Qyrus, a device pool will
                              have list of devices added and a test run will happen on a device from the
                              pool.
-  --enableDebug <string>     Prints additional debug information if this option is enabled. eg: yes/no
+  --enableDebug <string>     Prints additional debug information if this option is enabled. ex: yes/no
   --bundleId <string>        Enter iOS app bundleId which will be in the form of com.example.splash_screen
                              (Optional, during android runs)
-  --emailId <string>         (optional) email id to which the reports need to be sent post execution
-  --envName <string>', 'environment name to run the tests with. (Optional if its Global)
-  --firstAvailableDevice <string>', 'use first available device
-  --file <string>', '(Optional) File path to read configuration to run command
+  --emailId <string>         (Optional) email id to which the reports need to be sent post execution
+  --envName <string>         environment name to run the tests with. (Optional if its Global)
+  --firstAvailableDevice <string> use first available device. ex: yes/no
+  --file <string>            (Optional) File path to read configuration to run command
   -h, --help                 display help for command
 ```
 
@@ -120,8 +120,8 @@ Options:
   --variableName <string>   Existing variable name eg: Demo
   --variableType <string>   Existing variable type eg: Custom, BaseURL, Password.
   --variableValue <string>  Value to update the existing variable.
-  --envName <string>', 'environment name to which the value needs to be updated. (Optional if its Global)
-  --file <string>', '(Optional) File path to read configuration to run command
+  --envName <string>        environment name to which the value needs to be updated. (Optional if its Global)
+  --file <string>           (Optional) File path to read configuration to run command
   -h, --help                display help for command
 ```
 
@@ -137,8 +137,8 @@ Options:
   -p, --passcode <string>  Qyrus admin provided passcode in base64 format
   --teamName <string>      Team name you can find by logging into Qyrus app.
   --projectName <string>   Project name you can find by logging into Qyrus app.
-  --appPath <string>', 'Path to app to be uploaded
-  --file <string>', '(Optional) File path to read configuration to run command
+  --appPath <string>'      Path to app to be uploaded
+  --file <string>          (Optional) File path to read configuration to run command
   -h, --help               display help for command
 ```
 
@@ -154,8 +154,8 @@ Options:
   -p, --passcode <string>  Qyrus admin provided passcode in base64 format
   --teamName <string>      Team name you can find by logging into Qyrus app.
   --projectName <string>   Project name you can find by logging into Qyrus app.
-  --appName <string>', 'Existing app name eg: Demo.apk/Demo.ipa
-  --file <string>', '(Optional) File path to read configuration to run command
+  --appName <string>'      Existing app name eg: Demo.apk/Demo.ipa
+  --file <string>          (Optional) File path to read configuration to run command
   -h, --help               display help for command
 ```
 
@@ -171,7 +171,7 @@ Options:
   -p, --passcode <string>  Qyrus admin provided passcode in base64 format
   --teamName <string>      Team name you can find by logging into Qyrus app.
   --projectName <string>   Project name you can find by logging into Qyrus app.
-  --file <string>', '(Optional) File path to read configuration to run command
+  --file <string>          (Optional) File path to read configuration to run command
   -h, --help               display help for command
 ```
 
@@ -185,7 +185,7 @@ Options:
   --endPoint <string>      Qyrus endpoint provided by Qyrus admin
   --teamName <string>      Team name you can find by logging into Qyrus app.
   --projectName <string>   Project name you can find by logging into Qyrus app.
-  --file <string>', '(Optional) File path to read configuration to run command
+  --file <string>          (Optional) File path to read configuration to run command
   -h, --help               display help for command
 ```
 
@@ -201,9 +201,9 @@ Options:
   -p, --passcode <string>  Qyrus admin provided passcode in base64 format
   --teamName <string>      Team name you can find by logging into Qyrus app.
   --projectName <string>   Project name you can find by logging into Qyrus app.
-  --suiteName <string>', 'Test suite name you can find by logging into Qyrus app.
-  --scriptFile <string>', 'File path to import script data
-  --file <string>', '(Optional) File path to read configuration to run command
+  --suiteName <string>     Test suite name you can find by logging into Qyrus app.
+  --scriptFile <string>    File path to import script data
+  --file <string>          (Optional) File path to read configuration to run command
   -h, --help               display help for command
 ```
 
@@ -219,9 +219,9 @@ Options:
   -p, --passcode <string>  Qyrus admin provided passcode in base64 format
   --teamName <string>      Team name you can find by logging into Qyrus app.
   --projectName <string>   Project name you can find by logging into Qyrus app.
-  --suiteName <string>', 'Test suite name you can find by logging into Qyrus app.
-  --scriptFile <string>', 'File path to update script data
-  --file <string>', '(Optional) File path to read configuration to run command
+  --suiteName <string>     Test suite name you can find by logging into Qyrus app.
+  --scriptFile <string>    File path to update script data
+  --file <string>          (Optional) File path to read configuration to run command
   -h, --help               display help for command
 ```
 

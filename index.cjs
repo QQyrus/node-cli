@@ -78,11 +78,11 @@ program.command('mobility')
   .option('--appActivity <string>', '(Optional - if bundleId is passed) Enter android app activity which will be in the form of com.example.splash_screen')
   .option('--appPackage <string>', '(Optional - if bundleId is passed) Enter android app package which will be in the form of com.android.chrome (Optional, To run tests on preinstalled apps)')
   .option('--devicePoolName <string>', 'Specify your device pool name which you created on Qyrus, a device pool will have list of devices added and a test run will happen on a device from the pool.')
-  .option('--enableDebug <string>', 'Prints additional debug information if this option is enabled. eg: yes/no')
+  .option('--enableDebug <string>', 'Prints additional debug information if this option is enabled. ex: yes/no')
   .option('--bundleId <string>', 'Enter iOS app bundleId which will be in the form of com.example.splash_screen (Optional, during android runs)')
   .option('--emailId <string>', '(optional) email id to which the reports need to be sent post execution')
   .option('--envName <string>', 'environment name to run the tests with. (Optional if its Global)')
-  .option('--firstAvailableDevice <string>', 'use first available device')
+  .option('--firstAvailableDevice <string>', 'use first available device. ex: yes/no')
   .option('--file <string>', '(Optional) File path to read configuration to run command' )
   .action((options) => {
     mobilityUtil.trigger(options.endPoint, options.username, options.passcode,
