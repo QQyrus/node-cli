@@ -16,6 +16,8 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password, qyrus_team_
     }
     if(configurationFilePath != null)
         inputData = readInputDataFromFile(inputData, configurationFilePath);
+    validateConfigurationInfo(inputData);
+    validateProjectInfo(inputData);
 
     var options = {
         'method': 'GET',
@@ -27,7 +29,6 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password, qyrus_team_
             process.exitCode = 1;
             throw new Error(error);
         }
-        console.log("Fetched the App count Sucessfully!");
         console.log(response.body);
         process.exitCode = 0;
     });
@@ -50,8 +51,6 @@ function readInputDataFromFile(inputData, configurationFilePath) {
         process.exit(1);
     }
     inputData = setInputDataFromConfigurationFile(inputData, configurationFileData);
-    validateConfigurationInfo(inputData);
-    validateProjectInfo(inputData);
     return inputData;
 }
 

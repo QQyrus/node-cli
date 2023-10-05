@@ -193,7 +193,7 @@ program.command('update-mobility-script-from-file')
   .option('--file <string>', '(Optional) File path to read configuration to run command' )
   .action((options) => {
     updateMobilityScriptFromFile.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, options.suiteName, options.ScriptName, options.scriptFile, options.file);
+        options.teamName, options.projectName, options.suiteName, options.scriptName, options.scriptFile, options.file);
 });
 
 

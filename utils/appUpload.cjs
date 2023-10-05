@@ -19,7 +19,9 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
         appType: appType
     }
     if(configurationFilePath != null)
-        inputData = readInputDataFromFile(inputData, configurationFilePath);
+        inputData = readInputDataFromFile(inputData, configurationFilePath);    
+    validateConfigurationInfo(inputData);
+    validateAppInfo(inputData);
 
     var appPath = inputData.appPath;
     //upload the app
@@ -97,8 +99,6 @@ function readInputDataFromFile(inputData, configurationFilePath) {
         process.exit(1);
     }
     inputData = setInputDataFromConfigurationFile(inputData, configurationFileData);
-    validateConfigurationInfo(inputData);
-    validateAppInfo(inputData);
     return inputData;
 }
 

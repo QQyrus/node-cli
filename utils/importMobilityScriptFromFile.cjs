@@ -17,6 +17,8 @@ const trigger = function (URL, username, password, teamName, projectName, suiteN
     }
     if(configurationFilePath != null)
         inputData = readInputDataFromFile(inputData, configurationFilePath);
+    validateConfigurationInfo(inputData);
+    validateScriptInfo(inputData);
     if (fs.existsSync(inputData.scriptFilePath)) {
         callAPIToImportScriptFromFile(inputData);
     }
@@ -44,8 +46,6 @@ function readInputDataFromFile(inputData, configurationFilePath) {
         process.exit(1);
     }
     inputData = setInputDataFromConfigurationFile(inputData, configurationFileData);
-    validateConfigurationInfo(inputData);
-    validateScriptInfo(inputData);
     return inputData;
 }
 

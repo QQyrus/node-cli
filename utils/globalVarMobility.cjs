@@ -18,18 +18,20 @@ const trigger = function(endpoint, username, passcode, teamName, projectName, va
         "envName": envName
     };
 
-    if(fromFile != null)
-        configuration = getFileResults(fromFile)   
+    if(fromFile != null) {
+        const configuration = getFileResults(fromFile);   
+        triggerObject = setTriggerObjectData(triggerObject, configuration);
+    }
 
-    triggerObject = setTriggerObjectData(triggerObject,configuration)
-
-    endpoint = endpoint != null ? endpoint : configuration.configuration.endpoint
-    validateConfigurationInfo(triggerObject.userName, triggerObject.encodedPassword,endpoint);
+    endpoint = endpoint != null ? endpoint : configuration?.configuration?.endpoint
+    validateConfigurationInfo(triggerObject.userName, triggerObject.encodedPassword, endpoint);
     let apiCallConfig = buildAPICallConfiguration(endpoint);
     
-    if ( envName == null) {
-        envName = '';
+    if (triggerObject.envName == null) {
+        triggerObject.envName = '';
     }
+    validateProjectAndVariableInfo(triggerObject);
+
     console.log("Updating global variable...");
      //http request to update the global variables
      var reqPost = https.request(apiCallConfig, function(res) {
@@ -118,6 +120,18 @@ function buildAPICallConfiguration(gatewayUrl) {
         rejectUnauthorized: false
     }
     return apiCallConfig
+}
+
+function validateProjectAndVariableInfo(inputData) {
+    const invalidConfigurationInfo = invalidValue(inputData.teamName) || invalidValue(inputData.projectName) || invalidValue(inputData.varName) || invalidValue(inputData.varType) || invalidValue(inputData.varValue);
+    if (invalidConfigurationInfo) {
+        console.error('ERROR : Invalid variable info.');
+        process.exit(1);
+    }
+}
+
+function invalidValue(data) {
+    return data == null || data.toString() == '';
 }
 
 module.exports = {

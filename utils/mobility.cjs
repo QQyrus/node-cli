@@ -10,9 +10,13 @@ let baseContext = '/cli-adapter-mobility/v1';
 
 const trigger = function(gatewayUrl, qyrus_username, qyrus_password, 
     qyrus_team_name, qyrus_project_name, qyrus_suite_name, appName, 
-    app_activity, device_pool_name, enable_debug, bundle_id, emailId, appPackage, envName, firstAvailable, fromFile) {    
-    
-    
+    app_activity, device_pool_name, enable_debug, bundle_id, emailId, appPackage, envName, firstAvailable, fromFile) 
+{    
+    if( firstAvailable != null && invalidValueForFirstAvailableDevice(firstAvailable) ) {
+        console.error('ERROR : Invalid value for first available device:', firstAvailable);
+        process.exit(1);
+    }
+
     let configuration;
     let testObject = {
         "userName": qyrus_username,
@@ -26,7 +30,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
         "appPackage": appPackage,
         "bundleId": bundle_id,
         "envName": envName,
-        "useFirstAvailableDevice": firstAvailable != null && firstAvailable.toLowerCase() == 'yes'
+        "useFirstAvailableDevice": firstAvailable != null && firstAvailable.toLowerCase() == 'yes' ? true : null
     }    
     
     if(fromFile != null)
@@ -36,7 +40,7 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
     validateConfigurationInfo(testObject.userName, testObject.encodedPassword,gatewayUrl);
     
     let apiCallConfig = buildAPICallConfiguration(gatewayUrl)
-    enableDebug = enable_debug != null ? enable_debug : configuration.executionInfo.enableDebug
+    enableDebug = enable_debug != null ? enable_debug : configuration?.executionInfo?.enableDebug
     printDebugInformation(enableDebug, testObject, apiCallConfig)    
 
     console.log('\x1b[32m%s\x1b[0m',"Getting your environment ready, your test will start running soon.");
@@ -54,7 +58,6 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
                 return;
             }
             console.log('\x1b[32m%s\x1b[0m','Triggered the test suite', testObject.testSuiteName,'Successfully!');
-            // console.log('\x1b[32m%s\x1b[0m','Execution of test suite ', testObject.testSuiteName,' is in progress.');
             checkExecStatus(apiCallConfig.host, apiCallConfig.port, responseBody, testObject.testSuiteName, emailId);
         });
     });
@@ -98,33 +101,36 @@ function setTestObjectData(testObject, configuration) {
     if(testObject.testSuiteName == null)
         testObject["testSuiteName"]= configuration.suiteInfo.suiteName
     if(testObject.devicePoolName == null)
-        testObject["devicePoolName"] = configuration.executionInfo.devicePoolName
+        testObject["devicePoolName"] = configuration?.executionInfo?.devicePoolName
     if(testObject.appFileName == null)
-        testObject["appFileName"] = configuration.appInfo.appName != null ? configuration.appInfo.appName : ''
+        testObject["appFileName"] = configuration?.appInfo?.appName != null ? configuration.appInfo.appName : ''
     if(testObject.appActivity == null)
-        testObject["appActivity"] = configuration.appInfo.appActivity != null ? configuration.appInfo.appActivity : ''
+        testObject["appActivity"] = configuration?.appInfo?.appActivity != null ? configuration.appInfo.appActivity : ''
     if(testObject.appPackage == null)
-        testObject["appPackage"] = configuration.appInfo.appPackage != null ? configuration.appInfo.appPackage : ''
+        testObject["appPackage"] = configuration?.appInfo?.appPackage != null ? configuration.appInfo.appPackage : ''
     if(testObject.bundleId == null) 
-        testObject["bundleId"] = configuration.appInfo.bundleId != null ? configuration.appInfo.bundleId : ''
+        testObject["bundleId"] = configuration?.appInfo?.bundleId != null ? configuration.appInfo.bundleId : ''
     if(testObject.envName == null)
-        testObject["envName"] = configuration.executionInfo.envName != null ? configuration.executionInfo.envName : ''
-    let firstAvailable = testObject.firstAvailable;
-    if(firstAvailable == null) {
-        firstAvailable = configuration.executionInfo.firstAvailableDevice
+        testObject["envName"] = configuration?.executionInfo?.envName != null ? configuration.executionInfo.envName : ''
+    if(testObject.useFirstAvailableDevice == null) {
+        firstAvailable = configuration.executionInfo.firstAvailableDevice;
+        validateFirstAvailableDeviceValue(firstAvailable);
         testObject["useFirstAvailableDevice"] = firstAvailable != null ? firstAvailable.toString().toLowerCase() == 'yes' : false;   
     }
-    validateFirstAvailableDeviceValue(firstAvailable);
     validateDevicePoolValue(testObject.useFirstAvailableDevice, testObject.devicePoolName);
     return testObject;
 }
 
 function validateFirstAvailableDeviceValue(firstAvailable) {
-    const invalidValue = firstAvailable == null || (firstAvailable.toLowerCase() != 'yes' && firstAvailable.toLowerCase() != 'no');
+    const invalidValue = firstAvailable == null || invalidValueForFirstAvailableDevice();
     if(invalidValue) {
         console.error('ERROR : Invalid value for first available device:', firstAvailable);
         process.exit(1);
     }
+}
+
+function invalidValueForFirstAvailableDevice(firstAvailable) {
+    return firstAvailable?.toLowerCase() != 'yes' && firstAvailable?.toLowerCase() != 'no';
 }
 
 function validateDevicePoolValue(useFirstAvailableDevice, devicePoolName) {
