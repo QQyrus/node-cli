@@ -18,8 +18,10 @@ const trigger = function(endpoint, username, passcode, teamName, projectName, va
         "envName": envName
     };
 
+    let configuration;
+
     if(fromFile != null) {
-        const configuration = getFileResults(fromFile);   
+        configuration = getFileResults(fromFile);   
         triggerObject = setTriggerObjectData(triggerObject, configuration);
     }
 
