@@ -122,7 +122,7 @@ function setTestObjectData(testObject, configuration) {
 }
 
 function validateFirstAvailableDeviceValue(firstAvailable) {
-    const invalidValue = firstAvailable == null || invalidValueForFirstAvailableDevice();
+    const invalidValue = firstAvailable == null || invalidValueForFirstAvailableDevice(firstAvailable);
     if(invalidValue) {
         console.error('ERROR : Invalid value for first available device:', firstAvailable);
         process.exit(1);
@@ -130,7 +130,7 @@ function validateFirstAvailableDeviceValue(firstAvailable) {
 }
 
 function invalidValueForFirstAvailableDevice(firstAvailable) {
-    return firstAvailable?.toLowerCase() != 'yes' && firstAvailable?.toLowerCase() != 'no';
+    return firstAvailable?.toString()?.toLowerCase() != 'yes' && firstAvailable?.toString()?.toLowerCase() != 'no';
 }
 
 function validateDevicePoolValue(useFirstAvailableDevice, devicePoolName) {
