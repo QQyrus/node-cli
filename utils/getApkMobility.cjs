@@ -10,6 +10,7 @@ const trigger = function(gatewayUrl, qyrus_team_name, qyrus_project_name, execCm
     }
     if(configurationFilePath != null)
         inputData = readInputDataFromFile(inputData, configurationFilePath);
+    validateInputData(inputData);
     if ( execCmd === 'mobility' ) {
         var contextPath = '/cli-adapter-mobility/v1';
     }
@@ -46,7 +47,6 @@ function readInputDataFromFile(inputData, configurationFilePath) {
         process.exit(1);
     }
     inputData = setInputDataFromConfigurationFile(inputData, configurationFileData);
-    validateInputData(inputData);
     return inputData;
 }
 

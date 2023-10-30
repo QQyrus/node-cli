@@ -25,7 +25,7 @@ const program = new Command();
 program
   .name('qyrus-cli')
   .description('Helps you to manage variables, apps and to run tests on Qyrus platform')
-  .version('1.8.8');
+  .version('1.8.9');
 
 // Web Commands
 program.command('web')
@@ -193,7 +193,7 @@ program.command('update-mobility-script-from-file')
   .option('--file <string>', '(Optional) File path to read configuration to run command' )
   .action((options) => {
     updateMobilityScriptFromFile.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, options.suiteName, options.ScriptName, options.scriptFile, options.file);
+        options.teamName, options.projectName, options.suiteName, options.scriptName, options.scriptFile, options.file);
 });
 
 

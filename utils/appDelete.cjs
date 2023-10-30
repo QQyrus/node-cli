@@ -16,6 +16,8 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password, qyrus_team_
     }
     if(configurationFilePath != null)
         inputData = readInputDataFromFile(inputData, configurationFilePath);
+    validateConfigurationInfo(inputData);
+    validateAppInfo(inputData);
     console.log("App - "+inputData.appName+" removal in progress...");
     var options = {
         'method': 'POST',
@@ -64,8 +66,6 @@ function readInputDataFromFile(inputData, configurationFilePath) {
         process.exit(1);
     }
     inputData = setInputDataFromConfigurationFile(inputData, configurationFileData);
-    validateConfigurationInfo(inputData);
-    validateAppInfo(inputData);
     return inputData;
 }
 
