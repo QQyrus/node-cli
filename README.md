@@ -10,7 +10,7 @@ These instructions will cover usage information for the command line utility.
 ### Supported Operating Systems
 * Windows - 64 and 32 Bit.
 * Ubuntu - 18.04 and above.
-* Linux
+* Linux.
 * MacOS - x86 and M1 arch.
 
 ### Usage
