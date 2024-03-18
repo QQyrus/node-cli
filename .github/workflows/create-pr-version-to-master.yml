@@ -1,0 +1,29 @@
+name: create pull request
+
+on:
+  pull_request:
+    branches:
+      - 'v*.*.*'
+    types: [closed]
+
+jobs:
+  build:
+    if: github.event.pull_request.merged == true
+    #if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    name: create pr
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - name: pull-request
+        uses: repo-sync/pull-request@v2
+        with:
+          destination_branch: "master"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pr_template: ".github/infra_checklist.md"
+          pr_label: "feature, automated pr"
+          pr_title: "${{ github.base_ref || github.ref_name }} to master"
+          #pr_reviewer: ".github/infra_assign_configs.yml"
+          
