@@ -29,9 +29,11 @@ const trigger = function(gatewayUrl, qyrus_username, qyrus_password,
         "appActivity": app_activity,
         "appPackage": appPackage,
         "bundleId": bundle_id,
-        "envName": envName,
-        "useFirstAvailableDevice": firstAvailable != null && firstAvailable.toLowerCase() == 'yes' ? true : null
-    }    
+        "envName": envName
+    }
+    
+    if(firstAvailable != null)
+        testObject["useFirstAvailableDevice"] = firstAvailable.toLowerCase() == 'yes' ? true : false;
     
     if(fromFile != null)
         configuration = getFileResults(fromFile)               
