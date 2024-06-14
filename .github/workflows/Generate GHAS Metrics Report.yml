@@ -1,0 +1,29 @@
+name: "GitHub Advanced Security - Metrics Report Action"
+on: workflow_dispatch
+  
+jobs:
+  ghas-metrics-report:
+    name: GitHub Advanced Security - Metrics Report Action
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Token
+        id: get_workflow_token
+        uses: peter-murray/workflow-application-token-action@v2
+        with:
+          application_id: ${{ secrets.APPLICATION_ID }}
+          application_private_key: ${{ secrets.APPLICATION_PRIVATE_KEY }}
+      - name: Generate GHAS Metrics Report
+        uses: theztefan/ghas-metrics-report@v1
+        env:
+          GITHUB_TOKEN: ${{steps.get_workflow_token.outputs.token }}
+        with:
+          repo: ${{ github.event.repository.name }}
+          org: ${{ github.repository_owner }}
+          features: "dependabot, code-scanning, secret-scanning"
+          frequency: "daily"
+          output-format: "pdf, issues, github-output"
+      - name: Upload GHAS metrics report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ghas-metrics-report
+          path: ${{ github.workspace }}/ghas-report.*
