@@ -5,6 +5,11 @@ jobs:
   ghas-metrics-report:
     name: GitHub Advanced Security - Metrics Report Action
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      security-events: write
+      actions: read
+
     steps:
       - name: Get Token
         id: get_workflow_token
@@ -15,7 +20,7 @@ jobs:
       - name: Generate GHAS Metrics Report
         uses: theztefan/ghas-metrics-report@v1
         env:
-          GITHUB_TOKEN: ${{steps.get_workflow_token.outputs.token }}
+          GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
         with:
           repo: ${{ github.event.repository.name }}
           org: ${{ github.repository_owner }}
