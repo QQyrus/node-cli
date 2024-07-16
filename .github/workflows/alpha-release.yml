@@ -1,0 +1,61 @@
+name: Publish binaries
+
+on:
+  push:
+    branches: [staging]
+    #tags:
+    #  - 'v*.*.*'
+
+jobs:
+  build:
+    name: Publish node cli binaries alpha version
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v3
+    - name: List
+      run: ls
+    - name: Set env
+      run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+    - name: install pkg
+      run: npm install -g pkg
+    - name: package
+      run: pkg .
+    - run: ls
+    - run: echo ${{ env.RELEASE_VERSION }}
+    - name: Create github release
+      id: create-new-release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.RELEASE_VERSION }}
+        release_name: ${{ env.RELEASE_VERSION }}-alpha
+    - name: Upload release assets linux
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-new-release.outputs.upload_url }}
+        asset_path: ./cli-linux
+        asset_name: qyrus-cli-linux
+        asset_content_type: application/octet-stream
+    - name: Upload release assets macos
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-new-release.outputs.upload_url }}
+        asset_path: ./cli-macos
+        asset_name: qyrus-cli-macos
+        asset_content_type: application/octet-stream
+    - name: Upload release assets windows
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-new-release.outputs.upload_url }}
+        asset_path: ./cli-win.exe
+        asset_name: qyrus-cli-win.exe
+        asset_content_type: application/octet-stream

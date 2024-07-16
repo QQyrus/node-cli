@@ -10,8 +10,8 @@ let array3 =[];
 let baseContext = '/cli-adapter-web-repository/v1';
 
 const trigger = function(endpoint, username, passcode, teamName, 
-    projectName, testSuiteName, operatingSystem, 
-    browserName, onErrorContinue, emailId, envName) {
+    projectName, testSuiteName,  operatingSystem, 
+    browserName, onErrorContinue,parameterFileSource, emailId, envName) {
     
     console.log('\x1b[32m%s\x1b[0m',"Getting your environment ready, your test will start running soon.");
 
@@ -75,6 +75,7 @@ const trigger = function(endpoint, username, passcode, teamName,
         "operatingSystem": operatingSystem,
         "browser": browserName,
         "onErrorContinue": onErrorContinue,
+        "parameterFileSource":  parameterFileSource,
         "variableEnvironmentId": envName
     };
     

@@ -40,11 +40,12 @@ program.command('web')
   .option('--browserOS <string>', 'Browser operating system eg: windows/linux')
   .option('--browser <string>', 'Browser name eg: chrome/firefox/MicrosoftEdge?')
   .option('--onErrorContinue <boolean>', 'Continue execution on error?')
+  .option('--parameterFileSource <string>','parameterFileSource name you can find by logging into Qyrus app.')
   .option('--emailId <string>', '(optional) email id to which the reports need to be sent post execution')
   .action((options) => {
     webUtil.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, options.suiteName, 
-        options.browserOS, options.browser, options.onErrorContinue, 
+        options.teamName, options.projectName, options.suiteName,
+        options.browserOS, options.browser, options.onErrorContinue,options.parameterFileSource,
         options.emailId, options.env);
 });
 
