@@ -80,19 +80,25 @@ const trigger = function(endpoint, username, passcode, teamName,
     };
     
     //http request to trigger the test
+    var executionTriggered = true
     var reqPost = https.request(optionspost, function(res) {
         //If the response from the request is not 200 then fail the pipeline 
         if(res.statusCode!=200) {
             console.log('Failed to run test, Try again.');
             return;
         }
-        console.log('Triggered the TestSuite ', testSuiteName,' Successfully!!');
         let finalbody = '';
         let body = '';
         res.on('data', chunk => {
             body += chunk.toString(); // convert Buffer to string
             let varObject = JSON.parse(body);
             let runId = varObject.runId;
+            if(runId==null){
+                console.log("Failed to execute test! Please check parameterized file/Suite")
+                executionTriggered = false
+                return
+            }
+            console.log('Triggered the TestSuite ', testSuiteName,' Successfully!!');
             let varId1 = runId.split('"')
             let varId2 = varId1[3]
             let jsonObject = { "runId" : varId2 , "token" : varObject.token }
