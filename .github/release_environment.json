@@ -1,0 +1,18 @@
+{
+    "release_to_environments": [
+		"tsb",
+		"wm",
+		"shawbrook",    
+		"cleco",
+		"unum",
+		"johndeere",
+		"monument",
+		"qyrus",
+		"rccd",
+		"valley",
+		"ccep",
+		"uat", 
+		"sia",
+		"vitas"
+    ]
+}

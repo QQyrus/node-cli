@@ -27,8 +27,7 @@ const trigger = async function(endpoint, username, passcode, teamName, project,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        },
-        rejectUnauthorized: false
+        }
     };
 
     var finalResult = {
@@ -38,8 +37,7 @@ const trigger = async function(endpoint, username, passcode, teamName, project,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        },
-        rejectUnauthorized: false
+        }
     };
 
     /* construct URL details for rest */
@@ -50,8 +48,7 @@ const trigger = async function(endpoint, username, passcode, teamName, project,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        },
-        rejectUnauthorized: false
+        }
     };
 
     //iteration on testNames
@@ -137,8 +134,7 @@ function triggerTest (endpoint, username, passcode, teamName, project,
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            },
-            rejectUnauthorized: false
+            } 
         };
          
         /* construct body for rest call */

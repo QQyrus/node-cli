@@ -1,0 +1,21 @@
+name: update pull request
+on:
+  pull_request:
+    branches:
+      - 'v*.*.*'
+    types: [opened]
+
+jobs:
+  build:
+    name: update pr
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: update PR description
+        uses: nefrob/pr-description@master
+        with:
+          content: .github/version_branch_checklist.md
+          contentIsFilePath: true 
+          token: ${{ secrets.GITHUB_TOKEN }}
