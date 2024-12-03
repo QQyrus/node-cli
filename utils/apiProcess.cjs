@@ -8,14 +8,14 @@ const { exec } = require("child_process");
 
 let baseContext = '/cli-adapter-api-process/v1';
 
-const trigger = function(gatewayUrl, username, password, team_name, project_name, testSuiteName, testScriptName, emailId, enable_debug) {
+const trigger = function(gatewayUrl, username, password, team_name, project_name, testSuiteName, testScriptName, environmentVariableName, emailId, enable_debug) {
     
     const gatewayURLParse = new URL(gatewayUrl);
     let host_name = gatewayURLParse.hostname;
     let port = gatewayURLParse.port;
 
     // testing parameters
-    if ( username == null || password == null || gatewayUrl == null || team_name == null || project_name == null || testSuiteName == null || testScriptName == null ) {
+    if ( username == null || password == null || gatewayUrl == null || team_name == null || project_name == null || testSuiteName == null || testScriptName == null || environmentVariableName == null) {
         console.log('ERROR : One or more parameters are invalid');
         process.exitCode = 1;
     }
@@ -48,6 +48,10 @@ const trigger = function(gatewayUrl, username, password, team_name, project_name
         testScriptName = '';
     }
 
+    if( environmentVariableName == null){
+        environmentVariableName = ''
+    }
+
     if ( enable_debug == 'yes' ) {
         console.log('******* QYRUS Cloud - INPUT PARAMETERS *******');
         console.log('Username :',username);
@@ -56,6 +60,7 @@ const trigger = function(gatewayUrl, username, password, team_name, project_name
         console.log('Project Name :',project_name);
         console.log('testSuiteName :',testSuiteName);
         console.log('testScriptName :',testScriptName);
+        console.log('environmentVariableName :', environmentVariableName);
         console.log('Host Name :',host_name);
         console.log('Port :',port);
         console.log('emailId :',emailId);
@@ -77,7 +82,8 @@ const trigger = function(gatewayUrl, username, password, team_name, project_name
         "teamName": team_name,
         "projectName": project_name,
         "testSuiteName": testSuiteName,
-        "testScriptName": testScriptName
+        "testScriptName": testScriptName,
+        "environmentVariableName": environmentVariableName,
     }
 
     console.log('\x1b[32m%s\x1b[0m',"Getting your environment ready, your test will start running soon.");
