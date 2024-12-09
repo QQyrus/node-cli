@@ -361,11 +361,12 @@ program.command('apiFunctional')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--testSuiteName <string>', 'Specify your SuiteName name.')
   .option('--testScriptName <string>', 'Specify your testScript name.')
+  .option('--environmentVariableName <string>', 'Specify your Environment VariableName name.')
   .option('--emailId <string>', '(optional) email id to which the reports need to be sent post execution')
   .option('--enableDebug <string>', 'Prints additional debug information if this option is enabled. eg: yes/no')
   .action((options) => {
     apiFunctionalUtil.trigger(options.endPoint, options.username, options.passcode,
-      options.teamName, options.projectName, options.testSuiteName, options.testScriptName,options.emailId, options.enableDebug
+      options.teamName, options.projectName, options.testSuiteName, options.testScriptName, options.environmentVariableName, options.emailId, options.enableDebug
     );
 });
 
@@ -379,11 +380,12 @@ program.command('apiProcess')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--testSuiteName <string>', 'Specify your SuiteName name.')
   .option('--testScriptName <string>', 'Specify your testScript name.')
+  .option('--environmentVariableName <string>', 'Specify your Environment VariableName name.')
   .option('--emailId <string>', '(optional) email id to which the reports need to be sent post execution')
   .option('--enableDebug <string>', 'Prints additional debug information if this option is enabled. eg: yes/no')
   .action((options) => {
     apiProcessUtil.trigger(options.endPoint, options.username, options.passcode,
-      options.teamName, options.projectName, options.testSuiteName, options.testScriptName,options.emailId, options.enableDebug
+      options.teamName, options.projectName, options.testSuiteName, options.testScriptName, options.environmentVariableName, options.emailId, options.enableDebug
     );
 });
 
@@ -397,13 +399,14 @@ program.command('apiPerformance')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--testSuiteName <string>', 'Specify your SuiteName name.')
   .option('--testScriptName <string>', 'Specify your testScript name.')
+  .option('--environmentVariableName <string>', 'Specify your Environment VariableName name.')
   .option('--thread <long>', 'Specify your thread.')
   .option('--latencyThreshold <long>', 'Specify your latencyThreshold value.')
   .option('--emailId <string>', '(optional) email id to which the reports need to be sent post execution')
   .option('--enableDebug <string>', 'Prints additional debug information if this option is enabled. eg: yes/no')
   .action((options) => {
     apiPerformanceUtil.trigger(options.endPoint, options.username, options.passcode,
-      options.teamName, options.projectName, options.testSuiteName, options.testScriptName, options.thread, options.latencyThreshold,options.emailId, options.enableDebug
+      options.teamName, options.projectName, options.testSuiteName, options.testScriptName, options.environmentVariableName, options.thread, options.latencyThreshold,options.emailId, options.enableDebug
     );
 });
 

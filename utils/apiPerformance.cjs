@@ -8,14 +8,14 @@ const { exec } = require("child_process");
 
 let baseContext = '/cli-adapter-api-performance/v1';
 
-const trigger = function(gatewayUrl, username, password, team_name, project_name, testSuiteName, testScriptName, thread, latencyThreshold, emailId, enable_debug) {
+const trigger = function(gatewayUrl, username, password, team_name, project_name, testSuiteName, testScriptName, environmentVariableName, thread, latencyThreshold, emailId, enable_debug) {
     
     const gatewayURLParse = new URL(gatewayUrl);
     let host_name = gatewayURLParse.hostname;
     let port = gatewayURLParse.port;
 
     // testing parameters
-    if ( username == null || password == null || gatewayUrl == null || team_name == null || project_name == null || testSuiteName == null || testScriptName == null || thread == null || latencyThreshold == null ) {
+    if ( username == null || password == null || gatewayUrl == null || team_name == null || project_name == null || testSuiteName == null || testScriptName == null || environmentVariableName == null || thread == null || latencyThreshold == null ) {
         console.log('ERROR : One or more parameters are invalid');
         process.exitCode = 1;
     }
@@ -47,7 +47,10 @@ const trigger = function(gatewayUrl, username, password, team_name, project_name
     if ( testScriptName == null ) {
         testScriptName = '';
     }
-
+    if( environmentVariableName == null){
+        environmentVariableName = ''
+    }
+    
     if ( thread == null ) {
         thread = '';
     }
@@ -64,6 +67,7 @@ const trigger = function(gatewayUrl, username, password, team_name, project_name
         console.log('Project Name :',project_name);
         console.log('testSuiteName :',testSuiteName);
         console.log('testScriptName :',testScriptName);
+        console.log('environmentVariableName :', environmentVariableName);
         console.log('thread :',thread);
         console.log('latencyThreshold :',latencyThreshold);
         console.log('Host Name :',host_name);
@@ -87,6 +91,7 @@ const trigger = function(gatewayUrl, username, password, team_name, project_name
         "projectName": project_name,
         "testSuiteName": testSuiteName,
         "testScriptName": testScriptName,
+        "environmentVariableName": environmentVariableName,
         "thread": thread,
         "latencyThreshold": latencyThreshold
     }
