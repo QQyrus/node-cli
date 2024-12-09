@@ -75,7 +75,6 @@ const trigger = function(gatewayUrl, username, password, team_name, project_name
         headers: {
             'Content-Type': 'application/json'
         },
-        rejectUnauthorized: false
     }
     let testObject = {
         "userName": username,
@@ -124,7 +123,6 @@ function checkExecStatus (host_name, port, testRunResponseBody, testSuiteName, e
         headers: {
             'Content-Type': 'application/json'
         },
-        rejectUnauthorized: false
     }
     var reqPost = https.request(apiCallConfig, function(response) {
         if(response.statusCode!=200){
@@ -168,7 +166,6 @@ function completedTest (host_name, port, execStatusResponse, testSuiteName, emai
         headers: {
             'Content-Type': 'application/json'
         },
-        rejectUnauthorized: false
     }
     var reqPost = https.request(apiCallConfig, function(response){
         if(response.statusCode!=200){
