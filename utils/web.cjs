@@ -105,11 +105,13 @@ const trigger = function(endpoint, username, passcode, teamName,
             finalbody = JSON.stringify(jsonObject)
         });
         res.on('end', () => {
+            if(executionTriggered){
             console.log('Execution of TestSuite ', testSuiteName,' is in Progress...');
             checkExecStatus(execStatus,finalbody,testSuiteName,
                 finalResult,status,statusResponse,
                 scriptResultStatus,emailId,
                 username,passcode);
+            }
         });
     });
     reqPost.on('error', function(err) {
