@@ -421,5 +421,25 @@ To operate with the command on linux:
 /tmp/qyrus-cli help
 ```
 
+## Local Build Instructions
+
+### Prerequisites
+* Node.js (LTS version recommended)
+* Git
+
+### Build Instrcutions
+1. Clone and Build Your Application
+
+```shell
+git clone https://github.com/QQyrus/node-cli.git
+cd node-cli
+
+# Install dependencies
+npm install
+
+# Package your application
+pkg .
+```
+
 ## Contact Us
 support@qyrus.com
