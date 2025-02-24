@@ -21,7 +21,7 @@ jobs:
     - name: install pkg
       run: npm install -g pkg@latest
     - name: package
-      run: pkg .
+      run: pkg --targets node16-linux-x64,node16-macos-x64,node16-win-x64 .
     - run: ls
     - run: echo ${{ env.RELEASE_VERSION }}
     - name: Create github release
