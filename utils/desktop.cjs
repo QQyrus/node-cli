@@ -9,7 +9,7 @@ let newSet = new Set();
 let array3 =[];
 let baseContext = '/cli-adapter-desktop-service/v1';
 
-const trigger = function (endpoint, username, passcode, teamName, projectName, suiteName,
+const trigger = function (endpoint, username, passcode, teamName, projectName, testSuiteName,
     nodeName, osType, onErrorContinue, parameterFileSource, emailId, envName) {
 
     console.log('\x1b[32m%s\x1b[0m', "Getting your environment ready, your test will start running soon.");
@@ -70,7 +70,7 @@ const trigger = function (endpoint, username, passcode, teamName, projectName, s
         "encodedPassword": passcode,
         "teamName": teamName,
         "project": projectName,
-        "testSuite": suiteName,
+        "testSuite": testSuiteName,
         "nodeName": nodeName,
         "operatingSystem": osType,
         "onErrorContinue": onErrorContinue,
