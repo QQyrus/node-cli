@@ -9,6 +9,7 @@ var globalVarMobilityUtil = require('./utils/globalVarMobility.cjs');
 var appUploadMobilityUtil = require('./utils/appUpload.cjs');
 var appCountMobilityUtil = require('./utils/appCount.cjs');
 var apkMobilityUtil = require('./utils/getApkMobility.cjs');
+var toUtil = require('./utils/to.cjs');
 const importMobilityScriptFromFile = require('./utils/importMobilityScriptFromFile.cjs');
 const updateMobilityScriptFromFile = require('./utils/updateMobilityScriptFromFile.cjs');
 var apkComponentUtil= require('./utils/getApkComponent.cjs');
@@ -407,6 +408,21 @@ program.command('apiPerformance')
     apiPerformanceUtil.trigger(options.endPoint, options.username, options.passcode,
       options.teamName, options.projectName, options.testSuiteName, options.testScriptName, options.environmentVariableName, options.thread, options.latencyThreshold,options.emailId, options.enableDebug
     );
+});
+
+// TO Commands
+program.command('to')
+  .description('helps you trigger web tests on the platform')
+  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
+  .option('-u, --username <string>', 'Qyrus admin provided email')
+  .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
+  .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
+  .option('--deepLinkId <string>', 'Deep Link Id to find the Workflow UUID.')
+  .option('--runConfigId <string>', 'Run configuration Id to select the configuration.')
+
+  .action((options) => {
+    toUtil.trigger(options.endPoint, options.username, options.passcode,
+        options.teamName, options.deepLinkId, options.runConfigId);
 });
 
 //--- Connectivity check
