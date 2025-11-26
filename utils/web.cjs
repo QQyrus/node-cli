@@ -29,7 +29,8 @@ const trigger = function(endpoint, username, passcode, teamName,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        rejectUnauthorized: false
     };
 
     //construct URL details to check execution status 
@@ -40,7 +41,8 @@ const trigger = function(endpoint, username, passcode, teamName,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        rejectUnauthorized: false
     };
 
     // construct URL details to check final exec result 
@@ -51,7 +53,8 @@ const trigger = function(endpoint, username, passcode, teamName,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        rejectUnauthorized: false
     };
 
     //get script result status 
@@ -62,7 +65,8 @@ const trigger = function(endpoint, username, passcode, teamName,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        rejectUnauthorized: false
     };
 
     //construct body for rest call
