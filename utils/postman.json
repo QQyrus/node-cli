@@ -1,0 +1,101 @@
+{
+  "info": {
+    "name": "Keycloak Device Authorization Flow",
+    "_postman_id": "b378943d-0c56-41df-a9f3-987c310903aa",
+    "description": "Test Keycloak Device Authorization Flow for qyrus-cli",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1 - Request Device Code",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "client_id", "value": "qyrus-cli" },
+            { "key": "scope", "value": "openid offline_access" }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/realms/myrealm/protocol/openid-connect/auth/device",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["realms", "myrealm", "protocol", "openid-connect", "auth", "device"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2 - Poll Token Endpoint (Device Code)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "grant_type", "value": "urn:ietf:params:oauth:grant-type:device_code" },
+            { "key": "device_code", "value": "{{device_code}}" },
+            { "key": "client_id", "value": "qyrus-cli" }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/realms/myrealm/protocol/openid-connect/token",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["realms", "myrealm", "protocol", "openid-connect", "token"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3 - Refresh Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "grant_type", "value": "refresh_token" },
+            { "key": "refresh_token", "value": "{{refresh_token}}" },
+            { "key": "client_id", "value": "qyrus-cli" }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/realms/myrealm/protocol/openid-connect/token",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["realms", "myrealm", "protocol", "openid-connect", "token"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4 - Userinfo (Validate Access Token)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/realms/myrealm/protocol/openid-connect/userinfo",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["realms", "myrealm", "protocol", "openid-connect", "userinfo"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

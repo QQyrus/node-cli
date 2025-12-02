@@ -20,6 +20,14 @@ var apiFunctionalUtil = require('./utils/apiFunctional.cjs');
 var apiProcessUtil = require('./utils/apiProcess.cjs');
 var apiPerformanceUtil = require('./utils/apiPerformance.cjs');
 
+const https = require("https");
+const axios = require("axios");
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+const minimist = require("minimist");
+const open = require("open");
+
 const program = new Command();
 
 program
@@ -27,12 +35,149 @@ program
   .description('Helps you to manage variables, apps and to run tests on Qyrus platform')
   .version('1.8.9');
 
+
+/* ============================================================
+   ================  2FA (KEYCLOAK) START  =====================
+   ============================================================ */
+
+/**
+ * Inject Bearer token into ALL https requests automatically
+ */
+function injectGlobalHttpsAuthHeader(token) {
+  const original = https.request;
+
+  https.request = function (options, callback) {
+    if (!options.headers) options.headers = {};
+
+    options.headers["Authorization"] = `Bearer ${token.access_token}`;
+    return original.call(https, options, callback);
+  };
+}
+
+const REALM = "myrealm";
+const CLIENT_ID = "qyrus-cli";
+const KEYCLOAK_BASE = "http://localhost:8180/realms/" + REALM;
+
+const CONFIG = {
+  DEVICE_AUTH_URL: `${KEYCLOAK_BASE}/protocol/openid-connect/auth/device`,
+  TOKEN_URL: `${KEYCLOAK_BASE}/protocol/openid-connect/token`,
+  USERINFO_URL: `${KEYCLOAK_BASE}/protocol/openid-connect/userinfo`,
+  CLIENT_ID:  `${CLIENT_ID}`,
+  SCOPE: "openid offline_access",
+  TOKEN_FILE: path.join(os.homedir(), ".qyrus", "token.json"),
+  POLL_INTERVAL: 5,
+};
+
+function ensureTokenFolder() {
+  const dir = path.dirname(CONFIG.TOKEN_FILE);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+}
+
+function saveToken(token) {
+  ensureTokenFolder();
+  token.__expires_at = Date.now() + token.expires_in * 1000;
+  fs.writeFileSync(CONFIG.TOKEN_FILE, JSON.stringify(token, null, 2));
+}
+
+function loadToken() {
+  try {
+    return JSON.parse(fs.readFileSync(CONFIG.TOKEN_FILE, "utf-8"));
+  } catch (e) {
+    return null;
+  }
+}
+
+function tokenValid(token) {
+  if (!token?.access_token) return false;
+  return Date.now() < token.__expires_at - 30000;
+}
+
+async function getDeviceCode() {
+  const body = new URLSearchParams();
+  body.append("client_id", CONFIG.CLIENT_ID);
+  body.append("scope", CONFIG.SCOPE);
+
+  const response = await axios.post(CONFIG.DEVICE_AUTH_URL, body.toString(), {
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+  });
+
+  return response.data;
+}
+
+async function pollToken(deviceCode) {
+  const body = new URLSearchParams();
+  body.append("grant_type", "urn:ietf:params:oauth:grant-type:device_code");
+  body.append("device_code", deviceCode);
+  body.append("client_id", CONFIG.CLIENT_ID);
+
+  while (true) {
+    const response = await axios.post(CONFIG.TOKEN_URL, body.toString(), {
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      validateStatus: () => true,
+    });
+
+    if (response.status === 200) return response.data;
+    if (response.data?.error === "authorization_pending") {
+      await new Promise((r) => setTimeout(r, CONFIG.POLL_INTERVAL * 1000));
+      continue;
+    }
+
+    throw response.data;
+  }
+}
+
+async function refreshToken(refresh) {
+  const body = new URLSearchParams();
+  body.append("grant_type", "refresh_token");
+  body.append("refresh_token", refresh);
+  body.append("client_id", CONFIG.CLIENT_ID);
+
+  const res = await axios.post(CONFIG.TOKEN_URL, body.toString(), {
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+  });
+
+  return res.data;
+}
+
+async function ensureToken() {
+  let token = loadToken();
+
+  // valid?
+  if (tokenValid(token)) return token;
+
+  // refresh?
+  if (token?.refresh_token) {
+    try {
+      const newToken = await refreshToken(token.refresh_token);
+      saveToken(newToken);
+      return newToken;
+    } catch (_) {}
+  }
+
+  // START DEVICE FLOW
+  console.log("\n🔐 ************* Starting Keycloak 2FA Login *************");
+  const dev = await getDeviceCode();
+
+  console.log("\n ************* Open this link to login (2FA supported) *************");
+  console.log(dev.verification_uri_complete);
+
+  try {
+    await open(dev.verification_uri_complete);
+  } catch (_) {}
+
+  const t = await pollToken(dev.device_code);
+  saveToken(t);
+  return t;
+}
+
+/* ============================================================
+   =================  2FA (KEYCLOAK) END   =====================
+   ============================================================ */
+
 // Web Commands
 program.command('web')
   .description('helps you trigger web tests on the platform')
   .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
-  .option('-u, --username <string>', 'Qyrus admin provided email')
-  .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--suiteName <string>', 'Test suite name you can find by logging into Qyrus app.')
@@ -418,4 +563,57 @@ program.command('conn-check')
     connCheck.trigger(options.endPoint);
 });
 
-program.parse();
+
+
+// ------------------ CUSTOM COMMANDS AFTER LOGIN -------------------
+
+program
+  .command("userinfo")
+  .description("Show logged-in Keycloak user info")
+  .action(async () => {
+    const token = await ensureToken();
+    const res = await axios.get(CONFIG.USERINFO_URL, {
+      headers: { Authorization: `Bearer ${token.access_token}` },
+    });
+    console.log(res.data);
+  });
+
+
+program
+  .command("login")
+  .description("Force re-login using device authorization flow")
+  .action(async () => {
+    fs.rmSync(CONFIG.TOKEN_FILE, { force: true });
+    console.log("Token removed. Starting fresh login...");
+    await ensureToken();
+    console.log("Login success.");
+  });
+
+
+
+
+// =============================================================
+//          ADD TOKEN INJECTION AFTER COMMANDER PARSE
+// =============================================================
+
+(async () => {
+  const argv = minimist(process.argv.slice(2));
+  const cmd = argv._[0];
+
+  // Commands that don't need authentication
+  const NO_AUTH_COMMANDS = ["conn-check", "login", "userinfo"];
+
+  // Step 1 — ensure token BEFORE executing any command
+  if (!NO_AUTH_COMMANDS.includes(cmd)) {
+    const token = await ensureToken();
+
+    console.log("\n************* Login completed. Proceeding with command *************:", cmd);
+
+    // inject token globally
+    injectGlobalHttpsAuthHeader(token);
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token.access_token}`;
+  }
+
+  // Step 2 — NOW parse & execute the command
+  await program.parseAsync(process.argv);
+})();

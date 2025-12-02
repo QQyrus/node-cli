@@ -1,11 +1,11 @@
 {
   "name": "cli",
   "version": "1.0.0",
-  "description": "",
+  "description": "This repository contains code for the command line application which helps to trigger tests, and to perform dynamic updates on the variables, apps.",
   "main": "index.cjs",
   "type": "module",
   "bin": {
-    "qyrus-cli": "./index.cjs"
+    "qyrus-cli": "index.cjs"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -14,10 +14,20 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.13.2",
     "chalk": "^5.0.1",
     "commander": "^9.3.0",
-    "minimist": "^1.2.6",
+    "minimist": "^1.2.8",
+    "open": "^11.0.0",
     "q": "^1.5.1",
     "request": "^2.88.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/QQyrus/node-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/QQyrus/node-cli/issues"
+  },
+  "homepage": "https://github.com/QQyrus/node-cli#readme"
 }
