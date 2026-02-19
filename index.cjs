@@ -53,24 +53,18 @@ program.command('web')
 
 program.command('desktop')
   .description('helps you trigger desktop tests on the platform')
-  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
-  // .option('-u, --username <string>', 'Qyrus admin provided "ROLE_ADMIN" email')
-  // .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
   .option('--apiKey <string>', 'Qyrus admin provided apiKey')
   .option('--teamName <string>', 'Team name from Qyrus app')
   .option('--projectName <string>', 'Project name from Qyrus desktop-service')
   .option('--suiteName <string>', 'Test suite within project')
-  .option('--env <string>', '(optional) environment variable')
-  .option('--onErrorContinue <boolean>', 'Continue execution on error?')
-  .option('--parameterFileSource <string>', 'Parameterization type')
   .option('--nodeName <string>', 'Machine(node) name registered in QB')
   .option('--osType <string>', 'Operating system type')
+  .option('--onErrorContinue <boolean>', 'Continue execution on error?')
+  .option('--parameterFileSource <string>', 'Parameterization type')
   .option('--emailId <string>', 'report email recipient')
+  .option('--env <string>', '(optional) environment variable')
   .action((options) => {
     desktopUtil.trigger(
-      options.endPoint,
-      // options.username,
-      // options.passcode,
       options.apiKey,
       options.teamName,
       options.projectName,

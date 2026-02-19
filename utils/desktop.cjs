@@ -3,48 +3,45 @@
 const https = require('https');
 const http = require('http');
 
+/* -------------------------------------------------- */
+/* ---------------- CONSTANTS ----------------------- */
+/* -------------------------------------------------- */
+
+const GATEWAY_URLS = {
+    staging: 'https://stg-gateway.qyrus.com:8243',
+    uat: 'https://uat-gateway.qyrus.com:8243',
+    prod: 'https://gateway.qyrus.com:8243'
+};
+
 const gatewayAuth = 'Bearer 90540897-748a-3ef2-b3a3-c6f8f42022da';
 const baseContext = '/desktop-service/v1';
 const POLL_INTERVAL = 30000;
 const HARDCODED_PORT = 3000;
 const SERVICE_STORE_ID = 'a2b452a5-d87c-11ed-a294-0241437b4ff9';
-//const endpoints
 
 /* -------------------------------------------------- */
 /* ----------- ENVIRONMENT DERIVATION -------------- */
 /* -------------------------------------------------- */
 
-function deriveEndpointFromApiKey(apiKey, providedEndpoint) {
-    if (providedEndpoint) {
-        return providedEndpoint;
-    }
-
+function deriveGatewayUrlFromApiKey(apiKey) {
     if (!apiKey) {
-        throw new Error('API Key is required to derive endpoint.');
+        throw new Error('API key is required to derive gateway URL.');
     }
 
-    if (apiKey.includes('staging')) {
-        return 'https://stg-gateway.qyrus.com:8243';
-    }
+    if (apiKey.includes('staging')) return GATEWAY_URLS.staging;
+    if (apiKey.includes('uat')) return GATEWAY_URLS.uat;
+    if (apiKey.includes('prod')) return GATEWAY_URLS.prod;
 
-    if (apiKey.includes('uat')) {
-        return 'https://uat-gateway.qyrus.com:8243';
-    }
-
-    if (apiKey.includes('prod')) {
-        return 'https://gateway.qyrus.com:8243';
-    }
-
-    throw new Error('Unable to determine environment from API key.');
+    throw new Error('Unable to determine environment from API key. Key must contain "staging", "uat", or "prod".');
 }
 
 /* -------------------------------------------------- */
 /* ---------------- HTTP HELPER --------------------- */
 /* -------------------------------------------------- */
 
-function httpRequest(endpoint, options, payload = null) {
+function httpRequest(gatewayUrl, options, payload = null) {
     return new Promise((resolve, reject) => {
-        const parsed = new URL(endpoint);
+        const parsed = new URL(gatewayUrl);
         const protocol = parsed.protocol === 'https:' ? https : http;
 
         const requestOptions = {
@@ -56,25 +53,12 @@ function httpRequest(endpoint, options, payload = null) {
 
         const req = protocol.request(requestOptions, (res) => {
             let body = '';
-
-            res.on('data', (chunk) => {
-                body += chunk.toString();
-            });
-
-            res.on('end', () => {
-                resolve({
-                    statusCode: res.statusCode,
-                    body
-                });
-            });
+            res.on('data', (chunk) => { body += chunk.toString(); });
+            res.on('end', () => { resolve({ statusCode: res.statusCode, body }); });
         });
 
         req.on('error', reject);
-
-        if (payload) {
-            req.write(payload);
-        }
-
+        if (payload) req.write(payload);
         req.end();
     });
 }
@@ -84,7 +68,6 @@ function httpRequest(endpoint, options, payload = null) {
 /* -------------------------------------------------- */
 
 async function trigger(
-    endPoint,
     apiKey,
     teamName,
     projectName,
@@ -97,46 +80,44 @@ async function trigger(
     envName
 ) {
     try {
-        const endpoint = deriveEndpointFromApiKey(apiKey, endPoint);
+        const gatewayUrl = deriveGatewayUrlFromApiKey(apiKey);
 
         console.log('\x1b[32m%s\x1b[0m', 'Preparing desktop execution...');
 
-        const validation = await validateSaltToken(apiKey, endpoint);
-        if (!validation.success) {
-            throw new Error(validation.message);
-        }
+        const validation = await validateSaltToken(apiKey, gatewayUrl);
+        if (!validation.success) throw new Error(validation.message);
+        console.log('\x1b[36m%s\x1b[0m', `✔ Token validated`);
 
-        console.log('\x1b[36m%s\x1b[0m', `User: ${validation.login}`);
+        const teamId = await getTeamUuid(gatewayUrl, apiKey, teamName);
+        console.log('\x1b[36m%s\x1b[0m', `✔ Resolved team: "${teamName}"`);
 
-        const teamId = await getTeamUuid(endpoint, apiKey, teamName);
-        const projectId = await getProjectUuid(endpoint, apiKey, teamId, projectName);
-        const suiteId = await getTestSuiteUuid(endpoint, apiKey, projectId, testSuiteName, teamId);
-        const envId = await getEnvironmentUuid(endpoint, apiKey, projectId, envName, teamId);
-        const nodeId = await getNodeUuid(endpoint, apiKey, teamId, nodeName);
-        const ipAddress = await getIpAddress(endpoint, apiKey, teamId, nodeId);
+        const projectId = await getProjectUuid(gatewayUrl, apiKey, teamId, projectName);
+        console.log('\x1b[36m%s\x1b[0m', `✔ Resolved project: "${projectName}"`);
+
+        const suiteId = await getTestSuiteUuid(gatewayUrl, apiKey, projectId, testSuiteName, teamId);
+        console.log('\x1b[36m%s\x1b[0m', `✔ Located test suite: "${testSuiteName}"`);
+
+        const envId = await getEnvironmentUuid(gatewayUrl, apiKey, projectId, envName, teamId);
+        console.log('\x1b[36m%s\x1b[0m', envId ? `✔ Found environment: "${envName}"` : `✔ Environment: global (no variable env)`);
+
+        const nodeId = await getNodeUuid(gatewayUrl, apiKey, teamId, nodeName);
+        console.log('\x1b[36m%s\x1b[0m', `✔ Identified node: "${nodeName}"`);
+
+        const ipAddress = await getIpAddress(gatewayUrl, apiKey, teamId, nodeId);
+        console.log('\x1b[36m%s\x1b[0m', `✔ Fetched node IP: ${ipAddress}`);
 
         const runId = await executeTest(
-            endpoint,
-            apiKey,
-            projectId,
-            suiteId,
-            nodeName,
-            nodeId,
-            ipAddress,
-            osType,
-            onErrorContinue,
-            parameterFileSource,
-            emailId,
-            envId,
-            teamId
+            gatewayUrl, apiKey, projectId, suiteId,
+            nodeName, nodeId, ipAddress, osType,
+            onErrorContinue, parameterFileSource, emailId, envId, teamId
         );
 
-        console.log('\x1b[32m%s\x1b[0m', `Execution started. Run ID: ${runId}`);
+        console.log('\x1b[32m%s\x1b[0m', `✔ Execution Started — Run ID: ${runId}`);
 
-        await pollExecutionStatus(endpoint, apiKey, teamId, runId, testSuiteName);
+        await pollExecutionStatus(gatewayUrl, apiKey, teamId, runId, testSuiteName);
 
     } catch (error) {
-        console.error('\x1b[31m%s\x1b[0m', error.message);
+        console.error('\x1b[31m%s\x1b[0m', `✖ ${error.message}`);
         process.exit(1);
     }
 }
@@ -146,19 +127,9 @@ async function trigger(
 /* -------------------------------------------------- */
 
 async function executeTest(
-    endpoint,
-    apiKey,
-    projectId,
-    suiteId,
-    nodeName,
-    nodeId,
-    ipAddress,
-    osType,
-    onErrorContinue,
-    parameterFileSource,
-    emailId,
-    envId,
-    teamId
+    gatewayUrl, apiKey, projectId, suiteId,
+    nodeName, nodeId, ipAddress, osType,
+    onErrorContinue, parameterFileSource, emailId, envId, teamId
 ) {
     const multiRuns = [
         JSON.stringify({
@@ -181,7 +152,7 @@ async function executeTest(
         project: { uuid: projectId },
         databaseConfiguration: null,
         emailRecipients: emailId ? [emailId] : [],
-        isEmail: Boolean(emailId),
+        isEmail: false,
         variableEnvironmentId: envId || null,
         testLabRun: true,
         onErrorContinue: onErrorContinue === 'true' || onErrorContinue === true,
@@ -190,7 +161,7 @@ async function executeTest(
 
     const json = JSON.stringify(payload);
 
-    const response = await httpRequest(endpoint, {
+    const response = await httpRequest(gatewayUrl, {
         path: `${baseContext}/api/execute-test`,
         method: 'POST',
         headers: {
@@ -203,14 +174,11 @@ async function executeTest(
     }, json);
 
     if (![200, 202].includes(response.statusCode)) {
-        throw new Error(`Execution failed with status ${response.statusCode}`);
+        throw new Error(`Execution trigger failed — HTTP ${response.statusCode}: ${response.body}`);
     }
 
     const data = JSON.parse(response.body);
-
-    if (!data.runId) {
-        throw new Error('Run ID missing in response');
-    }
+    if (!data.runId) throw new Error('Run ID absent in execution response.');
 
     return data.runId.toString();
 }
@@ -219,11 +187,35 @@ async function executeTest(
 /* ---------------- POLLING ------------------------- */
 /* -------------------------------------------------- */
 
-async function pollExecutionStatus(endpoint, apiKey, teamId, runId, suiteName) {
+const IN_PROGRESS_STATUSES = new Set([
+    'EXECUTION_NOT_STARTED', 'EXECUTING', 'RUN_SCHEDULED',
+    'RUN_INITIATED', 'Q1', 'Q2', 'Q3', 'Q4',
+    'P1', 'P2', 'P3', 'UPLOADING_RESULTS', 'GENERATING_REPORT'
+]);
+
+const STATUS_LABELS = {
+    EXECUTION_NOT_STARTED: 'Waiting to start...',
+    RUN_SCHEDULED: 'Run scheduled',
+    RUN_INITIATED: 'Run initiated',
+    Q1: 'Queued (Q1)', Q2: 'Queued (Q2)',
+    Q3: 'Queued (Q3)', Q4: 'Queued (Q4)',
+    P1: 'Processing (P1)', P2: 'Processing (P2)', P3: 'Processing (P3)',
+    EXECUTING: 'Executing tests...',
+    UPLOADING_RESULTS: 'Uploading results...',
+    GENERATING_REPORT: 'Generating report...',
+    COMPLETED: 'Execution completed',
+    CANCELLED: 'Execution cancelled',
+    ABORTING: 'Execution aborting',
+    PAUSED: 'Execution paused'
+};
+
+async function pollExecutionStatus(gatewayUrl, apiKey, teamId, runId, suiteName) {
+    let lastStatus = null;
+
     while (true) {
         await new Promise(r => setTimeout(r, POLL_INTERVAL));
 
-        const response = await httpRequest(endpoint, {
+        const response = await httpRequest(gatewayUrl, {
             path: `${baseContext}/api/test-report-details?runId=${runId}`,
             method: 'GET',
             headers: {
@@ -233,17 +225,27 @@ async function pollExecutionStatus(endpoint, apiKey, teamId, runId, suiteName) {
             }
         });
 
-        if (response.statusCode !== 200) continue;
+        if (response.statusCode !== 200) {
+            console.log('\x1b[33m%s\x1b[0m', `⚠ Poll returned HTTP ${response.statusCode}, retrying...`);
+            continue;
+        }
 
         const data = JSON.parse(response.body);
         const status = data.executionStatus;
 
+        if (status !== lastStatus) {
+            const label = STATUS_LABELS[status] || `Status: ${status}`;
+            console.log('\x1b[33m%s\x1b[0m', `  ${label}`);
+            lastStatus = status;
+        }
+
         if (status === 'COMPLETED') {
-            await showReport(endpoint, apiKey, teamId, data, suiteName);
+            await showReport(gatewayUrl, apiKey, teamId, data, suiteName);
             return;
         }
 
         if (['CANCELLED', 'ABORTING', 'PAUSED'].includes(status)) {
+            console.error('\x1b[31m%s\x1b[0m', `✖ Run terminated with status: ${status}`);
             process.exit(1);
         }
     }
@@ -253,27 +255,28 @@ async function pollExecutionStatus(endpoint, apiKey, teamId, runId, suiteName) {
 /* ---------------- REPORT -------------------------- */
 /* -------------------------------------------------- */
 
-async function showReport(endpoint, apiKey, teamId, data, suiteName) {
-    console.log(`\nExecution Summary: ${suiteName}`);
-    // console.log(`Total: ${data.total || 0}`);
-    // console.log(`Passed: ${data.passCount || 0}`);
-    // console.log(`Failed: ${data.failCount || 0}`);
+async function showReport(gatewayUrl, apiKey, teamId, data, suiteName) {
+    console.log('\n\x1b[32m%s\x1b[0m', `━━━ Execution Summary:  ━━━`);
+
+    const hasFailed = data.status === 'FAIL' || data.failCount > 0;
+    const resultColor = hasFailed ? '\x1b[31m' : '\x1b[32m';
+    console.log(`${resultColor}Result: ${data.status ?? (hasFailed ? 'FAIL' : 'PASS')}\x1b[0m`);
 
     if (data.shortnedUrl) {
-        const signedUrl = await getSignedUrl(endpoint, apiKey, teamId, data.shortnedUrl);
+        const signedUrl = await getSignedUrl(gatewayUrl, apiKey, teamId, data.shortnedUrl);
         if (signedUrl) {
-            console.log('\nReport URL:');
-            console.log(signedUrl);
+            process.stdout.write(`\nReport: \x1b]8;;${signedUrl}\x1b\\View Report\x1b]8;;\x1b\\\n`);
+            console.log('(Ctrl+Click to open)\n');
         }
     }
 
-    process.exit(data.failCount > 0 ? 1 : 0);
+    process.exit(hasFailed ? 1 : 0);
 }
 
-async function getSignedUrl(endpoint, apiKey, teamId, shortnedUrl) {
+async function getSignedUrl(gatewayUrl, apiKey, teamId, shortnedUrl) {
     const payload = JSON.stringify({ objectKeys: [shortnedUrl] });
 
-    const response = await httpRequest(endpoint, {
+    const response = await httpRequest(gatewayUrl, {
         path: `${baseContext}/api/sign-url`,
         method: 'POST',
         headers: {
@@ -285,121 +288,116 @@ async function getSignedUrl(endpoint, apiKey, teamId, shortnedUrl) {
         }
     }, payload);
 
-    if (response.statusCode !== 200) return null;
+    if (response.statusCode !== 200) {
+        console.log('\x1b[33m%s\x1b[0m', '⚠ Could not fetch signed report URL.');
+        return null;
+    }
 
     const data = JSON.parse(response.body);
-    return data?.signedUrls?.[0] || null;
+    const entry = data?.signedUrls?.[0];
+
+    if (!entry || entry.error) {
+        console.log('\x1b[33m%s\x1b[0m', '⚠ Signed URL entry missing or errored.');
+        return null;
+    }
+
+    // queryParams is the CloudFront signed URL
+    return entry.queryParams || null;
 }
 
 /* -------------------------------------------------- */
 /* ---------------- SUPPORT APIS -------------------- */
 /* -------------------------------------------------- */
 
-async function validateSaltToken(token, endpoint) {
+async function validateSaltToken(token, gatewayUrl) {
     const rawToken = token.startsWith('Bearer ') ? token.substring(7) : token;
 
-    const response = await httpRequest(endpoint, {
+    const response = await httpRequest(gatewayUrl, {
         path: `/usermgmt/v2/api/validateAPIToken?apiToken=${rawToken}`,
         method: 'GET',
         headers: { authorization: gatewayAuth }
     });
 
     if (response.statusCode !== 200) {
-        return { success: false, message: response.body };
+        return { success: false, message: `Token validation failed — HTTP ${response.statusCode}: ${response.body}` };
     }
 
     const data = JSON.parse(response.body);
     return { success: true, login: data.login || null };
 }
 
-async function getTeamUuid(endpoint, apiKey, teamName) {
-    const response = await httpRequest(endpoint, {
+async function getTeamUuid(gatewayUrl, apiKey, teamName) {
+    const response = await httpRequest(gatewayUrl, {
         path: '/usermgmt/v2/api/teams-by-user-and-role',
         method: 'GET',
         headers: { 'x-api-key': apiKey, authorization: gatewayAuth }
     });
 
     const teams = JSON.parse(response.body);
-
-    const team = teams.find(t =>
-        t.teamName?.toLowerCase() === teamName.toLowerCase()
-    );
-
-    if (!team) throw new Error(`Team not found: ${teamName}`);
+    const team = teams.find(t => t.teamName?.toLowerCase() === teamName.toLowerCase());
+    if (!team) throw new Error(`Team not found: "${teamName}"`);
     return team.uuid.trim();
 }
 
-async function getProjectUuid(endpoint, apiKey, teamId, projectName) {
-    const response = await httpRequest(endpoint, {
+async function getProjectUuid(gatewayUrl, apiKey, teamId, projectName) {
+    const response = await httpRequest(gatewayUrl, {
         path: `${baseContext}/api/projects-by-team-and-servicestore?teamId=${teamId}&serviceStoreId=${SERVICE_STORE_ID}`,
         method: 'GET',
         headers: { 'x-api-key': apiKey, authorization: gatewayAuth, 'Team-Id': teamId }
     });
 
     const projects = JSON.parse(response.body);
-
-    const project = projects.find(p =>
-        p.projectName?.toLowerCase() === projectName.toLowerCase()
-    );
-
-    if (!project) throw new Error(`Project not found: ${projectName}`);
+    const project = projects.find(p => p.projectName?.toLowerCase() === projectName.toLowerCase());
+    if (!project) throw new Error(`Project not found: "${projectName}"`);
     return project.uuid.trim();
 }
 
-async function getTestSuiteUuid(endpoint, apiKey, projectId, suiteName, teamId) {
-    const response = await httpRequest(endpoint, {
+async function getTestSuiteUuid(gatewayUrl, apiKey, projectId, suiteName, teamId) {
+    const response = await httpRequest(gatewayUrl, {
         path: `${baseContext}/api/test-suites-for-test-lab?projectUUID=${projectId}`,
         method: 'GET',
         headers: { 'x-api-key': apiKey, authorization: gatewayAuth, 'Team-Id': teamId }
     });
 
     const suites = JSON.parse(response.body);
-
-    const suite = suites.find(s =>
-        s.testSuiteName?.toLowerCase() === suiteName.toLowerCase()
-    );
-
-    if (!suite) throw new Error(`Test Suite not found: ${suiteName}`);
+    const suite = suites.find(s => s.testSuiteName?.toLowerCase() === suiteName.toLowerCase());
+    if (!suite) throw new Error(`Test suite not found: "${suiteName}"`);
     return suite.uuid.trim();
 }
 
-async function getEnvironmentUuid(endpoint, apiKey, projectId, envName, teamId) {
+async function getEnvironmentUuid(gatewayUrl, apiKey, projectId, envName, teamId) {
     if (!envName || envName.toLowerCase() === 'global') return null;
 
-    const response = await httpRequest(endpoint, {
+    const response = await httpRequest(gatewayUrl, {
         path: `${baseContext}/api/variables-environment?projectUUID=${projectId}`,
         method: 'GET',
         headers: { 'x-api-key': apiKey, authorization: gatewayAuth, 'Team-Id': teamId }
     });
 
     const envs = JSON.parse(response.body);
-
-    const env = envs.find(e =>
-        e.environmentName?.toLowerCase() === envName.toLowerCase()
-    );
-
+    const env = envs.find(e => e.environmentName?.toLowerCase() === envName.toLowerCase());
     return env ? env.uuid.trim() : null;
 }
 
-async function getNodeUuid(endpoint, apiKey, teamId, nodeName) {
-    const response = await httpRequest(endpoint, {
+async function getNodeUuid(gatewayUrl, apiKey, teamId, nodeName) {
+    const response = await httpRequest(gatewayUrl, {
         path: `/node-registration-service/v1/api-public/get-nodeUuid?nodeName=${encodeURIComponent(nodeName)}`,
         method: 'GET',
         headers: { authorization: gatewayAuth }
     });
 
-    if (response.statusCode !== 200) throw new Error('Node UUID not found');
+    if (response.statusCode !== 200) throw new Error(`Node not found: "${nodeName}"`);
     return response.body.trim();
 }
 
-async function getIpAddress(endpoint, apiKey, teamId, nodeId) {
-    const response = await httpRequest(endpoint, {
+async function getIpAddress(gatewayUrl, apiKey, teamId, nodeId) {
+    const response = await httpRequest(gatewayUrl, {
         path: `/node-registration-service/v1/api-public/get-ip?uuid=${nodeId}`,
         method: 'GET',
         headers: { authorization: gatewayAuth }
     });
 
-    if (response.statusCode !== 200) throw new Error('IP not found');
+    if (response.statusCode !== 200) throw new Error(`IP address not found for node: ${nodeId}`);
     return response.body.trim();
 }
 
