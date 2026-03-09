@@ -10,6 +10,7 @@ let count1 = 0;
 let oldSet = new Set();
 let newSet = new Set();
 let array3 = [];
+let lastScriptStatus = {};
 
 const trigger = function (apiKey, teamName,
     projectName, testSuiteName, operatingSystem,
@@ -71,55 +72,55 @@ const trigger = function (apiKey, teamName,
 
                 // Step 2: Get Organization Name (now with Team-Id header)
                 // return getOrganizationInfo(endpoint, apiKey, teamName, teamId).then(function (organizationName) {
-                    // console.log('\x1b[36m%s\x1b[0m', "Organization: " + JSON.stringify(organizationName));
-// const organizationName = 'org';
-                    // Step 3: Get Project UUID (with Team-Id header)
-                    return getProjectUuid(endpoint, apiKey, teamId, teamName, projectName).then(function (projectId) {
-                        // console.log('\x1b[36m%s\x1b[0m', "Project ID: " + projectId);
+                // console.log('\x1b[36m%s\x1b[0m', "Organization: " + JSON.stringify(organizationName));
+                // const organizationName = 'org';
+                // Step 3: Get Project UUID (with Team-Id header)
+                return getProjectUuid(endpoint, apiKey, teamId, teamName, projectName).then(function (projectId) {
+                    // console.log('\x1b[36m%s\x1b[0m', "Project ID: " + projectId);
 
-                        // Step 4: Get Test Suite UUID (with Team-Id header)
-                        return getTestSuiteUuid(endpoint, apiKey, projectId, testSuiteName, teamId).then(function (suiteId) {
-                            // console.log('\x1b[36m%s\x1b[0m', "Test Suite ID: " + suiteId);
+                    // Step 4: Get Test Suite UUID (with Team-Id header)
+                    return getTestSuiteUuid(endpoint, apiKey, projectId, testSuiteName, teamId).then(function (suiteId) {
+                        // console.log('\x1b[36m%s\x1b[0m', "Test Suite ID: " + suiteId);
 
-                            // Step 5: Get Environment UUID (with Team-Id header)
-                            return getEnvironmentUuid(endpoint, apiKey, projectId, envName || "Global", teamId).then(function (envId) {
-                                // console.log('\x1b[36m%s\x1b[0m', "Environment ID: " + envId);
+                        // Step 5: Get Environment UUID (with Team-Id header)
+                        return getEnvironmentUuid(endpoint, apiKey, projectId, envName || "Global", teamId).then(function (envId) {
+                            // console.log('\x1b[36m%s\x1b[0m', "Environment ID: " + envId);
 
-                                // Step 6: Execute Test (with Team-Id header)
-                                return executeTestForWebRepoAutomation(
-                                    endpoint,
-                                    organizationName,
-                                    apiKey,
-                                    suiteId,
-                                    projectId,
-                                    browserName,
-                                    operatingSystem,
-                                    projectName,
-                                    parameterFileSource,
-                                    onErrorContinue,
-                                    envId,
-                                    teamId,
-                                    userName
-                                ).then(function (result) {
-                                    const executionRunId = result.runId;
-                                    const token = result.token;
+                            // Step 6: Execute Test (with Team-Id header)
+                            return executeTestForWebRepoAutomation(
+                                endpoint,
+                                organizationName,
+                                apiKey,
+                                suiteId,
+                                projectId,
+                                browserName,
+                                operatingSystem,
+                                projectName,
+                                parameterFileSource,
+                                onErrorContinue,
+                                envId,
+                                teamId,
+                                userName
+                            ).then(function (result) {
+                                const executionRunId = result.runId;
+                                const token = result.token;
 
-                                    console.log('\x1b[32m%s\x1b[0m', "Test execution initiated successfully!");
-                                    console.log('\x1b[36m%s\x1b[0m', "Run ID: " + executionRunId);
+                                console.log('\x1b[32m%s\x1b[0m', "Test execution initiated successfully!");
+                                console.log('\x1b[36m%s\x1b[0m', "Run ID: " + executionRunId);
 
-                                    // Build the response object for status checking
-                                    const jsonObject = {
-                                        "runId": executionRunId,
-                                        "token": token
-                                    };
-                                    const finalbody = JSON.stringify(jsonObject);
+                                // Build the response object for status checking
+                                const jsonObject = {
+                                    "runId": executionRunId,
+                                    "token": token
+                                };
+                                const finalbody = JSON.stringify(jsonObject);
 
-                                    // Continue with existing status checking logic
-                                    proceedWithStatusCheck(finalbody, teamId);
-                                });
+                                // Continue with existing status checking logic
+                                proceedWithStatusCheck(finalbody, teamId);
                             });
                         });
                     });
+                });
                 // });
             }).catch(function (error) {
                 console.log('\x1b[31m%s\x1b[0m', "Error in execution workflow: " + error.message);
@@ -142,7 +143,7 @@ const trigger = function (apiKey, teamName,
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'scope': 'JENKINS'
+                    'scope': 'NODE_CLI'
                 },
                 rejectUnauthorized: false
             };
@@ -155,7 +156,7 @@ const trigger = function (apiKey, teamName,
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'scope': 'JENKINS'
+                    'scope': 'NODE_CLI'
                 },
                 rejectUnauthorized: false
             };
@@ -168,7 +169,7 @@ const trigger = function (apiKey, teamName,
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'scope': 'JENKINS'
+                    'scope': 'NODE_CLI'
                 },
                 rejectUnauthorized: false
             };
@@ -176,6 +177,7 @@ const trigger = function (apiKey, teamName,
             console.log('Triggered the TestSuite ', testSuiteName, ' Successfully!!');
             console.log('Execution of TestSuite ', testSuiteName, ' is in Progress...');
             console.log('\x1b[36m%s\x1b[0m', 'Checking execution status...');
+            console.log('TestSuite Run Status: ' + status + '\n');
             checkExecStatus(execStatus, finalbody, testSuiteName,
                 finalResult, status, statusResponse,
                 scriptResultStatus, emailId, teamId);
@@ -212,7 +214,7 @@ function checkExecStatus(execStatus, triggerResponse, testSuite,
     execStatus.headers = {
         'x-api-key': token,
         'Content-Type': 'application/json',
-        'scope': 'JENKINS',
+        'scope': 'NODE_CLI',
         'Team-Id': teamId
     };
 
@@ -239,15 +241,23 @@ function checkExecStatus(execStatus, triggerResponse, testSuite,
 
                 if (statusResponse == 'RUNNING' || statusResponse == 'ALLOCATING BROWSER' || statusResponse == 'WAITING FOR BROWSER') {
                     checkScriptStatus(scriptResultStatus, runId, token, teamId);
+                    if(status !== statusResponse) {
+                        console.log('TestSuite Run Status: ' + statusResponse + '\n');
+                    }                    
                 }
 
                 if (status !== statusResponse) {
                     status = statusResponse;
-                    console.log('TestSuite Run Status: ' + status + '\n');
+                    // console.log('TestSuite Run Status: ' + status + '\n');
                 }
 
                 if (executionStatus === "COMPLETED" || statusResponse === "COMPLETED") {
                     checkScriptStatus(scriptResultStatus, runId, token, teamId);
+                    // console.log('TestSuite Run Status: ' + status + '\n');
+                    // if (status !== statusResponse) {
+                    //     status = statusResponse;
+                    //     console.log('TestSuite Run Status: ' + status + '\n');
+                    // }
                     setTimeout(() => {
                         checkFinalStatus(finalResult, triggerResponse, testSuite, emailId, runId, token, teamId);
                     }, 5000);
@@ -255,7 +265,13 @@ function checkExecStatus(execStatus, triggerResponse, testSuite,
                 }
                 else {
                     setTimeout(() => {
+                        // console.log('TestSuite Run Status: ' + statusResponse + '\n');
                         checkExecStatus(execStatus, triggerResponse, testSuite, finalResult, status, statusResponse, scriptResultStatus, emailId, teamId);
+                        // console.log('TestSuite Run Status: ' + status + '\n');
+                        // if (status !== statusResponse) {
+                        //     status = statusResponse;
+                        //     console.log('TestSuite Run Status: ' + status + '\n');
+                        // }
                     }, 30000); // Changed to 30 seconds as per Java code
                 }
             } catch (parseError) {
@@ -281,7 +297,7 @@ function checkScriptStatus(scriptResultStatus, runId, token, teamId) {
         'x-api-key': token,
         'Content-Type': 'application/json',
         'Team-Id': teamId,
-        'scope': 'JENKINS'
+        'scope': 'NODE_CLI'
     };
 
     var reqPost = https.request(scriptResultStatus, function (res) {
@@ -307,7 +323,16 @@ function checkScriptStatus(scriptResultStatus, runId, token, teamId) {
                         const scriptObj = JSON.parse(parsedJson.scriptExecution);
 
                         for (const scriptName in scriptObj) {
-                            console.log(scriptName + " : " + scriptObj[scriptName]);
+                            // console.log(scriptName + " : " + scriptObj[scriptName]);
+                            const status = scriptObj[scriptName];
+
+                            // Print only if status changed
+                            if (lastScriptStatus[scriptName] !== status) {
+
+                                console.log(scriptName + " : " + status);
+
+                                lastScriptStatus[scriptName] = status;
+                            }
                         }
 
                     }
@@ -394,7 +419,7 @@ function checkFinalStatus(finalResult, triggerResponse, testSuite, emailId, runI
         'x-api-key': token,
         'Content-Type': 'application/json',
         'Team-Id': teamId,
-        'scope': 'JENKINS'
+        'scope': 'NODE_CLI'
     };
 
     var reqPost = https.request(finalResult, function (res) {
@@ -455,7 +480,7 @@ function getReportUrl(host, port, path, token, finalStatus, testSuite, internalM
             'x-api-key': token,
             'Content-Type': 'application/json',
             'Team-Id': teamId,
-            'scope': 'JENKINS'
+            'scope': 'NODE_CLI'
         },
         rejectUnauthorized: false
     };
@@ -530,7 +555,7 @@ const validateSaltToken = function (token, gatewayUrl) {
             const options = {
                 host: hostName,
                 port: port,
-                path: umContext + `/api/validateAPIToken?apiToken=${rawToken}&scope=JENKINS`,
+                path: umContext + `/api/validateAPIToken?apiToken=${rawToken}&scope=NODE_CLI`,
                 method: 'GET',
                 headers: {
                     'accept': 'application/json'
@@ -627,7 +652,7 @@ const getOrganizationInfo = function (gatewayUrl, customAuth, teamName, teamId) 
                 headers: {
                     'x-api-key': customAuth,
                     'Team-Id': teamId,
-                    'scope': 'JENKINS'
+                    'scope': 'NODE_CLI'
                 },
                 rejectUnauthorized: false
             };
@@ -713,7 +738,7 @@ const getTeamsInformation = function (gatewayUrl, customAuth) {
                 method: 'GET',
                 headers: {
                     'x-api-key': customAuth,
-                    'scope': 'JENKINS'
+                    'scope': 'NODE_CLI'
                 },
                 rejectUnauthorized: false
             };
@@ -806,7 +831,7 @@ const getProjectsInformation = function (gatewayUrl, customAuth, teamId) {
                 method: 'GET',
                 headers: {
                     'x-api-key': customAuth.trim(),
-                    'scope': 'JENKINS',
+                    'scope': 'NODE_CLI',
                     'Team-Id': teamId
                 },
                 rejectUnauthorized: false
@@ -898,7 +923,7 @@ const getTestSuitesForTestAutomation = function (gatewayUrl, customAuth, project
                 method: 'GET',
                 headers: {
                     'x-api-key': customAuth,
-                    'scope': 'JENKINS',
+                    'scope': 'NODE_CLI',
                     'Team-Id': teamId
                 },
                 rejectUnauthorized: false
@@ -990,7 +1015,7 @@ const getEnvironmentVariablesForTestAutomation = function (gatewayUrl, customAut
                 method: 'GET',
                 headers: {
                     'x-api-key': customAuth,
-                    'scope': 'JENKINS',
+                    'scope': 'NODE_CLI',
                     'Team-Id': teamId
                 },
                 rejectUnauthorized: false
@@ -1044,7 +1069,7 @@ const getActiveBrowserSubscriptions = function (gatewayUrl, authToken, teamId, l
                 method: 'GET',
                 headers: {
                     'x-api-key': authToken,
-                    'scope': 'JENKINS',
+                    'scope': 'NODE_CLI',
                     'Team-Id': teamId,
                     'login': login
                 },
@@ -1259,7 +1284,7 @@ const executeTestForWebRepoAutomation = function (
                     method: 'POST',
                     headers: {
                         'x-api-key': userAuthToken,
-                        'scope': 'JENKINS',
+                        'scope': 'NODE_CLI',
                         'Content-Type': 'application/json',
                         'Team-Id': teamId
                     },
