@@ -14,7 +14,7 @@ const GATEWAY_URLS = {
 };
 
 const gatewayAuth = 'Bearer 90540897-748a-3ef2-b3a3-c6f8f42022da';
-const baseContext = '/desktop-service/v1';
+const baseContext = '/desktop-service-noauth/v1';
 const POLL_INTERVAL = 30000;
 const HARDCODED_PORT = 3000;
 const SERVICE_STORE_ID = 'a2b452a5-d87c-11ed-a294-0241437b4ff9';
@@ -100,10 +100,10 @@ async function trigger(
         const envId = await getEnvironmentUuid(gatewayUrl, apiKey, projectId, envName, teamId);
         console.log('\x1b[36m%s\x1b[0m', envId ? `✔ Found environment: "${envName}"` : `✔ Environment: global (no variable env)`);
 
-        const nodeId = await getNodeUuid(gatewayUrl, apiKey, teamId, nodeName);
+        const nodeId = await getNodeUuid(gatewayUrl, nodeName);
         console.log('\x1b[36m%s\x1b[0m', `✔ Identified node: "${nodeName}"`);
 
-        const ipAddress = await getIpAddress(gatewayUrl, apiKey, teamId, nodeId);
+        const ipAddress = await getIpAddress(gatewayUrl, nodeId);
         console.log('\x1b[36m%s\x1b[0m', `✔ Fetched node IP: ${ipAddress}`);
 
         const runId = await executeTest(
@@ -166,7 +166,7 @@ async function executeTest(
         method: 'POST',
         headers: {
             'x-api-key': apiKey,
-            authorization: gatewayAuth,
+            scope: 'NODE_CLI',
             'Content-Type': 'application/json',
             'Team-Id': teamId,
             'Content-Length': Buffer.byteLength(json)
@@ -220,7 +220,7 @@ async function pollExecutionStatus(gatewayUrl, apiKey, teamId, runId, suiteName)
             method: 'GET',
             headers: {
                 'x-api-key': apiKey,
-                authorization: gatewayAuth,
+                scope: 'NODE_CLI',
                 'Team-Id': teamId
             }
         });
@@ -281,7 +281,7 @@ async function getSignedUrl(gatewayUrl, apiKey, teamId, shortnedUrl) {
         method: 'POST',
         headers: {
             'x-api-key': apiKey,
-            authorization: gatewayAuth,
+            scope: 'NODE_CLI',
             'Content-Type': 'application/json',
             'Team-Id': teamId,
             'Content-Length': Buffer.byteLength(payload)
@@ -313,9 +313,8 @@ async function validateSaltToken(token, gatewayUrl) {
     const rawToken = token.startsWith('Bearer ') ? token.substring(7) : token;
 
     const response = await httpRequest(gatewayUrl, {
-        path: `/usermgmt/v2/api/validateAPIToken?apiToken=${rawToken}`,
-        method: 'GET',
-        headers: { authorization: gatewayAuth }
+        path: `/um-noauth/v1/api/validateAPIToken?apiToken=${rawToken}&scope=NODE_CLI`,
+        method: 'GET'
     });
 
     if (response.statusCode !== 200) {
@@ -328,9 +327,9 @@ async function validateSaltToken(token, gatewayUrl) {
 
 async function getTeamUuid(gatewayUrl, apiKey, teamName) {
     const response = await httpRequest(gatewayUrl, {
-        path: '/usermgmt/v2/api/teams-by-user-and-role',
+        path: '/um-noauth/v1/api/teams-by-user-and-role',
         method: 'GET',
-        headers: { 'x-api-key': apiKey, authorization: gatewayAuth }
+        headers: { 'x-api-key': apiKey, scope: 'NODE_CLI' }
     });
 
     const teams = JSON.parse(response.body);
@@ -343,7 +342,7 @@ async function getProjectUuid(gatewayUrl, apiKey, teamId, projectName) {
     const response = await httpRequest(gatewayUrl, {
         path: `${baseContext}/api/projects-by-team-and-servicestore?teamId=${teamId}&serviceStoreId=${SERVICE_STORE_ID}`,
         method: 'GET',
-        headers: { 'x-api-key': apiKey, authorization: gatewayAuth, 'Team-Id': teamId }
+        headers: { 'x-api-key': apiKey, scope: 'NODE_CLI', 'Team-Id': teamId }
     });
 
     const projects = JSON.parse(response.body);
@@ -356,7 +355,7 @@ async function getTestSuiteUuid(gatewayUrl, apiKey, projectId, suiteName, teamId
     const response = await httpRequest(gatewayUrl, {
         path: `${baseContext}/api/test-suites-for-test-lab?projectUUID=${projectId}`,
         method: 'GET',
-        headers: { 'x-api-key': apiKey, authorization: gatewayAuth, 'Team-Id': teamId }
+        headers: { 'x-api-key': apiKey, scope: 'NODE_CLI', 'Team-Id': teamId }
     });
 
     const suites = JSON.parse(response.body);
@@ -371,7 +370,7 @@ async function getEnvironmentUuid(gatewayUrl, apiKey, projectId, envName, teamId
     const response = await httpRequest(gatewayUrl, {
         path: `${baseContext}/api/variables-environment?projectUUID=${projectId}`,
         method: 'GET',
-        headers: { 'x-api-key': apiKey, authorization: gatewayAuth, 'Team-Id': teamId }
+        headers: { 'x-api-key': apiKey, scope: 'NODE_CLI', 'Team-Id': teamId }
     });
 
     const envs = JSON.parse(response.body);
@@ -379,7 +378,7 @@ async function getEnvironmentUuid(gatewayUrl, apiKey, projectId, envName, teamId
     return env ? env.uuid.trim() : null;
 }
 
-async function getNodeUuid(gatewayUrl, apiKey, teamId, nodeName) {
+async function getNodeUuid(gatewayUrl, nodeName) {
     const response = await httpRequest(gatewayUrl, {
         path: `/node-registration-service/v1/api-public/get-nodeUuid?nodeName=${encodeURIComponent(nodeName)}`,
         method: 'GET',
@@ -390,7 +389,7 @@ async function getNodeUuid(gatewayUrl, apiKey, teamId, nodeName) {
     return response.body.trim();
 }
 
-async function getIpAddress(gatewayUrl, apiKey, teamId, nodeId) {
+async function getIpAddress(gatewayUrl, nodeId) {
     const response = await httpRequest(gatewayUrl, {
         path: `/node-registration-service/v1/api-public/get-ip?uuid=${nodeId}`,
         method: 'GET',
