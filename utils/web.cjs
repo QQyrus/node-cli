@@ -187,7 +187,7 @@ function checkExecStatus(execStatus, triggerResponse, testSuite,
 
     // Clean up runId if it contains colons (from Java code)
     if (runId && runId.includes(':')) {
-        runId = runId.split(':')[1].replace('}', '');
+        runId = runId.split(':')[1].replace(/}/g, '');
         runId = runId.substring(1, runId.length - 1);
     }
 
@@ -339,7 +339,7 @@ function checkFinalStatus(finalResult, triggerResponse, testSuite, emailId, runI
 
     // Clean up runId if it contains colons
     if (runId && runId.includes(':')) {
-        runId = runId.split(':')[1].replace('}', '');
+        runId = runId.split(':')[1].replace(/}/g, '');
         runId = runId.substring(1, runId.length - 1);
     }
 
