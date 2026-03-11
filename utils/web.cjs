@@ -25,8 +25,6 @@ const trigger = function (apiKey, teamName,
     }
 
     console.log('\x1b[32m%s\x1b[0m', "Getting your environment ready, your test will start running soon.");
-    //  validating the api key
-    //  call the validate salt token function
 
     // Validate the API key using validateSaltToken
     validateSaltToken(apiKey, endpoint).then(function (result) {
@@ -68,12 +66,6 @@ const trigger = function (apiKey, teamName,
                     throw new Error("Team not found: " + teamName);
                 }
 
-                // console.log('\x1b[36m%s\x1b[0m', "Team ID: " + teamId);
-
-                // Step 2: Get Organization Name (now with Team-Id header)
-                // return getOrganizationInfo(endpoint, apiKey, teamName, teamId).then(function (organizationName) {
-                // console.log('\x1b[36m%s\x1b[0m', "Organization: " + JSON.stringify(organizationName));
-                // const organizationName = 'org';
                 // Step 3: Get Project UUID (with Team-Id header)
                 return getProjectUuid(endpoint, apiKey, teamId, teamName, projectName).then(function (projectId) {
                     // console.log('\x1b[36m%s\x1b[0m', "Project ID: " + projectId);
@@ -265,12 +257,7 @@ function checkExecStatus(execStatus, triggerResponse, testSuite,
                 }
                 else {
                     setTimeout(() => {
-                        // console.log('TestSuite Run Status: ' + statusResponse + '\n');
                         checkExecStatus(execStatus, triggerResponse, testSuite, finalResult, status, statusResponse, scriptResultStatus, emailId, teamId);
-                        // console.log('TestSuite Run Status: ' + status + '\n');
-                        // if (status !== statusResponse) {
-                        //     status = statusResponse;
-                        //     console.log('TestSuite Run Status: ' + status + '\n');
                         // }
                     }, 30000); // Changed to 30 seconds as per Java code
                 }
@@ -336,17 +323,6 @@ function checkScriptStatus(scriptResultStatus, runId, token, teamId) {
                         }
 
                     }
-                    // The response structure might be different, handle accordingly
-                    // if (Array.isArray(parsedJson)) {
-                    // getUniqueScripts(parsedJson);
-                    // for (let i = 0; i < parsedJson.length; i++) {
-                    //     const script = parsedJson[i];
-
-                    //     if (script.scriptName && script.scriptResult) {
-                    //         console.log(script.scriptName + " : " + script.scriptResult);
-                    //     }
-                    // }
-                    // }
                 } catch (parseError) {
                     console.log('\x1b[31m%s\x1b[0m', "Error parsing script status: " + parseError.message);
                 }
@@ -357,33 +333,6 @@ function checkScriptStatus(scriptResultStatus, runId, token, teamId) {
         console.log('\x1b[31m%s\x1b[0m', "ERROR in checkScriptStatus: " + err.message);
     });
     reqPost.end();
-}
-
-function getUniqueScripts(parsedJson) {
-    for (let i = 0; i < parsedJson.length; i++) {
-        newSet.add(parsedJson[i].scriptName);
-
-    }
-    if (count1 == 0) {
-        oldSet = new Set(function* () { yield* Array.from(newSet.values()); yield* Array.from(oldSet.values()); }());
-        printLogs(Array.from(newSet.values()), parsedJson);
-        count1++;
-    }
-    else {
-        array3 = Array.from(newSet.values()).filter(function (obj) { return Array.from(oldSet.values()).indexOf(obj) == -1; });
-        printLogs(array3, parsedJson)
-        oldSet = new Set(function* () { yield* Array.from(newSet.values()); yield* Array.from(oldSet.values()); }());
-    }
-}
-
-function printLogs(array3, parsedJson) {
-    for (var i = 0; i < array3.length; i++) {
-        for (var j = 0; j < parsedJson.length; j++) {
-            if (array3[i] === parsedJson[j].scriptName) {
-                console.log(parsedJson[j].scriptName + " : " + parsedJson[j].scriptResult);
-            }
-        }
-    }
 }
 
 function checkRunStatus(status) {
@@ -455,7 +404,6 @@ function checkFinalStatus(finalResult, triggerResponse, testSuite, emailId, runI
 
             } catch (parseError) {
                 console.log('\x1b[31m%s\x1b[0m', "Error parsing final result: " + parseError.message);
-                // console.log("Response body: " + body);
                 process.exit(1);
             }
         });
@@ -498,7 +446,6 @@ function getReportUrl(host, port, path, token, finalStatus, testSuite, internalM
                 // If response is JSON, extract the URL
                 try {
                     const jsonResponse = JSON.parse(body);
-                    // cdnReportUrl = jsonResponse.url || jsonResponse.reportUrl || body;
 
                     cdnReportUrl = jsonResponse.cdnReportUrl || body;
                 } catch (e) {
