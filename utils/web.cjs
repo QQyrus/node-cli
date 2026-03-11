@@ -136,8 +136,7 @@ const trigger = function (apiKey, teamName,
                 headers: {
                     'Content-Type': 'application/json',
                     'scope': 'NODE_CLI'
-                },
-                rejectUnauthorized: false
+                }
             };
 
             // construct URL details to check final exec result 
@@ -149,8 +148,7 @@ const trigger = function (apiKey, teamName,
                 headers: {
                     'Content-Type': 'application/json',
                     'scope': 'NODE_CLI'
-                },
-                rejectUnauthorized: false
+                }
             };
 
             //get script result status 
@@ -162,8 +160,7 @@ const trigger = function (apiKey, teamName,
                 headers: {
                     'Content-Type': 'application/json',
                     'scope': 'NODE_CLI'
-                },
-                rejectUnauthorized: false
+                }
             };
 
             console.log('Triggered the TestSuite ', testSuiteName, ' Successfully!!');
@@ -429,8 +426,7 @@ function getReportUrl(host, port, path, token, finalStatus, testSuite, internalM
             'Content-Type': 'application/json',
             'Team-Id': teamId,
             'scope': 'NODE_CLI'
-        },
-        rejectUnauthorized: false
+        }
     };
 
     const req = protocol.request(options, function (res) {
@@ -495,8 +491,7 @@ function sendMail(host, port, runId, token, teamId, emailId) {
             'x-api-key': token,
             'Team-Id': teamId,
             'scope': 'NODE_CLI'
-        },
-        rejectUnauthorized: false
+        }
     };
 
     const req = https.request(options, function (res) {
@@ -544,8 +539,7 @@ const validateSaltToken = function (token, gatewayUrl) {
                 method: 'GET',
                 headers: {
                     'accept': 'application/json'
-                },
-                rejectUnauthorized: false
+                }
             };
 
             // Make the HTTP request
@@ -638,16 +632,8 @@ const getOrganizationInfo = function (gatewayUrl, customAuth, teamName, teamId) 
                     'x-api-key': customAuth,
                     'Team-Id': teamId,
                     'scope': 'NODE_CLI'
-                },
-                rejectUnauthorized: false
+                }
             };
-
-            // console.log('\x1b[36m%s\x1b[0m', "Fetching organization information for team: " + teamName);
-            // console.log("Complete Request URL: " + (protocol === https ? "https://" : "http://") + hostName + ":" + port + options.path);
-
-            // log request headers
-            // console.log("Request Headers: " + JSON.stringify(options.headers));
-
 
             const req = protocol.request(options, function (res) {
                 let bodyString = '';
@@ -724,8 +710,7 @@ const getTeamsInformation = function (gatewayUrl, customAuth) {
                 headers: {
                     'x-api-key': customAuth,
                     'scope': 'NODE_CLI'
-                },
-                rejectUnauthorized: false
+                }
             };
 
             const req = protocol.request(options, function (res) {
@@ -818,8 +803,7 @@ const getProjectsInformation = function (gatewayUrl, customAuth, teamId) {
                     'x-api-key': customAuth.trim(),
                     'scope': 'NODE_CLI',
                     'Team-Id': teamId
-                },
-                rejectUnauthorized: false
+                }
             };
 
             const req = protocol.request(options, function (res) {
@@ -910,8 +894,7 @@ const getTestSuitesForTestAutomation = function (gatewayUrl, customAuth, project
                     'x-api-key': customAuth,
                     'scope': 'NODE_CLI',
                     'Team-Id': teamId
-                },
-                rejectUnauthorized: false
+                }
             };
 
             const req = protocol.request(options, function (res) {
@@ -1002,8 +985,7 @@ const getEnvironmentVariablesForTestAutomation = function (gatewayUrl, customAut
                     'x-api-key': customAuth,
                     'scope': 'NODE_CLI',
                     'Team-Id': teamId
-                },
-                rejectUnauthorized: false
+                }
             };
 
             const req = protocol.request(options, function (res) {
@@ -1057,8 +1039,7 @@ const getActiveBrowserSubscriptions = function (gatewayUrl, authToken, teamId, l
                     'scope': 'NODE_CLI',
                     'Team-Id': teamId,
                     'login': login
-                },
-                rejectUnauthorized: false
+                }
             };
 
             const req = protocol.request(options, function (res) {
@@ -1272,8 +1253,7 @@ const executeTestForWebRepoAutomation = function (
                         'scope': 'NODE_CLI',
                         'Content-Type': 'application/json',
                         'Team-Id': teamId
-                    },
-                    rejectUnauthorized: false
+                    }
                 };
 
                 const req = protocol.request(options, function (res) {
