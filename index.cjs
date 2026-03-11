@@ -30,9 +30,6 @@ program
 // Web Commands
 program.command('web')
   .description('helps you trigger web tests on the platform')
-  // .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
-//   .option('-u, --username <string>', 'Qyrus admin provided email')
-//   .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
   .option('-p, --apiKey <string>', 'Qyrus admin provided apiKey')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')

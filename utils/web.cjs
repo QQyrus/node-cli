@@ -66,19 +66,16 @@ const trigger = function (apiKey, teamName,
                     throw new Error("Team not found: " + teamName);
                 }
 
-                // Step 3: Get Project UUID (with Team-Id header)
+                // Step 2: Get Project UUID (with Team-Id header)
                 return getProjectUuid(endpoint, apiKey, teamId, teamName, projectName).then(function (projectId) {
-                    // console.log('\x1b[36m%s\x1b[0m', "Project ID: " + projectId);
 
-                    // Step 4: Get Test Suite UUID (with Team-Id header)
+                    // Step 3: Get Test Suite UUID (with Team-Id header)
                     return getTestSuiteUuid(endpoint, apiKey, projectId, testSuiteName, teamId).then(function (suiteId) {
-                        // console.log('\x1b[36m%s\x1b[0m', "Test Suite ID: " + suiteId);
 
-                        // Step 5: Get Environment UUID (with Team-Id header)
+                        // Step 4: Get Environment UUID (with Team-Id header)
                         return getEnvironmentUuid(endpoint, apiKey, projectId, envName || "Global", teamId).then(function (envId) {
-                            // console.log('\x1b[36m%s\x1b[0m', "Environment ID: " + envId);
 
-                            // Step 6: Execute Test (with Team-Id header)
+                            // Step 5: Execute Test (with Team-Id header)
                             return executeTestForWebRepoAutomation(
                                 endpoint,
                                 organizationName,
@@ -113,7 +110,6 @@ const trigger = function (apiKey, teamName,
                         });
                     });
                 });
-                // });
             }).catch(function (error) {
                 console.log('\x1b[31m%s\x1b[0m', "Error in execution workflow: " + error.message);
                 console.error(error.stack);
@@ -177,9 +173,6 @@ const trigger = function (apiKey, teamName,
 function checkExecStatus(execStatus, triggerResponse, testSuite,
     finalResult, status, statusResponse,
     scriptResultStatus, emailId, teamId) {
-    //http request to check the status of test
-    // console.log('\x1b[36m%s\x1b[0m', 'Checking execution status of TestSuite ' + testSuite + ' ...');
-
     // Parse the trigger response to get runId and token
     let parsedResponse;
     try {
@@ -219,8 +212,6 @@ function checkExecStatus(execStatus, triggerResponse, testSuite,
             body += chunk.toString(); // convert Buffer to string
         });
 
-        // console.log("Response Body: " + body);
-
         res.on('end', () => {
             try {
                 const responseJson = JSON.parse(body);
@@ -237,16 +228,10 @@ function checkExecStatus(execStatus, triggerResponse, testSuite,
 
                 if (status !== statusResponse) {
                     status = statusResponse;
-                    // console.log('TestSuite Run Status: ' + status + '\n');
                 }
 
                 if (executionStatus === "COMPLETED" || statusResponse === "COMPLETED") {
                     checkScriptStatus(scriptResultStatus, runId, token, teamId);
-                    // console.log('TestSuite Run Status: ' + status + '\n');
-                    // if (status !== statusResponse) {
-                    //     status = statusResponse;
-                    //     console.log('TestSuite Run Status: ' + status + '\n');
-                    // }
                     setTimeout(() => {
                         checkFinalStatus(finalResult, triggerResponse, testSuite, emailId, runId, token, teamId);
                     }, 5000);
@@ -255,7 +240,6 @@ function checkExecStatus(execStatus, triggerResponse, testSuite,
                 else {
                     setTimeout(() => {
                         checkExecStatus(execStatus, triggerResponse, testSuite, finalResult, status, statusResponse, scriptResultStatus, emailId, teamId);
-                        // }
                     }, 30000); // Changed to 30 seconds as per Java code
                 }
             } catch (parseError) {
