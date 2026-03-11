@@ -241,9 +241,9 @@ function checkExecStatus(execStatus, triggerResponse, testSuite,
 
                 if (statusResponse == 'RUNNING' || statusResponse == 'ALLOCATING BROWSER' || statusResponse == 'WAITING FOR BROWSER') {
                     checkScriptStatus(scriptResultStatus, runId, token, teamId);
-                    if(status !== statusResponse) {
+                    if (status !== statusResponse) {
                         console.log('TestSuite Run Status: ' + statusResponse + '\n');
-                    }                    
+                    }
                 }
 
                 if (status !== statusResponse) {
@@ -451,7 +451,7 @@ function checkFinalStatus(finalResult, triggerResponse, testSuite, emailId, runI
                 const path = internalMappings.orgId + "/" + internalMappings.runId + "/" + internalMappings.testName + ".zip";
 
                 // Get the report URL
-                getReportUrl(finalResult.host, finalResult.port, path, token, finalStatus, testSuite, internalMappings, teamId);
+                getReportUrl(finalResult.host, finalResult.port, path, token, finalStatus, testSuite, internalMappings, teamId, emailId);
 
             } catch (parseError) {
                 console.log('\x1b[31m%s\x1b[0m', "Error parsing final result: " + parseError.message);
@@ -468,7 +468,7 @@ function checkFinalStatus(finalResult, triggerResponse, testSuite, emailId, runI
     reqPost.end();
 }
 
-function getReportUrl(host, port, path, token, finalStatus, testSuite, internalMappings, teamId) {
+function getReportUrl(host, port, path, token, finalStatus, testSuite, internalMappings, teamId, emailId) {
     const protocol = https;
 
     const options = {
@@ -506,7 +506,12 @@ function getReportUrl(host, port, path, token, finalStatus, testSuite, internalM
                 }
 
                 console.log('\x1b[36m%s\x1b[0m', 'Execution of TestSuite ' + testSuite + ' is now Complete!');
-
+                // =========================
+                // 📧 SEND EMAIL
+                // =========================
+                if (emailId && internalMappings.runId) {
+                    sendMail(host, port, internalMappings.runId, token, teamId, emailId);
+                }
                 if (finalStatus === 'Pass' || finalStatus === 'PASS') {
                     console.log('\x1b[32m%s\x1b[0m', "Test Passed! Click on the below link to download the run report");
                     // console.log(`<a href="${cdnReportUrl}" target="_blank">Download Report</a>`)
@@ -515,11 +520,6 @@ function getReportUrl(host, port, path, token, finalStatus, testSuite, internalM
                 } else {
                     console.log('\x1b[31m%s\x1b[0m', "Test Failed! Click on the below link to download the run report");
                     console.log('\x1b[36m%s\x1b[0m', cdnReportUrl);
-
-                    // // Also provide XML download URL
-                    // const webCloudfrontUrl = 'https://d38ik34kej2vsv.cloudfront.net/'; // Update if different
-                    // const xmlUrl = webCloudfrontUrl + internalMappings.orgId + "/" + internalMappings.runId + "/Results/TEST-" + internalMappings.runId + ".xml";
-                    // console.log('\x1b[36m%s\x1b[0m', "XML Report: " + xmlUrl);
 
                     process.exitCode = 1;
                 }
@@ -537,7 +537,45 @@ function getReportUrl(host, port, path, token, finalStatus, testSuite, internalM
 
     req.end();
 }
+function sendMail(host, port, runId, token, teamId, emailId) {
 
+    const options = {
+        host: host,
+        port: port,
+        path: webContext + `/api/send-mail?email=${encodeURIComponent(emailId)}&runId=${runId}`,
+        method: 'GET',
+        headers: {
+            'x-api-key': token,
+            'Team-Id': teamId,
+            'scope': 'NODE_CLI'
+        },
+        rejectUnauthorized: false
+    };
+
+    const req = https.request(options, function (res) {
+
+        let body = '';
+
+        res.on('data', chunk => body += chunk.toString());
+
+        res.on('end', () => {
+
+            if (res.statusCode === 200) {
+                console.log('\x1b[32m%s\x1b[0m', "Report email sent to: " + emailId);
+            } else {
+                console.log('\x1b[33m%s\x1b[0m', "Failed to send email. Status code: " + res.statusCode);
+            }
+
+        });
+
+    });
+
+    req.on('error', function (err) {
+        console.log('\x1b[31m%s\x1b[0m', "Error sending email: " + err.message);
+    });
+
+    req.end();
+}
 const validateSaltToken = function (token, gatewayUrl) {
     return new Promise((resolve, reject) => {
         try {
