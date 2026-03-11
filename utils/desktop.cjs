@@ -17,7 +17,6 @@ const gatewayAuth = 'Bearer 90540897-748a-3ef2-b3a3-c6f8f42022da';
 const baseContext = '/desktop-service-noauth/v1';
 const POLL_INTERVAL = 30000;
 const HARDCODED_PORT = 3000;
-const SERVICE_STORE_ID = 'a2b452a5-d87c-11ed-a294-0241437b4ff9';
 
 /* -------------------------------------------------- */
 /* ----------- ENVIRONMENT DERIVATION -------------- */
@@ -187,11 +186,6 @@ async function executeTest(
 /* ---------------- POLLING ------------------------- */
 /* -------------------------------------------------- */
 
-const IN_PROGRESS_STATUSES = new Set([
-    'EXECUTION_NOT_STARTED', 'EXECUTING', 'RUN_SCHEDULED',
-    'RUN_INITIATED', 'Q1', 'Q2', 'Q3', 'Q4',
-    'P1', 'P2', 'P3', 'UPLOADING_RESULTS', 'GENERATING_REPORT'
-]);
 
 const STATUS_LABELS = {
     EXECUTION_NOT_STARTED: 'Waiting to start...',
