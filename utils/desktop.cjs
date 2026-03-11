@@ -340,7 +340,7 @@ async function getTeamUuid(gatewayUrl, apiKey, teamName) {
 
 async function getProjectUuid(gatewayUrl, apiKey, teamId, projectName) {
     const response = await httpRequest(gatewayUrl, {
-        path: `${baseContext}/api/projects-by-team-and-servicestore?teamId=${teamId}&serviceStoreId=${SERVICE_STORE_ID}`,
+        path: `${baseContext}/api/projects-by-team-and-servicestore?teamId=${teamId}`,
         method: 'GET',
         headers: { 'x-api-key': apiKey, scope: 'NODE_CLI', 'Team-Id': teamId }
     });
