@@ -2,6 +2,7 @@
 
 const { Command } = require('commander');
 var webUtil = require('./utils/web.cjs');
+var desktopUtil = require('./utils/desktop.cjs');
 var mobilityUtil = require('./utils/mobility.cjs');
 var componentUtil = require('./utils/component.cjs');
 var globalVarUtil = require('./utils/globalVar.cjs');
@@ -49,6 +50,33 @@ program.command('web')
         options.browserOS, options.browser, options.onErrorContinue,options.parameterFileSource,
         options.emailId, options.env);
 });
+
+program.command('desktop')
+  .description('helps you trigger desktop tests on the platform')
+  .option('--apiKey <string>', 'Qyrus admin provided apiKey')
+  .option('--teamName <string>', 'Team name from Qyrus app')
+  .option('--projectName <string>', 'Project name from Qyrus desktop-service')
+  .option('--suiteName <string>', 'Test suite within project')
+  .option('--nodeName <string>', 'Machine(node) name registered in QB')
+  .option('--osType <string>', 'Operating system type')
+  .option('--onErrorContinue <boolean>', 'Continue execution on error?')
+  .option('--parameterFileSource <string>', 'Parameterization type')
+  .option('--emailId <string>', 'report email recipient')
+  .option('--env <string>', '(optional) environment variable')
+  .action((options) => {
+    desktopUtil.trigger(
+      options.apiKey,
+      options.teamName,
+      options.projectName,
+      options.suiteName,
+      options.nodeName,
+      options.osType,
+      options.onErrorContinue,
+      options.parameterFileSource,
+      options.emailId,
+      options.env
+    );
+  });
 
 program.command('update-web-variables')
   .description('helps you update global variables on web automation service')
