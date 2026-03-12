@@ -46,8 +46,8 @@ function httpRequest(gatewayUrl, options, payload = null) {
         const requestOptions = {
             hostname: parsed.hostname,
             port: parsed.port,
-            ...options,
-            rejectUnauthorized: false
+            ...options
+            // rejectUnauthorized: false  // Commented out - enable only if certificate issues occur
         };
 
         const req = protocol.request(requestOptions, (res) => {
