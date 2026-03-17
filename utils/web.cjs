@@ -20,6 +20,9 @@ const trigger = function (apiKey, teamName,
     if (env == 'staging') {
         endpoint = 'https://stg-gateway.qyrus.com:8243';
     }
+    else if (env == 'qyrus') {
+        endpoint = 'https://gateway.qyrus.com';
+    }
     else {
         endpoint = 'https://' + env + '-gateway.qyrus.com';
     }
