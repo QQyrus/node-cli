@@ -30,9 +30,7 @@ program
 // Web Commands
 program.command('web')
   .description('helps you trigger web tests on the platform')
-  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
-  .option('-u, --username <string>', 'Qyrus admin provided email')
-  .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
+  .option('-p, --apiKey <string>', 'Qyrus admin provided apiKey')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--suiteName <string>', 'Test suite name you can find by logging into Qyrus app.')
@@ -43,7 +41,7 @@ program.command('web')
   .option('--parameterFileSource <string>','parameterFileSource name you can find by logging into Qyrus app.')
   .option('--emailId <string>', '(optional) email id to which the reports need to be sent post execution')
   .action((options) => {
-    webUtil.trigger(options.endPoint, options.username, options.passcode, 
+    webUtil.trigger(options.apiKey,
         options.teamName, options.projectName, options.suiteName,
         options.browserOS, options.browser, options.onErrorContinue,options.parameterFileSource,
         options.emailId, options.env);
