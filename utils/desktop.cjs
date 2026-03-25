@@ -29,7 +29,7 @@ function deriveGatewayUrlFromApiKey(apiKey) {
 
     if (apiKey.includes('staging')) return GATEWAY_URLS.staging;
     if (apiKey.includes('uat')) return GATEWAY_URLS.uat;
-    if (apiKey.includes('prod')) return GATEWAY_URLS.prod;
+    if (apiKey.includes('qyrus')) return GATEWAY_URLS.prod;
 
     throw new Error('Unable to determine environment from API key. Key must contain "staging", "uat", or "prod".');
 }
