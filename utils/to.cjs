@@ -13,6 +13,28 @@ const umContext = '/um-noauth/v1';
 const trigger = function (apiKey, teamName,
     deepLinkId, isFolder) {
 
+    // Input validation
+    if (!apiKey || typeof apiKey !== 'string' || apiKey.trim() === '') {
+        console.log('\x1b[31m%s\x1b[0m', "Error: apiKey is required and cannot be empty.");
+        process.exit(1);
+    }
+    if (!teamName || typeof teamName !== 'string' || teamName.trim() === '') {
+        console.log('\x1b[31m%s\x1b[0m', "Error: teamName is required and cannot be empty.");
+        process.exit(1);
+    }
+    if (!deepLinkId || typeof deepLinkId !== 'string' || deepLinkId.trim() === '') {
+        console.log('\x1b[31m%s\x1b[0m', "Error: deepLinkId is required and cannot be empty.");
+        process.exit(1);
+    }
+
+    // isFolder is passed as a string from Commander.js
+    if (isFolder === undefined || isFolder === null ||
+        (typeof isFolder === 'string' && !['true', 'false'].includes(isFolder.trim().toLowerCase())) ||
+        typeof isFolder === 'number') {
+        console.log('\x1b[31m%s\x1b[0m', "Error: isFolder must be either 'true' or 'false' (case-insensitive).");
+        process.exit(1);
+    }
+
     let endpoint = '';
     const env = getEnvName(apiKey);
     if (env == 'staging') {
