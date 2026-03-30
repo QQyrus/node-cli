@@ -210,6 +210,11 @@ function checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUui
                 const executionStatus = body.trim().replace(/"/g, '');
                 console.log('\x1b[36m%s\x1b[0m', "Folder Execution Status: " + executionStatus);
 
+                // if execution status is "ERROR" make it "ERROR IN RUN"
+                if (executionStatus === 'ERROR') {
+                    executionStatus = 'ERROR IN RUN';
+                }
+
                 if (executionStatus === 'PASS') {
                     console.log('\x1b[32m%s\x1b[0m', "✅ Folder execution completed successfully!");
                     console.log('\x1b[36m%s\x1b[0m', "Fetching report download URLs...");
@@ -218,6 +223,9 @@ function checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUui
                     console.log('\x1b[31m%s\x1b[0m', "❌ Folder execution failed.");
                     console.log('\x1b[36m%s\x1b[0m', "Fetching report download URLs...");
                     downloadReports(endpoint, apiKey, teamId, null, folderExecutionUuid, workFlowCount);
+                } else if (executionStatus === 'ERROR IN RUN' || executionStatus === 'ABORTED') {
+                    console.log('\x1b[31m%s\x1b[0m', "❌ Execution ended with status: " + executionStatus);
+                    process.exit(1);
                 } else {
                     // Still running, poll again after delay
                     console.log('\x1b[33m%s\x1b[0m', "Execution still in progress, checking again in 30 seconds...");
@@ -353,6 +361,11 @@ function checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUui
                     console.log('\x1b[36m%s\x1b[0m', "Execution Status: " + executionStatus);
                     // console.log('\x1b[36m%s\x1b[0m', "Execution Time: " + executionTime);
 
+                    // if execution status is "ERROR" make it "ERROR IN RUN"
+                    if (executionStatus === 'ERROR') {
+                        executionStatus = 'ERROR IN RUN';
+                    }
+
                     if (executionStatus === 'PASS') {
                         console.log('\x1b[36m%s\x1b[0m', "Execution Time: " + executionTime);
                         console.log('\x1b[32m%s\x1b[0m', "✅ Workflow execution completed successfully!");
@@ -367,6 +380,10 @@ function checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUui
                         // Download reports even on failure
                         console.log('\x1b[36m%s\x1b[0m', "Fetching report download URLs...");
                         downloadReports(endpoint, apiKey, teamId, testExecutionUuid, null);
+                    } else if (executionStatus === 'ERROR IN RUN' || executionStatus === 'ABORTED') {
+                        // For these negative statuses report will not be generated
+                        console.log('\x1b[31m%s\x1b[0m', "❌ Execution ended with status: " + executionStatus);
+                        process.exit(1);
                     } else {
                         // Still running, poll again after delay
                         console.log('\x1b[33m%s\x1b[0m', "Execution still in progress, checking again in 30 seconds...");
