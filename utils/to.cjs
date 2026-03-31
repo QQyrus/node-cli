@@ -125,8 +125,7 @@ function executeFolder(endpoint, login, organizationName, apiKey, teamId, deepLi
 
     const requestBody = {
         isScheduled: false,
-        // pluginName: 'NODE_CLI',
-        pluginName: 'AZURE',
+        pluginName: 'NODE_CLI',
         userEmail: login,
         folderDeepLinkIds: deepLinkId
     };
@@ -274,7 +273,7 @@ function executeWorkflow(endpoint, login, organizationName, apiKey, teamId, deep
 
     const requestBody = {
         isScheduled: false,
-        pluginName: 'AZURE',
+        pluginName: 'NODE_CLI',
         userEmail: login,
         workFlowDeepLinkIds: deepLinkId
     };
