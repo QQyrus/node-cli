@@ -207,7 +207,7 @@ function checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUui
         res.on('end', () => {
             if (res.statusCode === 200) {
                 // Status comes as a plain string (e.g. "RUNNING", "PASS", "FAIL")
-                const executionStatus = body.trim().replace(/"/g, '');
+                let executionStatus = body.trim().replace(/"/g, '');
                 console.log('\x1b[36m%s\x1b[0m', "Folder Execution Status: " + executionStatus);
 
                 // if execution status is "ERROR" make it "ERROR IN RUN"
@@ -355,16 +355,18 @@ function checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUui
             if (res.statusCode === 200) {
                 try {
                     const statusResponse = JSON.parse(body);
-                    const executionStatus = statusResponse.executionStatus;
+                    let executionStatus = statusResponse.executionStatus;
                     const executionTime = statusResponse.executionTime;
 
-                    console.log('\x1b[36m%s\x1b[0m', "Execution Status: " + executionStatus);
+                    // console.log('\x1b[36m%s\x1b[0m', "Execution Status: " + executionStatus);
                     // console.log('\x1b[36m%s\x1b[0m', "Execution Time: " + executionTime);
 
                     // if execution status is "ERROR" make it "ERROR IN RUN"
                     if (executionStatus === 'ERROR') {
                         executionStatus = 'ERROR IN RUN';
                     }
+
+                    console.log('\x1b[36m%s\x1b[0m', "Execution Status: " + executionStatus);
 
                     if (executionStatus === 'PASS') {
                         console.log('\x1b[36m%s\x1b[0m', "Execution Time: " + executionTime);
