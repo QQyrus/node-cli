@@ -208,12 +208,14 @@ function checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUui
             if (res.statusCode === 200) {
                 // Status comes as a plain string (e.g. "RUNNING", "PASS", "FAIL")
                 let executionStatus = body.trim().replace(/"/g, '');
-                console.log('\x1b[36m%s\x1b[0m', "Folder Execution Status: " + executionStatus);
+                // console.log('\x1b[36m%s\x1b[0m', "Folder Execution Status: " + executionStatus);
 
                 // if execution status is "ERROR" make it "ERROR IN RUN"
                 if (executionStatus === 'ERROR') {
                     executionStatus = 'ERROR IN RUN';
                 }
+
+                console.log('\x1b[36m%s\x1b[0m', "Folder Execution Status: " + executionStatus);
 
                 if (executionStatus === 'PASS') {
                     console.log('\x1b[32m%s\x1b[0m', "✅ Folder execution completed successfully!");
