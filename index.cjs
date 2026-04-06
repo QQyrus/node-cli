@@ -2,6 +2,7 @@
 
 const { Command } = require('commander');
 var webUtil = require('./utils/web.cjs');
+var desktopUtil = require('./utils/desktop.cjs');
 var mobilityUtil = require('./utils/mobility.cjs');
 var componentUtil = require('./utils/component.cjs');
 var globalVarUtil = require('./utils/globalVar.cjs');
@@ -9,9 +10,10 @@ var globalVarMobilityUtil = require('./utils/globalVarMobility.cjs');
 var appUploadMobilityUtil = require('./utils/appUpload.cjs');
 var appCountMobilityUtil = require('./utils/appCount.cjs');
 var apkMobilityUtil = require('./utils/getApkMobility.cjs');
+var toUtil = require('./utils/to.cjs');
 const importMobilityScriptFromFile = require('./utils/importMobilityScriptFromFile.cjs');
 const updateMobilityScriptFromFile = require('./utils/updateMobilityScriptFromFile.cjs');
-var apkComponentUtil= require('./utils/getApkComponent.cjs');
+var apkComponentUtil = require('./utils/getApkComponent.cjs');
 var appDeleteUtil = require('./utils/appDelete.cjs');
 var globalVarComponentUtil = require('./utils/globalVarComponent.cjs');
 var connCheck = require('./utils/conn.cjs');
@@ -38,14 +40,41 @@ program.command('web')
   .option('--browserOS <string>', 'Browser operating system eg: windows/linux')
   .option('--browser <string>', 'Browser name eg: chrome/firefox/MicrosoftEdge?')
   .option('--onErrorContinue <boolean>', 'Continue execution on error?')
-  .option('--parameterFileSource <string>','parameterFileSource name you can find by logging into Qyrus app.')
+  .option('--parameterFileSource <string>', 'parameterFileSource name you can find by logging into Qyrus app.')
   .option('--emailId <string>', '(optional) email id to which the reports need to be sent post execution')
   .action((options) => {
     webUtil.trigger(options.apiKey,
-        options.teamName, options.projectName, options.suiteName,
-        options.browserOS, options.browser, options.onErrorContinue,options.parameterFileSource,
-        options.emailId, options.env);
-});
+      options.teamName, options.projectName, options.suiteName,
+      options.browserOS, options.browser, options.onErrorContinue, options.parameterFileSource,
+      options.emailId, options.env);
+  });
+
+program.command('desktop')
+  .description('helps you trigger desktop tests on the platform')
+  .option('--apiKey <string>', 'Qyrus admin provided apiKey')
+  .option('--teamName <string>', 'Team name from Qyrus app')
+  .option('--projectName <string>', 'Project name from Qyrus desktop-service')
+  .option('--suiteName <string>', 'Test suite within project')
+  .option('--nodeName <string>', 'Machine(node) name registered in QB')
+  .option('--osType <string>', 'Operating system type')
+  .option('--onErrorContinue <boolean>', 'Continue execution on error?')
+  .option('--parameterFileSource <string>', 'Parameterization type')
+  .option('--emailId <string>', 'report email recipient')
+  .option('--env <string>', '(optional) environment variable')
+  .action((options) => {
+    desktopUtil.trigger(
+      options.apiKey,
+      options.teamName,
+      options.projectName,
+      options.suiteName,
+      options.nodeName,
+      options.osType,
+      options.onErrorContinue,
+      options.parameterFileSource,
+      options.emailId,
+      options.env
+    );
+  });
 
 program.command('update-web-variables')
   .description('helps you update global variables on web automation service')
@@ -59,10 +88,10 @@ program.command('update-web-variables')
   .option('--variableType <string>', 'Existing variable type eg: Custom, BaseURL, Password.')
   .option('--variableValue <string>', 'Value to update the existing variable.')
   .action((options) => {
-    globalVarUtil.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, options.variableEnvName, 
-        options.variableName, options.variableType, options.variableValue);
-});
+    globalVarUtil.trigger(options.endPoint, options.username, options.passcode,
+      options.teamName, options.projectName, options.variableEnvName,
+      options.variableName, options.variableType, options.variableValue);
+  });
 
 // Mobility Commands
 program.command('mobility')
@@ -82,13 +111,13 @@ program.command('mobility')
   .option('--emailId <string>', '(optional) email id to which the reports need to be sent post execution')
   .option('--envName <string>', 'environment name to run the tests with. (Optional if its Global)')
   .option('--firstAvailableDevice <string>', 'use first available device. ex: yes/no')
-  .option('--file <string>', '(Optional) File path to read configuration to run command' )
+  .option('--file <string>', '(Optional) File path to read configuration to run command')
   .action((options) => {
     mobilityUtil.trigger(options.endPoint, options.username, options.passcode,
-      options.teamName, options.projectName, options.suiteName, 
+      options.teamName, options.projectName, options.suiteName,
       options.appName, options.appActivity, options.devicePoolName,
       options.enableDebug, options.bundleId, options.emailId, options.appPackage, options.envName, options.firstAvailableDevice, options.file);
-});
+  });
 
 program.command('update-mobility-variables')
   .description('helps you update global variables on mobility service')
@@ -101,12 +130,12 @@ program.command('update-mobility-variables')
   .option('--variableType <string>', 'Existing variable type eg: Custom, BaseURL, Password.')
   .option('--variableValue <string>', 'Value to update the existing variable.')
   .option('--envName <string>', 'environment name to which the value needs to be updated. (Optional if its Global)')
-  .option('--file <string>', '(Optional) File path to read configuration to run command' )
+  .option('--file <string>', '(Optional) File path to read configuration to run command')
   .action((options) => {
-    globalVarMobilityUtil.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, options.variableName, 
-        options.variableType, options.variableValue, options.envName, options.file);
-});
+    globalVarMobilityUtil.trigger(options.endPoint, options.username, options.passcode,
+      options.teamName, options.projectName, options.variableName,
+      options.variableType, options.variableValue, options.envName, options.file);
+  });
 
 program.command('upload-app-mobility')
   .description('helps you upload apps iOS/android to mobility service')
@@ -116,13 +145,13 @@ program.command('upload-app-mobility')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--appPath <string>', 'Path to app to be uploaded')
-  .option('--file <string>', '(Optional) File path to read configuration to run command' )
+  .option('--file <string>', '(Optional) File path to read configuration to run command')
   .action((options) => {
     var execCmd = 'mobility';
     var appType = '';
-    appUploadMobilityUtil.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, options.appPath,appType,execCmd, options.file);
-});
+    appUploadMobilityUtil.trigger(options.endPoint, options.username, options.passcode,
+      options.teamName, options.projectName, options.appPath, appType, execCmd, options.file);
+  });
 
 program.command('delete-app-mobility')
   .description('helps you delete apps iOS/android to mobility service')
@@ -132,12 +161,12 @@ program.command('delete-app-mobility')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--appName <string>', 'Existing app name eg: Demo.apk/Demo.ipa')
-  .option('--file <string>', '(Optional) File path to read configuration to run command' )
+  .option('--file <string>', '(Optional) File path to read configuration to run command')
   .action((options) => {
     var execCmd = 'mobility';
-    appDeleteUtil.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, options.appName, execCmd, options.file);
-});
+    appDeleteUtil.trigger(options.endPoint, options.username, options.passcode,
+      options.teamName, options.projectName, options.appName, execCmd, options.file);
+  });
 
 program.command('get-apk-count-mobility')
   .description('helps you to get app count for iOS/android to mobility service')
@@ -146,23 +175,23 @@ program.command('get-apk-count-mobility')
   .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
-  .option('--file <string>', '(Optional) File path to read configuration to run command' )
+  .option('--file <string>', '(Optional) File path to read configuration to run command')
   .action((options) => {
     var execCmd = 'mobility';
-    appCountMobilityUtil.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, execCmd, options.file);
-});
+    appCountMobilityUtil.trigger(options.endPoint, options.username, options.passcode,
+      options.teamName, options.projectName, execCmd, options.file);
+  });
 
 program.command('get-apk-mobility')
   .description('helps you to get uploaded apps from mobility service for iOS/Android project')
   .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
-  .option('--file <string>', '(Optional) File path to read configuration to run command' )
+  .option('--file <string>', '(Optional) File path to read configuration to run command')
   .action((options) => {
     var execCmd = 'mobility';
     apkMobilityUtil.trigger(options.endPoint, options.teamName, options.projectName, execCmd, options.file);
-});
+  });
 
 program.command('import-mobility-script-from-file')
   .description('imports script using file data into mobility service')
@@ -172,12 +201,12 @@ program.command('import-mobility-script-from-file')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--suiteName <string>', 'Test suite name you can find by logging into Qyrus app.')
-  .option('--scriptFile <string>', 'File path to import script data' )
-  .option('--file <string>', '(Optional) File path to read configuration to run command' )
+  .option('--scriptFile <string>', 'File path to import script data')
+  .option('--file <string>', '(Optional) File path to read configuration to run command')
   .action((options) => {
-    importMobilityScriptFromFile.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, options.suiteName, options.scriptFile, options.file);
-});
+    importMobilityScriptFromFile.trigger(options.endPoint, options.username, options.passcode,
+      options.teamName, options.projectName, options.suiteName, options.scriptFile, options.file);
+  });
 
 program.command('update-mobility-script-from-file')
   .description('updates script steps using file data in mobility service')
@@ -188,12 +217,12 @@ program.command('update-mobility-script-from-file')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--suiteName <string>', 'Test suite name you can find by logging into Qyrus app.')
   .option('--scriptName <string>', 'Test script name you can find by logging into Qyrus app.')
-  .option('--scriptFile <string>', 'File path to update script data' )
-  .option('--file <string>', '(Optional) File path to read configuration to run command' )
+  .option('--scriptFile <string>', 'File path to update script data')
+  .option('--file <string>', '(Optional) File path to read configuration to run command')
   .action((options) => {
-    updateMobilityScriptFromFile.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, options.suiteName, options.scriptName, options.scriptFile, options.file);
-});
+    updateMobilityScriptFromFile.trigger(options.endPoint, options.username, options.passcode,
+      options.teamName, options.projectName, options.suiteName, options.scriptName, options.scriptFile, options.file);
+  });
 
 
 // Component Commands
@@ -209,10 +238,10 @@ program.command('update-component-variables')
   .option('--variableValue <string>', 'Value to update the existing variable.')
   .option('--envName <string>', 'environment name to which the value needs to be updated. (Optional if its Global)')
   .action((options) => {
-    globalVarComponentUtil.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, options.variableName, 
-        options.variableType, options.variableValue, options.envName);
-});
+    globalVarComponentUtil.trigger(options.endPoint, options.username, options.passcode,
+      options.teamName, options.projectName, options.variableName,
+      options.variableType, options.variableValue, options.envName);
+  });
 
 program.command('component')
   .description('helps you trigger component tests on the platform')
@@ -235,16 +264,16 @@ program.command('component')
   .option('--emailId <string>', '(optional) email id to which the reports need to be sent post execution')
   .option('--envName <string>', 'environment name to run the tests with. (Optional if its Global)')
   .option('--consolidateReports <string>', 'To send reports for multiple steps, Note: emailId is mandatory')
-  
+
   .action((options) => {
     componentUtil.trigger(options.endPoint, options.username, options.passcode,
-      options.teamName, options.projectName, options.componentWeb, 
+      options.teamName, options.projectName, options.componentWeb,
       options.componentMobility, options.browser, options.browserOS,
-      options.appName, options.appActivity, options.deviceName, 
+      options.appName, options.appActivity, options.deviceName,
       options.devicePoolName, options.testName, options.bundleId,
       options.emailId, options.appPackage, options.envName,
       options.consolidateReports);
-});
+  });
 
 program.command('upload-app-component')
   .description('helps you upload apps iOS/android to component service')
@@ -254,13 +283,13 @@ program.command('upload-app-component')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--appPath <string>', 'Path to app to be uploaded')
-  .option('--file <string>', '(Optional) File path to read configuration to run command' )
+  .option('--file <string>', '(Optional) File path to read configuration to run command')
   .action((options) => {
     var execCmd = 'component';
     var appType = '';
-    appUploadMobilityUtil.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, options.appPath,appType, execCmd, options.file);
-});
+    appUploadMobilityUtil.trigger(options.endPoint, options.username, options.passcode,
+      options.teamName, options.projectName, options.appPath, appType, execCmd, options.file);
+  });
 
 program.command('delete-app-component')
   .description('helps you delete apps iOS/android to component service')
@@ -270,12 +299,12 @@ program.command('delete-app-component')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--appName <string>', 'Existing app name eg: Demo.apk/Demo.ipa')
-  .option('--file <string>', '(Optional) File path to read configuration to run command' )
+  .option('--file <string>', '(Optional) File path to read configuration to run command')
   .action((options) => {
     var execCmd = 'component';
-    appDeleteUtil.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, options.appName, execCmd, options.file);
-});
+    appDeleteUtil.trigger(options.endPoint, options.username, options.passcode,
+      options.teamName, options.projectName, options.appName, execCmd, options.file);
+  });
 
 program.command('get-apk-count-component')
   .description('helps you to get app count for iOS/android to component service')
@@ -284,11 +313,11 @@ program.command('get-apk-count-component')
   .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
-  .option('--file <string>', '(Optional) File path to read configuration to run command' )
+  .option('--file <string>', '(Optional) File path to read configuration to run command')
   .action((options) => {
-    appCountMobilityUtil.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, options.file);
-});
+    appCountMobilityUtil.trigger(options.endPoint, options.username, options.passcode,
+      options.teamName, options.projectName, options.file);
+  });
 
 program.command('get-apk-component')
   .description('helps you to get uploaded app names from component services for iOS/android to mobility service')
@@ -298,7 +327,7 @@ program.command('get-apk-component')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .action((options) => {
     apkComponentUtil.trigger(options.endPoint, options.username, options.teamName, options.projectName);
-});
+  });
 // Rover Commands
 program.command('rover')
   .description('helps you trigger mobility tests on the platform')
@@ -315,9 +344,9 @@ program.command('rover')
   .option('--enableDebug <string>', 'Prints additional debug information if this option is enabled. eg: yes/no')
   .action((options) => {
     roverUtil.trigger(options.endPoint, options.username, options.passcode,
-      options.teamName, options.projectName, options.appName, options.deviceId, options.deviceName, options.dataListId, options.explorationName,options.enableDebug
+      options.teamName, options.projectName, options.appName, options.deviceId, options.deviceName, options.dataListId, options.explorationName, options.enableDebug
     );
-});
+  });
 
 program.command('upload-app-rover')
   .description('helps you upload apps iOS/android to component service')
@@ -328,12 +357,12 @@ program.command('upload-app-rover')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--appPath <string>', 'Specify the app path.')
   .option('--appType <string>', 'Specify the app type.')
-  .option('--file <string>', '(Optional) File path to read configuration to run command' )
+  .option('--file <string>', '(Optional) File path to read configuration to run command')
   .action((options) => {
     var execCmd = 'rover';
-    appUploadMobilityUtil.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, options.appPath, options.appType,execCmd, options.file);
-});
+    appUploadMobilityUtil.trigger(options.endPoint, options.username, options.passcode,
+      options.teamName, options.projectName, options.appPath, options.appType, execCmd, options.file);
+  });
 
 program.command('delete-app-rover')
   .description('helps you delete apps iOS/android to component service')
@@ -343,12 +372,12 @@ program.command('delete-app-rover')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--appName <string>', 'Existing app name eg: Demo.apk/Demo.ipa')
-  .option('--file <string>', '(Optional) File path to read configuration to run command' )
+  .option('--file <string>', '(Optional) File path to read configuration to run command')
   .action((options) => {
     var execCmd = 'rover';
-    appDeleteUtil.trigger(options.endPoint, options.username, options.passcode, 
-        options.teamName, options.projectName, options.appName,execCmd, options.file);
-});
+    appDeleteUtil.trigger(options.endPoint, options.username, options.passcode,
+      options.teamName, options.projectName, options.appName, execCmd, options.file);
+  });
 //ApiFunctional Commands
 program.command('apiFunctional')
   .description('helps you trigger apiFunctional tests on the platform')
@@ -366,7 +395,7 @@ program.command('apiFunctional')
     apiFunctionalUtil.trigger(options.endPoint, options.username, options.passcode,
       options.teamName, options.projectName, options.testSuiteName, options.testScriptName, options.environmentVariableName, options.emailId, options.enableDebug
     );
-});
+  });
 
 //ApiProcess Commands
 program.command('apiProcess')
@@ -385,7 +414,7 @@ program.command('apiProcess')
     apiProcessUtil.trigger(options.endPoint, options.username, options.passcode,
       options.teamName, options.projectName, options.testSuiteName, options.testScriptName, options.environmentVariableName, options.emailId, options.enableDebug
     );
-});
+  });
 
 //ApiPerformance Commands
 program.command('apiPerformance')
@@ -404,9 +433,21 @@ program.command('apiPerformance')
   .option('--enableDebug <string>', 'Prints additional debug information if this option is enabled. eg: yes/no')
   .action((options) => {
     apiPerformanceUtil.trigger(options.endPoint, options.username, options.passcode,
-      options.teamName, options.projectName, options.testSuiteName, options.testScriptName, options.environmentVariableName, options.thread, options.latencyThreshold,options.emailId, options.enableDebug
+      options.teamName, options.projectName, options.testSuiteName, options.testScriptName, options.environmentVariableName, options.thread, options.latencyThreshold, options.emailId, options.enableDebug
     );
-});
+  });
+
+// TO Commands
+program.command('to')
+  .description('helps you trigger web tests on the platform')
+  .option('-p, --apiKey <string>', 'Qyrus admin provided apiKey')
+  .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
+  .option('--deepLinkId <string>', 'Deep Link Id for Folder or WorkFlow')
+  .option('--isFolder <boolean>', 'Is Folder')
+
+  .action((options) => {
+    toUtil.trigger(options.apiKey, options.teamName, options.deepLinkId, options.isFolder);
+  });
 
 //--- Connectivity check
 program.command('conn-check')
@@ -414,6 +455,6 @@ program.command('conn-check')
   .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
   .action((options) => {
     connCheck.trigger(options.endPoint);
-});
+  });
 
 program.parse();
