@@ -88,9 +88,9 @@ const trigger = function (apiKey, teamName,
             // Parse error message from validation response
             try {
                 const errorJson = JSON.parse(validationResult.message.replace('Invalid API Token: ', ''));
-                console.log('\x1b[31m%s\x1b[0m', "❌ " + (errorJson.message || validationResult.message));
+                console.log('\x1b[31m%s\x1b[0m', (errorJson.message || validationResult.message));
             } catch (e) {
-                console.log('\x1b[31m%s\x1b[0m', "❌ " + validationResult.message);
+                console.log('\x1b[31m%s\x1b[0m', validationResult.message);
             }
             process.exit(1);
         }
@@ -157,9 +157,9 @@ function executeFolder(endpoint, login, organizationName, apiKey, teamId, deepLi
                 // Parse error message from response
                 try {
                     const errorResponse = JSON.parse(body);
-                    console.log('\x1b[31m%s\x1b[0m', "❌ " + (errorResponse.errorMessage || 'Failed to execute folder.'));
+                    console.log('\x1b[31m%s\x1b[0m', (errorResponse.errorMessage || 'Failed to execute folder.'));
                 } catch (e) {
-                    console.log('\x1b[31m%s\x1b[0m', "❌ Failed to execute folder. Status code: " + res.statusCode);
+                    console.log('\x1b[31m%s\x1b[0m', "Failed to execute folder. Status code: " + res.statusCode);
                 }
                 process.exit(1);
             }
@@ -167,7 +167,7 @@ function executeFolder(endpoint, login, organizationName, apiKey, teamId, deepLi
     });
 
     req.on('error', function (err) {
-        console.error('\x1b[31m%s\x1b[0m', "❌ Request error: " + err.message);
+        console.error('\x1b[31m%s\x1b[0m', "Request error: " + err.message);
         process.exit(1);
     });
 
@@ -189,7 +189,6 @@ function checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUui
         path: toContext + '/api/folder-execution-status?folderExecutionUuid=' + encodeURIComponent(folderExecutionUuid),
         method: 'GET',
         headers: {
-            // 'Authorization': gatewayAuth,
             'Team-Id': teamId,
             'scope': 'NODE_CLI',
             'x-api-key': apiKey
@@ -221,11 +220,11 @@ function checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUui
                     console.log('\x1b[36m%s\x1b[0m', "Fetching report download URLs...");
                     downloadReports(endpoint, apiKey, teamId, null, folderExecutionUuid, workFlowCount);
                 } else if (executionStatus === 'FAIL') {
-                    console.log('\x1b[31m%s\x1b[0m', "❌ Folder execution failed.");
+                    console.log('\x1b[31m%s\x1b[0m', "Folder execution failed.");
                     console.log('\x1b[36m%s\x1b[0m', "Fetching report download URLs...");
                     downloadReports(endpoint, apiKey, teamId, null, folderExecutionUuid, workFlowCount);
                 } else if (executionStatus === 'ERROR IN RUN' || executionStatus === 'ABORTED') {
-                    console.log('\x1b[31m%s\x1b[0m', "❌ Execution ended with status: " + executionStatus);
+                    console.log('\x1b[31m%s\x1b[0m', "Execution ended with status: " + executionStatus);
                     process.exit(1);
                 } else {
                     // Still running, poll again after delay
@@ -242,7 +241,7 @@ function checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUui
     });
 
     req.on('error', function (err) {
-        console.error('\x1b[31m%s\x1b[0m', "❌ Status check error: " + err.message);
+        console.error('\x1b[31m%s\x1b[0m', "Status check error: " + err.message);
     });
 
     req.end();
@@ -305,9 +304,9 @@ function executeWorkflow(endpoint, login, organizationName, apiKey, teamId, deep
                 // Parse error message from response
                 try {
                     const errorResponse = JSON.parse(body);
-                    console.log('\x1b[31m%s\x1b[0m', "❌ " + (errorResponse.errorMessage || 'Failed to execute workflow.'));
+                    console.log('\x1b[31m%s\x1b[0m', (errorResponse.errorMessage || 'Failed to execute workflow.'));
                 } catch (e) {
-                    console.log('\x1b[31m%s\x1b[0m', "❌ Failed to execute workflow. Status code: " + res.statusCode);
+                    console.log('\x1b[31m%s\x1b[0m', "Failed to execute workflow. Status code: " + res.statusCode);
                 }
                 process.exit(1);
             }
@@ -315,7 +314,7 @@ function executeWorkflow(endpoint, login, organizationName, apiKey, teamId, deep
     });
 
     req.on('error', function (err) {
-        console.error('\x1b[31m%s\x1b[0m', "❌ Request error: " + err.message);
+        console.error('\x1b[31m%s\x1b[0m', "Request error: " + err.message);
         process.exit(1);
     });
 
@@ -367,6 +366,8 @@ function checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUui
                         executionStatus = 'ERROR IN RUN';
                     }
 
+                    const expectedCount = '1';
+
                     console.log('\x1b[36m%s\x1b[0m', "Execution Status: " + executionStatus);
 
                     if (executionStatus === 'PASS') {
@@ -376,16 +377,16 @@ function checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUui
                         // console.log('\x1b[36m%s\x1b[0m', "User: " + statusResponse.userName);
                         // Download reports on completion
                         console.log('\x1b[36m%s\x1b[0m', "Fetching report download URLs...");
-                        downloadReports(endpoint, apiKey, teamId, testExecutionUuid, null);
+                        downloadReports(endpoint, apiKey, teamId, testExecutionUuid, null, expectedCount);
                     } else if (executionStatus === 'FAIL') {
                         console.log('\x1b[36m%s\x1b[0m', "Execution Time: " + executionTime);
-                        console.log('\x1b[31m%s\x1b[0m', "❌ Workflow execution failed.");
+                        console.log('\x1b[31m%s\x1b[0m', "Workflow execution failed.");
                         // Download reports even on failure
                         console.log('\x1b[36m%s\x1b[0m', "Fetching report download URLs...");
-                        downloadReports(endpoint, apiKey, teamId, testExecutionUuid, null);
+                        downloadReports(endpoint, apiKey, teamId, testExecutionUuid, null, expectedCount);
                     } else if (executionStatus === 'ERROR IN RUN' || executionStatus === 'ABORTED') {
                         // For these negative statuses report will not be generated
-                        console.log('\x1b[31m%s\x1b[0m', "❌ Execution ended with status: " + executionStatus);
+                        console.log('\x1b[31m%s\x1b[0m', "Execution ended with status: " + executionStatus);
                         process.exit(1);
                     } else {
                         // Still running, poll again after delay
@@ -406,7 +407,7 @@ function checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUui
     });
 
     req.on('error', function (err) {
-        console.error('\x1b[31m%s\x1b[0m', "❌ Status check error: " + err.message);
+        console.error('\x1b[31m%s\x1b[0m', "Status check error: " + err.message);
     });
 
     req.end();
@@ -455,7 +456,7 @@ function downloadReports(endpoint, apiKey, teamId, testExecutionUuid, folderExec
                     if (!body || body.trim() === '') {
                         console.log('\x1b[33m%s\x1b[0m', "Reports not yet generated, retrying in 30 seconds...");
                         setTimeout(function () {
-                            downloadReports(endpoint, apiKey, teamId, testExecutionUuid, folderExecutionUuid);
+                            downloadReports(endpoint, apiKey, teamId, testExecutionUuid, folderExecutionUuid, expectedCount);
                         }, 30000);
                         return;
                     }
@@ -474,7 +475,6 @@ function downloadReports(endpoint, apiKey, teamId, testExecutionUuid, folderExec
                     console.log('\x1b[32m%s\x1b[0m', "\n📋 Download Reports:");
                     for (let i = 0; i < reports.length; i++) {
                         console.log('\x1b[36m%s\x1b[0m', "\n  Workflow: " + reports[i].workflowName);
-                        // console.log('\x1b[36m%s\x1b[0m', "  Test Execution UUID: " + reports[i].testExecutionUuid);
                         console.log('\x1b[32m%s\x1b[0m', "  📥 Report URL: " + reports[i].ReportsUrl);
                     }
                 } catch (parseError) {
@@ -489,7 +489,7 @@ function downloadReports(endpoint, apiKey, teamId, testExecutionUuid, folderExec
     });
 
     req.on('error', function (err) {
-        console.error('\x1b[31m%s\x1b[0m', "❌ Report download error: " + err.message);
+        console.error('\x1b[31m%s\x1b[0m', "Report download error: " + err.message);
     });
 
     req.end();

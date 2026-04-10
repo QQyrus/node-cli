@@ -78,9 +78,7 @@ program.command('desktop')
 
 program.command('update-web-variables')
   .description('helps you update global variables on web automation service')
-  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
-  .option('-u, --username <string>', 'Qyrus admin provided email')
-  .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
+  .option('-p, --apiKey <string>', 'Qyrus admin provided apiKey')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--variableEnvName <string>', 'Variables environment name, you can find by logging into Qyrus app.')
@@ -88,9 +86,8 @@ program.command('update-web-variables')
   .option('--variableType <string>', 'Existing variable type eg: Custom, BaseURL, Password.')
   .option('--variableValue <string>', 'Value to update the existing variable.')
   .action((options) => {
-    globalVarUtil.trigger(options.endPoint, options.username, options.passcode,
-      options.teamName, options.projectName, options.variableEnvName,
-      options.variableName, options.variableType, options.variableValue);
+    globalVarUtil.trigger(options.apiKey, options.teamName, options.projectName,
+      options.variableEnvName, options.variableName, options.variableType, options.variableValue);
   });
 
 // Mobility Commands

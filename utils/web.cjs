@@ -115,7 +115,6 @@ const trigger = function (apiKey, teamName,
                 });
             }).catch(function (error) {
                 console.log('\x1b[31m%s\x1b[0m', "Error in execution workflow: " + error.message);
-                console.error(error.stack);
                 process.exit(1);
             });
         }).catch(function (error) {
@@ -567,9 +566,18 @@ const validateSaltToken = function (token, gatewayUrl) {
                             });
                         }
                     } else {
+                        let errorMessage = "Invalid API Token: " + bodyString.trim();
+                        try {
+                            const errJson = JSON.parse(bodyString);
+                            if (errJson && errJson.message) {
+                                errorMessage = errJson.message;
+                            }
+                        } catch (e) {
+                            // Keep raw body if parsing fails
+                        }
                         resolve({
                             success: false,
-                            message: "Invalid API Token: " + bodyString
+                            message: errorMessage
                         });
                     }
                 });
@@ -846,14 +854,13 @@ const getTestSuiteUuid = function (gatewayUrl, customAuth, projectUuid, testSuit
 
                 if (!suiteId) {
                     console.log('\x1b[31m%s\x1b[0m', "Test suite not found: " + testSuiteName);
-                    reject(new Error("Test suite not found: " + testSuiteName));
-                    return;
+                    process.exit(1);
                 }
 
                 resolve(suiteId);
             } catch (parseError) {
                 console.log('\x1b[31m%s\x1b[0m', "Error parsing test suites JSON: " + parseError.message);
-                reject(parseError);
+                process.exit(1);
             }
         }).catch(reject);
     });
@@ -1272,8 +1279,54 @@ const executeTestForWebRepoAutomation = function (
                                 reject(parseError);
                             }
                         } else {
-                            console.log('\x1b[31m%s\x1b[0m', "Failed to execute test. Status code: " + res.statusCode);
-                            reject(new Error("Request failed with status code: " + res.statusCode));
+                            try {
+                                const errorJson = JSON.parse(bodyString);
+
+                                let errorMessages = [];
+
+                                if (Array.isArray(errorJson.singleErrorMessage)) {
+                                    errorMessages.push(...errorJson.singleErrorMessage);
+                                }
+
+                                if (Array.isArray(errorJson.multipleErrors)) {
+                                    errorJson.multipleErrors.forEach(err => {
+                                        if (!err) return;
+
+                                        let message = err.errorMessage || "Unknown error";
+
+                                        // Extract script names if present
+                                        if (Array.isArray(err.scripts) && err.scripts.length > 0) {
+                                            const scriptNames = err.scripts
+                                                .map(s => s.scriptName)
+                                                .filter(Boolean)
+                                                .join(', ');
+
+                                            if (scriptNames) {
+                                                message += ` (Script: ${scriptNames})`;
+                                            }
+                                        }
+
+                                        errorMessages.push(message);
+                                    });
+                                }
+
+                                const finalMessage = errorMessages.length > 0
+                                    ? errorMessages.join(', ')
+                                    : "Unknown error occurred";
+
+                                // If unknown error occurred, print the response
+                                if (finalMessage === "Unknown error occurred") {
+                                    console.log('\x1b[31m%s\x1b[0m', "Response: " + bodyString);
+                                }
+                                //  Only clean output
+                                console.log('\x1b[31m%s\x1b[0m', `Failed to execute test: ${finalMessage}`);
+                                process.exit(1);
+
+                            } catch (e) {
+                                console.log('\x1b[31m%s\x1b[0m', "Failed to execute test: Unexpected error");
+                                console.log('\x1b[31m%s\x1b[0m', "Response: " + bodyString);
+                                process.exit(1);
+                            }
                         }
                     });
                 });
@@ -1307,5 +1360,9 @@ function getEnvName(apiKey) {
 
 module.exports = {
     trigger,
-    validateSaltToken
+    validateSaltToken,
+    getEnvName,
+    getTeamUuid,
+    getProjectUuid,
+    getEnvironmentUuid
 }
