@@ -8,15 +8,15 @@ const http = require('http');
 /* -------------------------------------------------- */
 
 const GATEWAY_URLS = {
-    staging: 'https://stg-gateway.qyrus.com:8243',
-    uat:     'https://uat-gateway.qyrus.com:8243',
-    prod:    'https://gateway.qyrus.com:8243'
+    stg: 'https://stg-gateway.qyrus.com:8243',
+    uat: 'https://uat-gateway.qyrus.com:8243',
+    prod: 'https://gateway.qyrus.com:8243'
 };
 
-const gatewayAuth        = 'Bearer 90540897-748a-3ef2-b3a3-c6f8f42022da';
-const baseContext        = '/api-marketplace-qapi/v1';
-const POLL_INTERVAL      = 30000;
-const HARDCODED_TEAM_ID  = '2ce9dbea7c07499eb907ab836f919548';
+const gatewayAuth = 'Bearer 90540897-748a-3ef2-b3a3-c6f8f42022da';
+const baseContext = '/api-marketplace-qapi/v1';
+const POLL_INTERVAL = 30000;
+const HARDCODED_TEAM_ID = '2ce9dbea7c07499eb907ab836f919548';
 
 /* -------------------------------------------------- */
 /* ----------- ENVIRONMENT DERIVATION -------------- */
@@ -24,10 +24,10 @@ const HARDCODED_TEAM_ID  = '2ce9dbea7c07499eb907ab836f919548';
 
 function deriveGatewayUrlFromApiKey(apiKey) {
     if (!apiKey) throw new Error('API key is required to derive gateway URL.');
-    if (apiKey.includes('stg')) return GATEWAY_URLS.staging;
-    if (apiKey.includes('uat'))     return GATEWAY_URLS.uat;
-    if (apiKey.includes('qyrus'))   return GATEWAY_URLS.prod;
-    throw new Error('Unable to determine environment from API key. Key must contain "staging", "uat", or "qyrus".');
+    if (apiKey.includes('stg')) return GATEWAY_URLS.stg;
+    if (apiKey.includes('uat')) return GATEWAY_URLS.uat;
+    if (apiKey.includes('qyrus')) return GATEWAY_URLS.prod;
+    throw new Error('Unable to determine environment from API key. Key must contain "stg", "uat", or "qyrus".');
 }
 
 /* -------------------------------------------------- */
@@ -56,7 +56,6 @@ function httpRequest(gatewayUrl, options, payload = null) {
     });
 }
 
-// Builds headers for all authenticated API calls
 function apiHeaders(apiKey, extra = {}) {
     return {
         'x-api-key': apiKey,
@@ -71,7 +70,7 @@ function apiHeaders(apiKey, extra = {}) {
 /* ---------------- CORE TRIGGER -------------------- */
 /* -------------------------------------------------- */
 
-async function trigger(executionType, apiKey, workspaceName, suiteName, emailId, envName, threadCount, latencyThreshold) {
+async function trigger(executionType, apiKey, workspaceName, suiteName, emailId, envName, scriptName, threadCount, latencyThreshold) {
     try {
         const type = (executionType || 'functional').toUpperCase();
         if (!['FUNCTIONAL', 'PERFORMANCE'].includes(type)) {
@@ -93,13 +92,19 @@ async function trigger(executionType, apiKey, workspaceName, suiteName, emailId,
         const suiteId = await getSuiteId(gatewayUrl, apiKey, projectId, suiteName);
         console.log('\x1b[36m%s\x1b[0m', `✔ Located suite: "${suiteName}" → ${suiteId}`);
 
+        let scriptId = null;
+        if (scriptName && scriptName.trim() !== '') {
+            scriptId = await getScriptId(gatewayUrl, apiKey, projectId, suiteId, scriptName);
+            console.log('\x1b[36m%s\x1b[0m', `✔ Located script: "${scriptName}" → ${scriptId}`);
+        }
+
         const envId = await getEnvironmentId(gatewayUrl, apiKey, projectId, envName);
         console.log('\x1b[36m%s\x1b[0m', envId ? `✔ Bound environment: "${envName}" → ${envId}` : `✔ Environment: Global Default`);
 
-        const runId = await executeTest(gatewayUrl, apiKey, projectId, suiteId, envId, userEmail, emailId, type, threadCount, latencyThreshold);
+        const runId = await executeTest(gatewayUrl, apiKey, projectId, suiteId, scriptId, envId, userEmail, emailId, type, threadCount, latencyThreshold);
         console.log('\x1b[32m%s\x1b[0m', `✔ Execution dispatched — Run ID: ${runId}`);
 
-        await pollExecutionStatus(gatewayUrl, apiKey, runId, suiteName);
+        await pollExecutionStatus(gatewayUrl, apiKey, runId, projectId);
 
     } catch (error) {
         console.error('\x1b[31m%s\x1b[0m', `✖ ${error.message}`);
@@ -111,26 +116,29 @@ async function trigger(executionType, apiKey, workspaceName, suiteName, emailId,
 /* ---------------- EXECUTION ----------------------- */
 /* -------------------------------------------------- */
 
-async function executeTest(gatewayUrl, apiKey, projectId, suiteId, envId, userEmail, emailId, executionType, threadCount, latencyThreshold) {
+async function executeTest(gatewayUrl, apiKey, projectId, suiteId, scriptId, envId, userEmail, emailId, executionType, threadCount, latencyThreshold) {
     const body = {
         suiteIds: [suiteId],
-        scriptIds: [],
+        scriptIds: scriptId ? [scriptId] : null,   // null for suite-level, array for script-level
         userEmail: emailId || userEmail,
         projectId,
         isJenkins: false,
-        pluginName: 'CLI',
+        pluginName: 'APP',
         isScheduled: false,
         environmentId: envId || null,
-        executionType
+        executionType,
+        virtualUserWalletType: 'PRIVATE'
     };
 
     if (executionType === 'PERFORMANCE') {
-        body.threadCount         = threadCount ? parseInt(threadCount, 10) : 1;
-        body.latencyThreshold    = latencyThreshold ? parseInt(latencyThreshold, 10) : null;
-        body.virtualUserWalletType = 'PRIVATE';
+        body.threadCount = threadCount ? parseInt(threadCount, 10) : 1;
+        body.latencyThreshold = latencyThreshold ? parseInt(latencyThreshold, 10) : null;
     }
 
     const payload = JSON.stringify(body);
+
+    // Temporary sanity log — remove after verification
+    console.log('\x1b[90m%s\x1b[0m', `[debug] execute-test payload: ${payload}`);
 
     const response = await httpRequest(gatewayUrl, {
         path: `${baseContext}/api/execute-test`,
@@ -156,40 +164,58 @@ async function executeTest(gatewayUrl, apiKey, projectId, suiteId, envId, userEm
 /* -------------------------------------------------- */
 
 const STATUS_LABELS = {
-    SPAWNING_INSTANCE:     'Spawning instance...',
-    INSTANCE_SPAWNED:      'Instance spawned',
+    SPAWNING_INSTANCE: 'Spawning instance...',
+    INSTANCE_SPAWNED: 'Instance spawned',
     EXECUTION_NOT_STARTED: 'Waiting to start...',
-    RUN_SCHEDULED:         'Run scheduled',
-    RUN_INITIATED:         'Run initiated',
-    P1:                    'Processing (P1)',
-    RUNNING:               'Running tests...',
-    EXECUTING:             'Executing tests...',
-    UPLOADING_RESULTS:     'Uploading results...',
-    GENERATING_REPORTS:    'Generating report...',
-    COMPLETED:             'Execution completed',
-    CANCELLED:             'Execution cancelled',
-    ABORTING:              'Execution aborting',
-    ABORTED:               'Execution aborted',
-    FAILED:                'Execution failed',
-    ERROR_IN_RUN:          'Error in run'
+    RUN_SCHEDULED: 'Run scheduled',
+    RUN_INITIATED: 'Run initiated',
+    P1: 'Processing (P1)',
+    RUNNING: 'Running tests...',
+    EXECUTING: 'Executing tests...',
+    UPLOADING_RESULTS: 'Uploading results...',
+    GENERATING_REPORTS: 'Generating report...',
+    COMPLETED: 'Execution completed',
+    CANCELLED: 'Execution cancelled',
+    ABORTING: 'Execution aborting',
+    ABORTED: 'Execution aborted',
+    FAILED: 'Execution failed',
+    ERROR_IN_RUN: 'Error in run'
 };
 
 const TERMINAL_FAILURE_STATUSES = new Set(['CANCELLED', 'ABORTING', 'ABORTED', 'FAILED', 'ERROR_IN_RUN']);
 
-async function pollExecutionStatus(gatewayUrl, apiKey, runId, suiteName) {
+async function pollExecutionStatus(gatewayUrl, apiKey, runId, projectId) {
     let lastStatus = null;
 
     while (true) {
         await new Promise(r => setTimeout(r, POLL_INTERVAL));
+
+        // Correct payload as per sample
+        const payloadObj = {
+            testResultStatus: [],
+            startDate: null,
+            endDate: null,
+            projectId: projectId,                    // ← Required
+            testName: null,
+            methodType: [],
+            page: 0,
+            size: 10,                                // You can increase if needed
+            executionType: "FUNCTIONAL",             // Can be made dynamic later
+            isScheduled: null
+        };
+
+        const payload = JSON.stringify(payloadObj);
+        console.log('\x1b[90m%s\x1b[0m', `[debug] POLL payload: ${payload}`);
+
 
         const response = await httpRequest(gatewayUrl, {
             path: `${baseContext}/api/get-all-report-list`,
             method: 'POST',
             headers: apiHeaders(apiKey, {
                 'Content-Type': 'application/json',
-                'Content-Length': '2'
+                'Content-Length': Buffer.byteLength(payload)
             })
-        }, '{}');
+        }, payload);
 
         if (response.statusCode !== 200) {
             console.log('\x1b[33m%s\x1b[0m', `Poll returned HTTP ${response.statusCode}, retrying...`);
@@ -198,7 +224,7 @@ async function pollExecutionStatus(gatewayUrl, apiKey, runId, suiteName) {
 
         const data = JSON.parse(response.body.toString());
         const runs = data.content || [];
-        const run  = runs.find(r => r.id === runId);
+        const run = runs.find(r => r.id === runId || r.id?.toString() === runId);
 
         if (!run) {
             console.log('\x1b[33m%s\x1b[0m', `Run ${runId} not yet visible in report list, retrying...`);
@@ -214,7 +240,7 @@ async function pollExecutionStatus(gatewayUrl, apiKey, runId, suiteName) {
         }
 
         if (status === 'COMPLETED') {
-            await showReport(gatewayUrl, apiKey, run, suiteName);
+            await showReport(gatewayUrl, apiKey, run);
             return;
         }
 
@@ -229,18 +255,17 @@ async function pollExecutionStatus(gatewayUrl, apiKey, runId, suiteName) {
 /* ---------------- REPORT -------------------------- */
 /* -------------------------------------------------- */
 
-async function showReport(gatewayUrl, apiKey, run, suiteName) {
-    console.log('\n\x1b[32m%s\x1b[0m', `━━━ Execution Summary: ${suiteName} ━━━`);
+async function showReport(gatewayUrl, apiKey, run) {
+    // console.log('\n\x1b[32m%s\x1b[0m', `━━━ Execution Summary: ${suiteName} ━━━`);
 
-    const hasFailed  = run.status === 'FAIL' || run.status === 'FAILED';
+    const hasFailed = run.status === 'FAIL' || run.status === 'FAILED';
     const resultColor = hasFailed ? '\x1b[31m' : '\x1b[32m';
     console.log(`${resultColor}Result: ${run.status ?? (hasFailed ? 'FAIL' : 'PASS')}\x1b[0m`);
 
-    if (run.passTestCase  != null) console.log(`  Passed : ${run.passTestCase}`);
-    if (run.failTestCase  != null) console.log(`  Failed : ${run.failTestCase}`);
+    if (run.passTestCase != null) console.log(`  Passed : ${run.passTestCase}`);
+    if (run.failTestCase != null) console.log(`  Failed : ${run.failTestCase}`);
     if (run.totalTestCases != null) console.log(`  Total  : ${run.totalTestCases}`);
 
-    // htmlReportUrl from the run record is the resource path for signed-cookies
     if (run.htmlReportUrl && run.htmlReportStatus === 'COMPLETED') {
         const signedUrl = await getSignedCookieUrl(gatewayUrl, apiKey, run.htmlReportUrl);
         if (signedUrl) {
@@ -274,11 +299,9 @@ async function getSignedCookieUrl(gatewayUrl, apiKey, resourcePath) {
 /* ---------------- SUPPORT APIS -------------------- */
 /* -------------------------------------------------- */
 
-async function validateSaltToken(token, gatewayUrl) {
-    const rawToken = token.startsWith('Bearer ') ? token.substring(7) : token;
-
+async function validateSaltToken(apiKey, gatewayUrl) {
     const response = await httpRequest(gatewayUrl, {
-        path: `/um-noauth/v1/api/validateAPIToken?apiToken=${rawToken}&scope=NODE_CLI`,
+        path: `/um-noauth/v1/api/validateAPIToken?apiToken=${apiKey}&scope=NODE_CLI`,
         method: 'GET'
     });
 
@@ -308,7 +331,7 @@ async function getProjectId(gatewayUrl, apiKey, workspaceName) {
     if (response.statusCode !== 200) throw new Error(`Failed to fetch projects — HTTP ${response.statusCode}`);
 
     const projects = JSON.parse(response.body.toString());
-    const project  = projects.find(p => p.name?.toLowerCase() === workspaceName.toLowerCase());
+    const project = projects.find(p => p.name?.toLowerCase() === workspaceName.toLowerCase());
     if (!project) throw new Error(`Workspace not found: "${workspaceName}"`);
     return project.id.trim();
 }
@@ -322,26 +345,68 @@ async function getSuiteId(gatewayUrl, apiKey, projectId, suiteName) {
 
     if (response.statusCode !== 200) throw new Error(`Failed to fetch suites — HTTP ${response.statusCode}`);
 
-    const data  = JSON.parse(response.body.toString());
+    const data = JSON.parse(response.body.toString());
     const suite = (data.content || []).find(s => s.name?.toLowerCase() === suiteName.toLowerCase());
     if (!suite) throw new Error(`Suite not found: "${suiteName}"`);
     return suite.id.trim();
 }
 
-async function getEnvironmentId(gatewayUrl, apiKey, projectId, envName) {
-    if (!envName || envName.trim() === '') return null;
+async function getScriptId(gatewayUrl, apiKey, projectId, suiteId, scriptName) {
+    const response = await httpRequest(gatewayUrl, {
+        path: `${baseContext}/api/scripts?suiteId=${projectId}&suiteId=${suiteId}&scriptType=SUITE&isChaining=false`,
+        method: 'GET',
+        headers: apiHeaders(apiKey)
+    });
 
+    if (response.statusCode !== 200) throw new Error(`Failed to fetch scripts — HTTP ${response.statusCode}`);
+
+    const data = JSON.parse(response.body.toString());
+    const scripts = Array.isArray(data) ? data : (data.content || []);
+    const script = scripts.find(s => s.name?.toLowerCase() === scriptName.toLowerCase());
+    if (!script) throw new Error(`Script not found: "${scriptName}"`);
+    return script.id.trim();
+}
+
+async function getEnvironmentId(gatewayUrl, apiKey, projectId, envName) {
     const response = await httpRequest(gatewayUrl, {
         path: `${baseContext}/api/get-environments-by-projectId?projectId=${projectId}`,
         method: 'GET',
         headers: apiHeaders(apiKey)
     });
 
-    if (response.statusCode !== 200) throw new Error(`Failed to fetch environments — HTTP ${response.statusCode}`);
+    if (response.statusCode !== 200) {
+        throw new Error(`Failed to fetch environments — HTTP ${response.statusCode}`);
+    }
 
     const envs = JSON.parse(response.body.toString());
-    const env  = envs.find(e => e.name?.toLowerCase() === envName.toLowerCase());
-    return env ? env.id.trim() : null;
+
+    let selectedEnv;
+
+    if (!envName || envName.trim() === '') {
+        // Auto-select Global Default
+        selectedEnv = envs.find(e =>
+            e.name?.toLowerCase() === 'global default' ||
+            e.isGlobal === true ||
+            e.isGlobal === 'true'
+        ) || envs[0];   // fallback to first env
+    } else {
+        // Find by name
+        selectedEnv = envs.find(e => e.name?.toLowerCase() === envName.toLowerCase());
+        if (!selectedEnv) {
+            throw new Error(`Environment not found: "${envName}"`);
+        }
+    }
+
+    if (!selectedEnv) {
+        throw new Error('No environment available for this project');
+    }
+
+    const displayName = selectedEnv.name || 'Global Default';
+    console.log('\x1b[36m%s\x1b[0m',
+        `✔ Environment: "${displayName}" → ${selectedEnv.id}`
+    );
+
+    return selectedEnv.id.trim();
 }
 
 module.exports = { trigger, validateSaltToken };

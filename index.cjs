@@ -78,15 +78,16 @@ program.command('desktop')
   });
 
 program.command('qapi')
-  .description('Trigger API tests on the Qyrus platform')
-  .option('--executionType <string>', 'Execution type: functional or performance')
-  .option('--apiKey <string>', 'API key')
-  .option('--workspaceName <string>', 'Workspace (project) name')
-  .option('--suiteName <string>', 'Test suite name')
+  .description('Trigger API functional or performance tests on the Qyrus platform')
+  .requiredOption('--executionType <string>', 'Execution type: "functional" or "performance"')
+  .requiredOption('--apiKey <string>', 'API key')
+  .requiredOption('--workspaceName <string>', 'Workspace (project) name')
+  .requiredOption('--suiteName <string>', 'Test suite name')
+  .option('--scriptName <string>', '(optional) Script name for script-level execution')
   .option('--emailId <string>', '(optional) Email to receive report post execution')
   .option('--envName <string>', '(optional) Environment variable set name')
-  .option('--threadCount <string>', '(optional) thread count for performance tests')
-  .option('--latencyThreshold <string>', '(optional) latency threshold for performance tests')
+  .option('--threadCount <string>', '(optional, performance only) Thread count')
+  .option('--latencyThreshold <string>', '(optional, performance only) Latency threshold in ms')
   .action((options) => {
     qapiUtil.trigger(
       options.executionType,
@@ -95,6 +96,7 @@ program.command('qapi')
       options.suiteName,
       options.emailId,
       options.envName,
+      options.scriptName,
       options.threadCount,
       options.latencyThreshold
     );
