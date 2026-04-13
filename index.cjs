@@ -3,6 +3,7 @@
 const { Command } = require('commander');
 var webUtil = require('./utils/web.cjs');
 var desktopUtil = require('./utils/desktop.cjs');
+var qapiUtil = require('./utils/qapi.cjs');
 var mobilityUtil = require('./utils/mobility.cjs');
 var componentUtil = require('./utils/component.cjs');
 var globalVarUtil = require('./utils/globalVar.cjs');
@@ -73,6 +74,29 @@ program.command('desktop')
       options.parameterFileSource,
       options.emailId,
       options.env
+    );
+  });
+
+program.command('qapi')
+  .description('Trigger API tests on the Qyrus platform')
+  .option('--executionType <string>', 'Execution type: functional or performance')
+  .option('--apiKey <string>', 'API key')
+  .option('--workspaceName <string>', 'Workspace (project) name')
+  .option('--suiteName <string>', 'Test suite name')
+  .option('--emailId <string>', '(optional) Email to receive report post execution')
+  .option('--envName <string>', '(optional) Environment variable set name')
+  .option('--threadCount <string>', '(optional) thread count for performance tests')
+  .option('--latencyThreshold <string>', '(optional) latency threshold for performance tests')
+  .action((options) => {
+    qapiUtil.trigger(
+      options.executionType,
+      options.apiKey,
+      options.workspaceName,
+      options.suiteName,
+      options.emailId,
+      options.envName,
+      options.threadCount,
+      options.latencyThreshold
     );
   });
 
