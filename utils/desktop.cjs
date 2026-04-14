@@ -99,7 +99,6 @@ async function trigger(
         const envId = await getEnvironmentUuid(gatewayUrl, apiKey, projectId, envName, teamId);
         console.log('\x1b[36m%s\x1b[0m', envId ? `✔ Found environment: "${envName}"` : `✔ Environment: global (no variable env)`);
 
-        const nodeId = await getNodeUuid(gatewayUrl, nodeName);
         // NEW: Single call to get both node UUID and IP
         const { nodeId, ipAddress } = await getNodeDetailsFromTeam(gatewayUrl, apiKey, teamId, nodeName);
         console.log('\x1b[36m%s\x1b[0m', `✔ Identified node: "${nodeName}" (UUID: ${nodeId})`);
