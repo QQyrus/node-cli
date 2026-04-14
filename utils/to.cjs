@@ -11,7 +11,7 @@ const toContext = '/orchestration-noauth/v1';
 const umContext = '/um-noauth/v1';
 
 const trigger = function (apiKey, teamName,
-    deepLinkId, isFolder) {
+    deepLinkId) {
 
     // Input validation
     if (!apiKey || typeof apiKey !== 'string' || apiKey.trim() === '') {
@@ -27,13 +27,30 @@ const trigger = function (apiKey, teamName,
         process.exit(1);
     }
 
-    // isFolder is passed as a string from Commander.js
-    if (isFolder === undefined || isFolder === null ||
-        (typeof isFolder === 'string' && !['true', 'false'].includes(isFolder.trim().toLowerCase())) ||
-        typeof isFolder === 'number') {
-        console.log('\x1b[31m%s\x1b[0m', "Error: isFolder must be either 'true' or 'false' (case-insensitive).");
+    const ids = deepLinkId.split(',').map(id => id.trim());
+    const regex = /^[A-Za-z0-9]+-[FW]\d+$/i;
+
+    let hasFolder = false;
+    let hasWorkflow = false;
+
+    for (const id of ids) {
+        if (!regex.test(id)) {
+            console.log('\x1b[31m%s\x1b[0m', `Error: Invalid deepLinkId format for '${id}'. Expected format is PROJ-F<numeric> or PROJ-W<numeric>.`);
+            process.exit(1);
+        }
+        if (/-F\d+$/i.test(id)) {
+            hasFolder = true;
+        } else if (/-W\d+$/i.test(id)) {
+            hasWorkflow = true;
+        }
+    }
+
+    if (hasFolder && hasWorkflow) {
+        console.log('\x1b[31m%s\x1b[0m', "Error: Cannot mix Folder (-F) and Workflow (-W) executions in a single command.");
         process.exit(1);
     }
+
+    let isFolder = hasFolder;
 
     let endpoint = '';
     const env = getEnvName(apiKey);
@@ -74,8 +91,7 @@ const trigger = function (apiKey, teamName,
                 console.log('\x1b[32m%s\x1b[0m', "Team ID resolved: " + teamId);
 
                 // Check if the execution target is a folder or a workflow
-                // isFolder comes as a string from CLI, so compare against 'true'
-                if (isFolder === true || String(isFolder).toLowerCase() === 'true') {
+                if (isFolder) {
                     executeFolder(endpoint, login, organizationName, apiKey, teamId, deepLinkId);
                 } else {
                     executeWorkflow(endpoint, login, organizationName, apiKey, teamId, deepLinkId);

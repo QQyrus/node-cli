@@ -440,10 +440,9 @@ program.command('to')
   .option('-p, --apiKey <string>', 'Qyrus admin provided apiKey')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--deepLinkId <string>', 'Deep Link Id for Folder or WorkFlow')
-  .option('--isFolder <boolean>', 'Is Folder')
 
   .action((options) => {
-    toUtil.trigger(options.apiKey, options.teamName, options.deepLinkId, options.isFolder);
+    toUtil.trigger(options.apiKey, options.teamName, options.deepLinkId);
   });
 
 //--- Connectivity check

@@ -1311,7 +1311,7 @@ const executeTestForWebRepoAutomation = function (
                                 }
 
                                 const finalMessage = errorMessages.length > 0
-                                    ? errorMessages.join(', ')
+                                    ? errorMessages.join('\n')
                                     : "Unknown error occurred";
 
                                 // If unknown error occurred, print the response
@@ -1319,7 +1319,7 @@ const executeTestForWebRepoAutomation = function (
                                     console.log('\x1b[31m%s\x1b[0m', "Response: " + bodyString);
                                 }
                                 //  Only clean output
-                                console.log('\x1b[31m%s\x1b[0m', `Failed to execute test: ${finalMessage}`);
+                                console.log('\x1b[31m%s\x1b[0m', `Failed to execute test:\n${finalMessage}`);
                                 process.exit(1);
 
                             } catch (e) {
