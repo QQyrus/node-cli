@@ -192,7 +192,7 @@ function executeFolder(endpoint, login, organizationName, apiKey, teamId, deepLi
 }
 
 // Poll folder execution status
-function checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUuid, workFlowCount) {
+function checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUuid, workFlowCount, retryCount = 0) {
 
     const parsedUrl = url.parse(endpoint);
     const hostName = parsedUrl.hostname;
@@ -246,18 +246,32 @@ function checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUui
                     // Still running, poll again after delay
                     console.log('\x1b[33m%s\x1b[0m', "Execution still in progress, checking again in 30 seconds...");
                     setTimeout(function () {
-                        checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUuid, workFlowCount);
+                        checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUuid, workFlowCount, 0);
                     }, 30000);
                 }
             } else {
-                console.log('\x1b[31m%s\x1b[0m', "Failed to get folder execution status. Status code: " + res.statusCode);
-                console.log('Response:', body);
+                if (res.statusCode === 403 && retryCount < 3) {
+                    console.log('\x1b[33m%s\x1b[0m', `Network interrupted (403). Retrying in 30 seconds... (Attempt ${retryCount + 1} of 3)`);
+                    setTimeout(function () {
+                        checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUuid, workFlowCount, retryCount + 1);
+                    }, 30000);
+                } else {
+                    console.log('\x1b[31m%s\x1b[0m', "Failed to get folder execution status. Status code: " + res.statusCode);
+                    console.log('Response:', body);
+                }
             }
         });
     });
 
     req.on('error', function (err) {
-        console.error('\x1b[31m%s\x1b[0m', "Status check error: " + err.message);
+        if (retryCount < 3) {
+            console.log('\x1b[33m%s\x1b[0m', `Network request error: ${err.message}. Retrying in 30 seconds... (Attempt ${retryCount + 1} of 3)`);
+            setTimeout(function () {
+                checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUuid, workFlowCount, retryCount + 1);
+            }, 30000);
+        } else {
+            console.error('\x1b[31m%s\x1b[0m', "Status check error: " + err.message);
+        }
     });
 
     req.end();
@@ -339,7 +353,7 @@ function executeWorkflow(endpoint, login, organizationName, apiKey, teamId, deep
 }
 
 // Poll workflow execution status
-function checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUuid) {
+function checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUuid, retryCount = 0) {
 
     const parsedUrl = url.parse(endpoint);
     const hostName = parsedUrl.hostname;
@@ -408,7 +422,7 @@ function checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUui
                         // Still running, poll again after delay
                         console.log('\x1b[33m%s\x1b[0m', "Execution still in progress, checking again in 30 seconds...");
                         setTimeout(function () {
-                            checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUuid);
+                            checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUuid, 0);
                         }, 30000);
                     }
                 } catch (parseError) {
@@ -416,14 +430,28 @@ function checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUui
                     console.log('Raw response:', body);
                 }
             } else {
-                console.log('\x1b[31m%s\x1b[0m', "Failed to get workflow execution status. Status code: " + res.statusCode);
-                console.log('Response:', body);
+                if (res.statusCode === 403 && retryCount < 3) {
+                    console.log('\x1b[33m%s\x1b[0m', `Network interrupted (403). Retrying in 30 seconds... (Attempt ${retryCount + 1} of 3)`);
+                    setTimeout(function () {
+                        checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUuid, retryCount + 1);
+                    }, 30000);
+                } else {
+                    console.log('\x1b[31m%s\x1b[0m', "Failed to get workflow execution status. Status code: " + res.statusCode);
+                    console.log('Response:', body);
+                }
             }
         });
     });
 
     req.on('error', function (err) {
-        console.error('\x1b[31m%s\x1b[0m', "Status check error: " + err.message);
+        if (retryCount < 3) {
+            console.log('\x1b[33m%s\x1b[0m', `Network request error: ${err.message}. Retrying in 30 seconds... (Attempt ${retryCount + 1} of 3)`);
+            setTimeout(function () {
+                checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUuid, retryCount + 1);
+            }, 30000);
+        } else {
+            console.error('\x1b[31m%s\x1b[0m', "Status check error: " + err.message);
+        }
     });
 
     req.end();
