@@ -13,7 +13,6 @@ const GATEWAY_URLS = {
     prod: 'https://gateway.qyrus.com:8243'
 };
 
-const gatewayAuth = 'Bearer 90540897-748a-3ef2-b3a3-c6f8f42022da';
 const baseContext = '/desktop-service-noauth/v1';
 const POLL_INTERVAL = 30000;
 const HARDCODED_PORT = 3000;
@@ -126,10 +125,9 @@ async function trigger(
 
 async function getNodeDetailsFromTeam(gatewayUrl, apiKey, teamId, nodeName) {
     const response = await httpRequest(gatewayUrl, {
-        path: `/node-registration-service/api/node-based-on-team?teamId=${teamId}`,
+        path: `/node-registration-service-noauth/v1/api/node-based-on-team?teamId=${teamId}`,
         method: 'GET',
         headers: {
-            authorization: gatewayAuth, 
             'x-api-key': apiKey,
             scope: 'NODE_CLI',
             'Team-Id': teamId
