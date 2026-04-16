@@ -13,8 +13,7 @@ const GATEWAY_URLS = {
     prod: 'https://gateway.qyrus.com:8243'
 };
 
-const gatewayAuth = 'Bearer 90540897-748a-3ef2-b3a3-c6f8f42022da';
-const baseContext = '/api-marketplace-qapi/v1';
+const baseContext = '/api-marketplace-qapi-noauth/v1';
 const POLL_INTERVAL = 30000;
 
 /* -------------------------------------------------- */
@@ -58,7 +57,6 @@ function httpRequest(gatewayUrl, options, payload = null) {
 function apiHeaders(apiKey, teamId, extra = {}) {
     return {
         'x-api-key': apiKey,
-        authorization: gatewayAuth,
         'scope': 'NODE_CLI',
         'Team-Id': teamId,
         ...extra
@@ -69,11 +67,16 @@ function apiHeaders(apiKey, teamId, extra = {}) {
 /* ---------------- CORE TRIGGER -------------------- */
 /* -------------------------------------------------- */
 
-async function trigger(executionType, apiKey, workspaceName, suiteName, emailId, envName, scriptName, threadCount, latencyThreshold) {
+async function trigger(executionType, apiKey, workspaceName, suiteName, scriptName, envName, threadCount, latencyThreshold, virtualUserWalletType) {
     try {
         const type = (executionType || 'functional').toUpperCase();
         if (!['FUNCTIONAL', 'PERFORMANCE'].includes(type)) {
             throw new Error(`Invalid executionType "${executionType}". Must be "functional" or "performance".`);
+        }
+
+        const walletType = (virtualUserWalletType || 'PRIVATE').toUpperCase();
+        if (!['PRIVATE', 'SHARED'].includes(walletType)) {
+            throw new Error(`Invalid virtualUserWalletType "${virtualUserWalletType}". Must be "PRIVATE" or "SHARED".`);
         }
 
         const gatewayUrl = deriveGatewayUrlFromApiKey(apiKey);
@@ -102,7 +105,7 @@ async function trigger(executionType, apiKey, workspaceName, suiteName, emailId,
 
         const envId = await getEnvironmentId(gatewayUrl, apiKey, teamId, projectId, envName);
 
-        const runId = await executeTest(gatewayUrl, apiKey, teamId, projectId, suiteId, scriptId, envId, userEmail, emailId, type, threadCount, latencyThreshold);
+        const runId = await executeTest(gatewayUrl, apiKey, teamId, projectId, suiteId, scriptId, envId, userEmail, type, threadCount, latencyThreshold, walletType);
         console.log('\x1b[32m%s\x1b[0m', `✔ Execution dispatched — Run ID: ${runId}`);
 
         await pollExecutionStatus(gatewayUrl, apiKey, teamId, runId, projectId, type);
@@ -117,18 +120,18 @@ async function trigger(executionType, apiKey, workspaceName, suiteName, emailId,
 /* ---------------- EXECUTION ----------------------- */
 /* -------------------------------------------------- */
 
-async function executeTest(gatewayUrl, apiKey, teamId, projectId, suiteId, scriptId, envId, userEmail, emailId, executionType, threadCount, latencyThreshold) {
+async function executeTest(gatewayUrl, apiKey, teamId, projectId, suiteId, scriptId, envId, userEmail, executionType, threadCount, latencyThreshold, virtualUserWalletType) {
     const body = {
         suiteIds: [suiteId],
         scriptIds: scriptId ? [scriptId] : null,
-        userEmail: emailId || userEmail,
+        userEmail: userEmail,
         projectId,
         isJenkins: false,
-        pluginName: 'APP',
+        pluginName: 'CLI',
         isScheduled: false,
         environmentId: envId || null,
         executionType,
-        virtualUserWalletType: 'PRIVATE'
+        virtualUserWalletType
     };
 
     if (executionType === 'PERFORMANCE') {
@@ -308,11 +311,10 @@ async function validateSaltToken(apiKey, gatewayUrl) {
 
 async function getTeamId(gatewayUrl, apiKey) {
     const response = await httpRequest(gatewayUrl, {
-        path: '/user-mgmt-qapi/v1/api/team-list',
+        path: '/um-noauth/v1/api/team-list',
         method: 'GET',
         headers: {
             'x-api-key': apiKey,
-            authorization: gatewayAuth,
             'scope': 'NODE_CLI'
         }
     });

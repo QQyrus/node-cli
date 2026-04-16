@@ -84,21 +84,21 @@ program.command('qapi')
   .requiredOption('--workspaceName <string>', 'Workspace (project) name')
   .requiredOption('--suiteName <string>', 'Test suite name')
   .option('--scriptName <string>', '(optional) Script name for script-level execution')
-  .option('--emailId <string>', '(optional) Email to receive report post execution')
   .option('--envName <string>', '(optional) Environment variable set name')
   .option('--threadCount <string>', '(optional, performance only) Thread count')
   .option('--latencyThreshold <string>', '(optional, performance only) Latency threshold in ms')
+  .option('--qTokenWalletType <string>', '(optional) "PRIVATE" or "SHARED" wallet type')
   .action((options) => {
     qapiUtil.trigger(
       options.executionType,
       options.apiKey,
       options.workspaceName,
       options.suiteName,
-      options.emailId,
-      options.envName,
       options.scriptName,
+      options.envName,
       options.threadCount,
-      options.latencyThreshold
+      options.latencyThreshold,
+      options.qTokenWalletType
     );
   });
 
