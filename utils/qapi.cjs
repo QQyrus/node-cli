@@ -21,11 +21,19 @@ const POLL_INTERVAL = 30000;
 /* -------------------------------------------------- */
 
 function deriveGatewayUrlFromApiKey(apiKey) {
-    if (!apiKey) throw new Error('API key is required to derive gateway URL.');
-    if (apiKey.includes('stg')) return GATEWAY_URLS.stg;
-    if (apiKey.includes('uat')) return GATEWAY_URLS.uat;
-    if (apiKey.includes('qyrus')) return GATEWAY_URLS.prod;
-    throw new Error('Unable to determine environment from API key. Key must contain "stg", "uat", or "qyrus".');
+    const env = getEnvName(apiKey);
+    if (!env) throw new Error('Unable to parse environment from API key.');
+    if (env === 'stg' || env === 'staging') return GATEWAY_URLS.stg;
+    if (env === 'qyrus') return GATEWAY_URLS.prod;
+    return `https://${env}-gateway.qyrus.com:8243`;
+}
+
+function getEnvName(apiKey) {
+    if (!apiKey || typeof apiKey !== 'string') return null;
+    const parts = apiKey.split('_');
+    if (parts.length < 3) return null;
+    // parts[1] = "stg-qapi" → strip "-qapi" to get "stg"
+    return parts[1].replace(/-qapi$/i, '');
 }
 
 /* -------------------------------------------------- */
