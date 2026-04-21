@@ -22,15 +22,18 @@ const HARDCODED_PORT = 3000;
 /* -------------------------------------------------- */
 
 function deriveGatewayUrlFromApiKey(apiKey) {
-    if (!apiKey) {
-        throw new Error('API key is required to derive gateway URL.');
+    let endpoint = '';
+    const env = getEnvName(apiKey);
+    if (env == 'staging') {
+        endpoint = 'https://stg-gateway.qyrus.com:8243';
     }
-
-    if (apiKey.includes('staging')) return GATEWAY_URLS.staging;
-    if (apiKey.includes('uat')) return GATEWAY_URLS.uat;
-    if (apiKey.includes('qyrus')) return GATEWAY_URLS.prod;
-
-    throw new Error('Unable to determine environment from API key. Key must contain "staging", "uat", or "prod".');
+    else if (env == 'qyrus') {
+        endpoint = 'https://gateway.qyrus.com';
+    }
+    else {
+        endpoint = 'https://' + env + '-gateway.qyrus.com';
+    }
+    return endpoint;
 }
 
 /* -------------------------------------------------- */
@@ -417,6 +420,17 @@ async function getEnvironmentUuid(gatewayUrl, apiKey, projectId, envName, teamId
     const envs = JSON.parse(response.body);
     const env = envs.find(e => e.environmentName?.toLowerCase() === envName.toLowerCase());
     return env ? env.uuid.trim() : null;
+}
+
+function getEnvName(apiKey) {
+    if (!apiKey || typeof apiKey !== "string") return null;
+
+    const parts = apiKey.split("_");
+
+    // expecting: ["sk", "envName", "uuidToken"]
+    if (parts.length < 3) return null;
+
+    return parts[1];
 }
 
 module.exports = {
