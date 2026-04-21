@@ -13,7 +13,6 @@ const GATEWAY_URLS = {
     prod: 'https://gateway.qyrus.com:8243'
 };
 
-const gatewayAuth = 'Bearer 90540897-748a-3ef2-b3a3-c6f8f42022da';
 const baseContext = '/desktop-service-noauth/v1';
 const POLL_INTERVAL = 30000;
 const HARDCODED_PORT = 3000;
@@ -99,10 +98,9 @@ async function trigger(
         const envId = await getEnvironmentUuid(gatewayUrl, apiKey, projectId, envName, teamId);
         console.log('\x1b[36m%s\x1b[0m', envId ? `✔ Found environment: "${envName}"` : `✔ Environment: global (no variable env)`);
 
-        const nodeId = await getNodeUuid(gatewayUrl, nodeName);
-        console.log('\x1b[36m%s\x1b[0m', `✔ Identified node: "${nodeName}"`);
-
-        const ipAddress = await getIpAddress(gatewayUrl, nodeId);
+        // NEW: Single call to get both node UUID and IP
+        const { nodeId, ipAddress } = await getNodeDetailsFromTeam(gatewayUrl, apiKey, teamId, nodeName);
+        console.log('\x1b[36m%s\x1b[0m', `✔ Identified node: "${nodeName}" (UUID: ${nodeId})`);
         console.log('\x1b[36m%s\x1b[0m', `✔ Fetched node IP: ${ipAddress}`);
 
         const runId = await executeTest(
@@ -119,6 +117,55 @@ async function trigger(
         console.error('\x1b[31m%s\x1b[0m', `✖ ${error.message}`);
         process.exit(1);
     }
+}
+
+/* -------------------------------------------------- */
+/* ---------------- NEW NODE FUNCTION --------------- */
+/* -------------------------------------------------- */
+
+async function getNodeDetailsFromTeam(gatewayUrl, apiKey, teamId, nodeName) {
+    const response = await httpRequest(gatewayUrl, {
+        path: `/node-registration-service-noauth/v1/api/node-based-on-team?teamId=${teamId}`,
+        method: 'GET',
+        headers: {
+            'x-api-key': apiKey,
+            scope: 'NODE_CLI',
+            'Team-Id': teamId
+        }
+    });
+
+    if (response.statusCode !== 200) {
+        throw new Error(`Failed to fetch nodes for team — HTTP ${response.statusCode}`);
+    }
+
+    let nodes;
+    try {
+        nodes = JSON.parse(response.body);
+    } catch (e) {
+        throw new Error('Invalid JSON response from node-based-on-team endpoint');
+    }
+
+    if (!Array.isArray(nodes)) {
+        throw new Error('Unexpected response format from node-based-on-team endpoint');
+    }
+
+    const node = nodes.find(n =>
+        n.nodeName?.toLowerCase() === nodeName.toLowerCase() &&
+        n.isActive !== false
+    );
+
+    if (!node) {
+        throw new Error(`Node not found or inactive in team: "${nodeName}"`);
+    }
+
+    if (!node.uuid) {
+        throw new Error(`Node "${nodeName}" is missing UUID in response`);
+    }
+
+    return {
+        nodeId: node.uuid.trim(),
+        ipAddress: node.ipAddress?.trim() || null
+    };
 }
 
 /* -------------------------------------------------- */
@@ -370,28 +417,6 @@ async function getEnvironmentUuid(gatewayUrl, apiKey, projectId, envName, teamId
     const envs = JSON.parse(response.body);
     const env = envs.find(e => e.environmentName?.toLowerCase() === envName.toLowerCase());
     return env ? env.uuid.trim() : null;
-}
-
-async function getNodeUuid(gatewayUrl, nodeName) {
-    const response = await httpRequest(gatewayUrl, {
-        path: `/node-registration-service/v1/api-public/get-nodeUuid?nodeName=${encodeURIComponent(nodeName)}`,
-        method: 'GET',
-        headers: { authorization: gatewayAuth }
-    });
-
-    if (response.statusCode !== 200) throw new Error(`Node not found: "${nodeName}"`);
-    return response.body.trim();
-}
-
-async function getIpAddress(gatewayUrl, nodeId) {
-    const response = await httpRequest(gatewayUrl, {
-        path: `/node-registration-service/v1/api-public/get-ip?uuid=${nodeId}`,
-        method: 'GET',
-        headers: { authorization: gatewayAuth }
-    });
-
-    if (response.statusCode !== 200) throw new Error(`IP address not found for node: ${nodeId}`);
-    return response.body.trim();
 }
 
 module.exports = {
