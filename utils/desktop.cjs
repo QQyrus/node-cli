@@ -190,7 +190,7 @@ async function executeTest(
     const payload = {
         testScript: null,
         testSuite: { uuid: suiteId },
-        pluginName: 'AZURE',
+        pluginName: 'CLI',
         isJenkins: false,
         multiRuns,
         moduleRun: false,
