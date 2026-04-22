@@ -9,8 +9,8 @@ const http = require('http');
 
 const GATEWAY_URLS = {
     stg: 'https://stg-gateway.qyrus.com:8243',
-    uat: 'https://uat-gateway.qyrus.com:8243',
-    prod: 'https://gateway.qyrus.com:8243'
+    uat: 'https://uat-gateway.qyrus.com',
+    prod: 'https://gateway.qyrus.com'
 };
 
 const baseContext = '/api-marketplace-qapi-noauth/v1';
@@ -25,7 +25,7 @@ function deriveGatewayUrlFromApiKey(apiKey) {
     if (!env) throw new Error('Unable to parse environment from API key.');
     if (env === 'stg' || env === 'staging') return GATEWAY_URLS.stg;
     if (env === 'qyrus') return GATEWAY_URLS.prod;
-    return `https://${env}-gateway.qyrus.com:8243`;
+    return `https://${env}-gateway.qyrus.com`;
 }
 
 function getEnvName(apiKey) {
