@@ -9,8 +9,8 @@ const http = require('http');
 
 const GATEWAY_URLS = {
     staging: 'https://stg-gateway.qyrus.com:8243',
-    uat: 'https://uat-gateway.qyrus.com:8243',
-    prod: 'https://gateway.qyrus.com:8243'
+    uat: 'https://uat-gateway.qyrus.com',
+    prod: 'https://gateway.qyrus.com'
 };
 
 const gatewayAuth = 'Bearer 90540897-748a-3ef2-b3a3-c6f8f42022da';
@@ -25,10 +25,10 @@ const HARDCODED_PORT = 3000;
 function deriveGatewayUrlFromApiKey(apiKey) {
     const env = getEnvName(apiKey);
     if (!env) throw new Error('Unable to parse environment from API key.');
-    if (env === 'stg' || env === 'staging') return 'https://stg-gateway.qyrus.com:8243';
-    if (env === 'qyrus') return 'https://gateway.qyrus.com:8243';
+    if (env === 'stg' || env === 'staging') return GATEWAY_URLS.staging;
+    if (env === 'qyrus') return GATEWAY_URLS.prod;
     // dynamic: any other client env e.g. "acme" → https://acme-gateway.qyrus.com:8243
-    return `https://${env}-gateway.qyrus.com:8243`;
+    return `https://${env}-gateway.qyrus.com`;
 }
 
 function getEnvName(apiKey) {
