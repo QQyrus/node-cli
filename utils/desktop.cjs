@@ -23,15 +23,19 @@ const HARDCODED_PORT = 3000;
 /* -------------------------------------------------- */
 
 function deriveGatewayUrlFromApiKey(apiKey) {
-    if (!apiKey) {
-        throw new Error('API key is required to derive gateway URL.');
-    }
+    const env = getEnvName(apiKey);
+    if (!env) throw new Error('Unable to parse environment from API key.');
+    if (env === 'stg' || env === 'staging') return 'https://stg-gateway.qyrus.com:8243';
+    if (env === 'qyrus') return 'https://gateway.qyrus.com:8243';
+    // dynamic: any other client env e.g. "acme" → https://acme-gateway.qyrus.com:8243
+    return `https://${env}-gateway.qyrus.com:8243`;
+}
 
-    if (apiKey.includes('staging')) return GATEWAY_URLS.staging;
-    if (apiKey.includes('uat')) return GATEWAY_URLS.uat;
-    if (apiKey.includes('qyrus')) return GATEWAY_URLS.prod;
-
-    throw new Error('Unable to determine environment from API key. Key must contain "staging", "uat", or "prod".');
+function getEnvName(apiKey) {
+    if (!apiKey || typeof apiKey !== 'string') return null;
+    const parts = apiKey.split('_');
+    // format: sk_<envName>_<uuid>
+    return parts.length >= 3 ? parts[1] : null;
 }
 
 /* -------------------------------------------------- */
