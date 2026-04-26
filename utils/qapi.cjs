@@ -116,7 +116,7 @@ async function trigger(executionType, apiKey, workspaceName, suiteName, scriptNa
         const runId = await executeTest(gatewayUrl, apiKey, teamId, projectId, suiteId, scriptId, envId, userEmail, type, threadCount, latencyThreshold, walletType);
         console.log('\x1b[32m%s\x1b[0m', `✔ Execution dispatched — Run ID: ${runId}`);
 
-        await pollExecutionStatus(gatewayUrl, apiKey, teamId, runId, projectId, type);
+        await pollExecutionStatus(gatewayUrl, apiKey, teamId, runId);
 
     } catch (error) {
         console.error('\x1b[31m%s\x1b[0m', `✖ ${error.message}`);
@@ -193,47 +193,27 @@ const STATUS_LABELS = {
 
 const TERMINAL_FAILURE_STATUSES = new Set(['CANCELLED', 'ABORTING', 'ABORTED', 'FAILED', 'ERROR_IN_RUN']);
 
-async function pollExecutionStatus(gatewayUrl, apiKey, teamId, runId, projectId, executionType) {
+async function pollExecutionStatus(gatewayUrl, apiKey, teamId, runId) {
     let lastStatus = null;
 
     while (true) {
         await new Promise(r => setTimeout(r, POLL_INTERVAL));
 
-        const payloadObj = {
-            testResultStatus: [],
-            startDate: null,
-            endDate: null,
-            projectId,
-            testName: null,
-            methodType: [],
-            page: 0,
-            size: 10,
-            executionType,
-            isScheduled: null
-        };
-
-        const payload = JSON.stringify(payloadObj);
-
         const response = await httpRequest(gatewayUrl, {
-            path: `${baseContext}/api/get-all-report-list`,
-            method: 'POST',
-            headers: apiHeaders(apiKey, teamId, {
-                'Content-Type': 'application/json',
-                'Content-Length': Buffer.byteLength(payload)
-            })
-        }, payload);
+            path: `${baseContext}/api/get-execution?runId=${encodeURIComponent(runId)}`,
+            method: 'GET',
+            headers: apiHeaders(apiKey, teamId)
+        });
 
         if (response.statusCode !== 200) {
             console.log('\x1b[33m%s\x1b[0m', `Poll returned HTTP ${response.statusCode}, retrying...`);
             continue;
         }
 
-        const data = JSON.parse(response.body.toString());
-        const runs = data.content || [];
-        const run = runs.find(r => r.id === runId || r.id?.toString() === runId);
+        const run = JSON.parse(response.body.toString());
 
-        if (!run) {
-            console.log('\x1b[33m%s\x1b[0m', `Run ${runId} not yet visible in report list, retrying...`);
+        if (!run || !run.id) {
+            console.log('\x1b[33m%s\x1b[0m', `Run ${runId} not yet visible, retrying...`);
             continue;
         }
 
