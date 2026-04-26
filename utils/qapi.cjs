@@ -241,6 +241,37 @@ async function pollExecutionStatus(gatewayUrl, apiKey, teamId, runId) {
 /* ---------------- REPORT -------------------------- */
 /* -------------------------------------------------- */
 
+async function pollHtmlReport(gatewayUrl, apiKey, teamId, runId) {
+    const HTML_REPORT_POLL_INTERVAL = 10000;
+    const HTML_REPORT_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+    const started = Date.now();
+
+    console.log('\x1b[33m%s\x1b[0m', 'Waiting for HTML report to be ready...');
+
+    while (true) {
+        if (Date.now() - started > HTML_REPORT_TIMEOUT) {
+            console.log('\x1b[33m%s\x1b[0m', 'Timed out waiting for HTML report.');
+            return null;
+        }
+
+        await new Promise(r => setTimeout(r, HTML_REPORT_POLL_INTERVAL));
+
+        const response = await httpRequest(gatewayUrl, {
+            path: `${baseContext}/api/get-execution?runId=${encodeURIComponent(runId)}`,
+            method: 'GET',
+            headers: apiHeaders(apiKey, teamId)
+        });
+
+        if (response.statusCode !== 200) continue;
+
+        const run = JSON.parse(response.body.toString());
+
+        if (run?.htmlReportStatus === 'COMPLETED' && run?.htmlReportUrl) {
+            return run.htmlReportUrl;
+        }
+    }
+}
+
 async function showReport(gatewayUrl, apiKey, teamId, run) {
     const hasFailed = run.status === 'FAIL' || run.status === 'FAILED';
     const resultColor = hasFailed ? '\x1b[31m' : '\x1b[32m';
@@ -250,14 +281,19 @@ async function showReport(gatewayUrl, apiKey, teamId, run) {
     if (run.failTestCase != null) console.log(`  Failed : ${run.failTestCase}`);
     if (run.totalTestCases != null) console.log(`  Total  : ${run.totalTestCases}`);
 
-    if (run.htmlReportUrl && run.htmlReportStatus === 'COMPLETED') {
-        const signedUrl = await getReportUrl(gatewayUrl, apiKey, teamId, run.htmlReportUrl);
+    // If the report is already ready, use it; otherwise poll until it is
+    let htmlReportUrl = (run.htmlReportStatus === 'COMPLETED' && run.htmlReportUrl)
+        ? run.htmlReportUrl
+        : await pollHtmlReport(gatewayUrl, apiKey, teamId, run.id.toString());
+
+    if (htmlReportUrl) {
+        const signedUrl = await getReportUrl(gatewayUrl, apiKey, teamId, htmlReportUrl);
         if (signedUrl) {
             process.stdout.write(`\nReport: \x1b]8;;${signedUrl}\x1b\\View Report\x1b]8;;\x1b\\\n`);
             console.log('(Ctrl+Click to open in browser)\n');
         }
     } else {
-        console.log('\x1b[33m%s\x1b[0m', 'Report not yet available or still processing.');
+        console.log('\x1b[33m%s\x1b[0m', 'HTML report could not be retrieved.');
     }
 
     process.exit(hasFailed ? 1 : 0);
