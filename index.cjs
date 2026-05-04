@@ -3,6 +3,7 @@
 const { Command } = require('commander');
 var webUtil = require('./utils/web.cjs');
 var desktopUtil = require('./utils/desktop.cjs');
+var qapiUtil = require('./utils/qapi.cjs');
 var mobilityUtil = require('./utils/mobility.cjs');
 var componentUtil = require('./utils/component.cjs');
 var globalVarUtil = require('./utils/globalVar.cjs');
@@ -76,11 +77,34 @@ program.command('desktop')
     );
   });
 
+program.command('qapi')
+  .description('Trigger API functional or performance tests on the Qyrus platform')
+  .requiredOption('--executionType <string>', 'Execution type: "functional" or "performance"')
+  .requiredOption('--apiKey <string>', 'API key')
+  .requiredOption('--workspaceName <string>', 'Workspace (project) name')
+  .requiredOption('--suiteName <string>', 'Test suite name')
+  .option('--scriptName <string>', '(optional) Script name for script-level execution')
+  .option('--envName <string>', '(optional) Environment variable set name')
+  .option('--threadCount <string>', '(optional, performance only) Thread count')
+  .option('--latencyThreshold <string>', '(optional, performance only) Latency threshold in ms')
+  .option('--qTokenWalletType <string>', '(optional) "PRIVATE" or "SHARED" wallet type')
+  .action((options) => {
+    qapiUtil.trigger(
+      options.executionType,
+      options.apiKey,
+      options.workspaceName,
+      options.suiteName,
+      options.scriptName,
+      options.envName,
+      options.threadCount,
+      options.latencyThreshold,
+      options.qTokenWalletType
+    );
+  });
+
 program.command('update-web-variables')
   .description('helps you update global variables on web automation service')
-  .option('--endPoint <string>', 'Qyrus endpoint provided by Qyrus admin')
-  .option('-u, --username <string>', 'Qyrus admin provided email')
-  .option('-p, --passcode <string>', 'Qyrus admin provided passcode in base64 format')
+  .option('-p, --apiKey <string>', 'Qyrus admin provided apiKey')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--projectName <string>', 'Project name you can find by logging into Qyrus app.')
   .option('--variableEnvName <string>', 'Variables environment name, you can find by logging into Qyrus app.')
@@ -88,9 +112,8 @@ program.command('update-web-variables')
   .option('--variableType <string>', 'Existing variable type eg: Custom, BaseURL, Password.')
   .option('--variableValue <string>', 'Value to update the existing variable.')
   .action((options) => {
-    globalVarUtil.trigger(options.endPoint, options.username, options.passcode,
-      options.teamName, options.projectName, options.variableEnvName,
-      options.variableName, options.variableType, options.variableValue);
+    globalVarUtil.trigger(options.apiKey, options.teamName, options.projectName,
+      options.variableEnvName, options.variableName, options.variableType, options.variableValue);
   });
 
 // Mobility Commands
@@ -443,10 +466,9 @@ program.command('to')
   .option('-p, --apiKey <string>', 'Qyrus admin provided apiKey')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
   .option('--deepLinkId <string>', 'Deep Link Id for Folder or WorkFlow')
-  .option('--isFolder <boolean>', 'Is Folder')
 
   .action((options) => {
-    toUtil.trigger(options.apiKey, options.teamName, options.deepLinkId, options.isFolder);
+    toUtil.trigger(options.apiKey, options.teamName, options.deepLinkId);
   });
 
 //--- Connectivity check

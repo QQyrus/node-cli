@@ -11,7 +11,7 @@ const toContext = '/orchestration-noauth/v1';
 const umContext = '/um-noauth/v1';
 
 const trigger = function (apiKey, teamName,
-    deepLinkId, isFolder) {
+    deepLinkId) {
 
     // Input validation
     if (!apiKey || typeof apiKey !== 'string' || apiKey.trim() === '') {
@@ -27,13 +27,30 @@ const trigger = function (apiKey, teamName,
         process.exit(1);
     }
 
-    // isFolder is passed as a string from Commander.js
-    if (isFolder === undefined || isFolder === null ||
-        (typeof isFolder === 'string' && !['true', 'false'].includes(isFolder.trim().toLowerCase())) ||
-        typeof isFolder === 'number') {
-        console.log('\x1b[31m%s\x1b[0m', "Error: isFolder must be either 'true' or 'false' (case-insensitive).");
+    const ids = deepLinkId.split(',').map(id => id.trim());
+    const regex = /^[A-Za-z0-9]+-[FW]\d+$/i;
+
+    let hasFolder = false;
+    let hasWorkflow = false;
+
+    for (const id of ids) {
+        if (!regex.test(id)) {
+            console.log('\x1b[31m%s\x1b[0m', `Error: Invalid deepLinkId format for '${id}'. Expected format is PROJ-F<numeric> or PROJ-W<numeric>.`);
+            process.exit(1);
+        }
+        if (/-F\d+$/i.test(id)) {
+            hasFolder = true;
+        } else if (/-W\d+$/i.test(id)) {
+            hasWorkflow = true;
+        }
+    }
+
+    if (hasFolder && hasWorkflow) {
+        console.log('\x1b[31m%s\x1b[0m', "Error: Cannot mix Folder (-F) and Workflow (-W) executions in a single command.");
         process.exit(1);
     }
+
+    let isFolder = hasFolder;
 
     let endpoint = '';
     const env = getEnvName(apiKey);
@@ -74,8 +91,7 @@ const trigger = function (apiKey, teamName,
                 console.log('\x1b[32m%s\x1b[0m', "Team ID resolved: " + teamId);
 
                 // Check if the execution target is a folder or a workflow
-                // isFolder comes as a string from CLI, so compare against 'true'
-                if (isFolder === true || String(isFolder).toLowerCase() === 'true') {
+                if (isFolder) {
                     executeFolder(endpoint, login, organizationName, apiKey, teamId, deepLinkId);
                 } else {
                     executeWorkflow(endpoint, login, organizationName, apiKey, teamId, deepLinkId);
@@ -88,9 +104,9 @@ const trigger = function (apiKey, teamName,
             // Parse error message from validation response
             try {
                 const errorJson = JSON.parse(validationResult.message.replace('Invalid API Token: ', ''));
-                console.log('\x1b[31m%s\x1b[0m', "❌ " + (errorJson.message || validationResult.message));
+                console.log('\x1b[31m%s\x1b[0m', (errorJson.message || validationResult.message));
             } catch (e) {
-                console.log('\x1b[31m%s\x1b[0m', "❌ " + validationResult.message);
+                console.log('\x1b[31m%s\x1b[0m', validationResult.message);
             }
             process.exit(1);
         }
@@ -157,9 +173,9 @@ function executeFolder(endpoint, login, organizationName, apiKey, teamId, deepLi
                 // Parse error message from response
                 try {
                     const errorResponse = JSON.parse(body);
-                    console.log('\x1b[31m%s\x1b[0m', "❌ " + (errorResponse.errorMessage || 'Failed to execute folder.'));
+                    console.log('\x1b[31m%s\x1b[0m', (errorResponse.errorMessage || 'Failed to execute folder.'));
                 } catch (e) {
-                    console.log('\x1b[31m%s\x1b[0m', "❌ Failed to execute folder. Status code: " + res.statusCode);
+                    console.log('\x1b[31m%s\x1b[0m', "Failed to execute folder. Status code: " + res.statusCode);
                 }
                 process.exit(1);
             }
@@ -167,7 +183,7 @@ function executeFolder(endpoint, login, organizationName, apiKey, teamId, deepLi
     });
 
     req.on('error', function (err) {
-        console.error('\x1b[31m%s\x1b[0m', "❌ Request error: " + err.message);
+        console.error('\x1b[31m%s\x1b[0m', "Request error: " + err.message);
         process.exit(1);
     });
 
@@ -176,7 +192,7 @@ function executeFolder(endpoint, login, organizationName, apiKey, teamId, deepLi
 }
 
 // Poll folder execution status
-function checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUuid, workFlowCount) {
+function checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUuid, workFlowCount, retryCount = 0) {
 
     const parsedUrl = url.parse(endpoint);
     const hostName = parsedUrl.hostname;
@@ -189,7 +205,6 @@ function checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUui
         path: toContext + '/api/folder-execution-status?folderExecutionUuid=' + encodeURIComponent(folderExecutionUuid),
         method: 'GET',
         headers: {
-            // 'Authorization': gatewayAuth,
             'Team-Id': teamId,
             'scope': 'NODE_CLI',
             'x-api-key': apiKey
@@ -221,28 +236,42 @@ function checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUui
                     console.log('\x1b[36m%s\x1b[0m', "Fetching report download URLs...");
                     downloadReports(endpoint, apiKey, teamId, null, folderExecutionUuid, workFlowCount);
                 } else if (executionStatus === 'FAIL') {
-                    console.log('\x1b[31m%s\x1b[0m', "❌ Folder execution failed.");
+                    console.log('\x1b[31m%s\x1b[0m', "Folder execution failed.");
                     console.log('\x1b[36m%s\x1b[0m', "Fetching report download URLs...");
                     downloadReports(endpoint, apiKey, teamId, null, folderExecutionUuid, workFlowCount);
                 } else if (executionStatus === 'ERROR IN RUN' || executionStatus === 'ABORTED') {
-                    console.log('\x1b[31m%s\x1b[0m', "❌ Execution ended with status: " + executionStatus);
+                    console.log('\x1b[31m%s\x1b[0m', "Execution ended with status: " + executionStatus);
                     process.exit(1);
                 } else {
                     // Still running, poll again after delay
                     console.log('\x1b[33m%s\x1b[0m', "Execution still in progress, checking again in 30 seconds...");
                     setTimeout(function () {
-                        checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUuid, workFlowCount);
+                        checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUuid, workFlowCount, 0);
                     }, 30000);
                 }
             } else {
-                console.log('\x1b[31m%s\x1b[0m', "Failed to get folder execution status. Status code: " + res.statusCode);
-                console.log('Response:', body);
+                if (res.statusCode === 403 && retryCount < 3) {
+                    console.log('\x1b[33m%s\x1b[0m', `Network interrupted (403). Retrying in 30 seconds... (Attempt ${retryCount + 1} of 3)`);
+                    setTimeout(function () {
+                        checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUuid, workFlowCount, retryCount + 1);
+                    }, 30000);
+                } else {
+                    console.log('\x1b[31m%s\x1b[0m', "Failed to get folder execution status. Status code: " + res.statusCode);
+                    console.log('Response:', body);
+                }
             }
         });
     });
 
     req.on('error', function (err) {
-        console.error('\x1b[31m%s\x1b[0m', "❌ Status check error: " + err.message);
+        if (retryCount < 3) {
+            console.log('\x1b[33m%s\x1b[0m', `Network request error: ${err.message}. Retrying in 30 seconds... (Attempt ${retryCount + 1} of 3)`);
+            setTimeout(function () {
+                checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUuid, workFlowCount, retryCount + 1);
+            }, 30000);
+        } else {
+            console.error('\x1b[31m%s\x1b[0m', "Status check error: " + err.message);
+        }
     });
 
     req.end();
@@ -305,9 +334,9 @@ function executeWorkflow(endpoint, login, organizationName, apiKey, teamId, deep
                 // Parse error message from response
                 try {
                     const errorResponse = JSON.parse(body);
-                    console.log('\x1b[31m%s\x1b[0m', "❌ " + (errorResponse.errorMessage || 'Failed to execute workflow.'));
+                    console.log('\x1b[31m%s\x1b[0m', (errorResponse.errorMessage || 'Failed to execute workflow.'));
                 } catch (e) {
-                    console.log('\x1b[31m%s\x1b[0m', "❌ Failed to execute workflow. Status code: " + res.statusCode);
+                    console.log('\x1b[31m%s\x1b[0m', "Failed to execute workflow. Status code: " + res.statusCode);
                 }
                 process.exit(1);
             }
@@ -315,7 +344,7 @@ function executeWorkflow(endpoint, login, organizationName, apiKey, teamId, deep
     });
 
     req.on('error', function (err) {
-        console.error('\x1b[31m%s\x1b[0m', "❌ Request error: " + err.message);
+        console.error('\x1b[31m%s\x1b[0m', "Request error: " + err.message);
         process.exit(1);
     });
 
@@ -324,7 +353,7 @@ function executeWorkflow(endpoint, login, organizationName, apiKey, teamId, deep
 }
 
 // Poll workflow execution status
-function checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUuid) {
+function checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUuid, retryCount = 0) {
 
     const parsedUrl = url.parse(endpoint);
     const hostName = parsedUrl.hostname;
@@ -367,6 +396,8 @@ function checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUui
                         executionStatus = 'ERROR IN RUN';
                     }
 
+                    const expectedCount = '1';
+
                     console.log('\x1b[36m%s\x1b[0m', "Execution Status: " + executionStatus);
 
                     if (executionStatus === 'PASS') {
@@ -376,22 +407,22 @@ function checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUui
                         // console.log('\x1b[36m%s\x1b[0m', "User: " + statusResponse.userName);
                         // Download reports on completion
                         console.log('\x1b[36m%s\x1b[0m', "Fetching report download URLs...");
-                        downloadReports(endpoint, apiKey, teamId, testExecutionUuid, null);
+                        downloadReports(endpoint, apiKey, teamId, testExecutionUuid, null, expectedCount);
                     } else if (executionStatus === 'FAIL') {
                         console.log('\x1b[36m%s\x1b[0m', "Execution Time: " + executionTime);
-                        console.log('\x1b[31m%s\x1b[0m', "❌ Workflow execution failed.");
+                        console.log('\x1b[31m%s\x1b[0m', "Workflow execution failed.");
                         // Download reports even on failure
                         console.log('\x1b[36m%s\x1b[0m', "Fetching report download URLs...");
-                        downloadReports(endpoint, apiKey, teamId, testExecutionUuid, null);
+                        downloadReports(endpoint, apiKey, teamId, testExecutionUuid, null, expectedCount);
                     } else if (executionStatus === 'ERROR IN RUN' || executionStatus === 'ABORTED') {
                         // For these negative statuses report will not be generated
-                        console.log('\x1b[31m%s\x1b[0m', "❌ Execution ended with status: " + executionStatus);
+                        console.log('\x1b[31m%s\x1b[0m', "Execution ended with status: " + executionStatus);
                         process.exit(1);
                     } else {
                         // Still running, poll again after delay
                         console.log('\x1b[33m%s\x1b[0m', "Execution still in progress, checking again in 30 seconds...");
                         setTimeout(function () {
-                            checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUuid);
+                            checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUuid, 0);
                         }, 30000);
                     }
                 } catch (parseError) {
@@ -399,14 +430,28 @@ function checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUui
                     console.log('Raw response:', body);
                 }
             } else {
-                console.log('\x1b[31m%s\x1b[0m', "Failed to get workflow execution status. Status code: " + res.statusCode);
-                console.log('Response:', body);
+                if (res.statusCode === 403 && retryCount < 3) {
+                    console.log('\x1b[33m%s\x1b[0m', `Network interrupted (403). Retrying in 30 seconds... (Attempt ${retryCount + 1} of 3)`);
+                    setTimeout(function () {
+                        checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUuid, retryCount + 1);
+                    }, 30000);
+                } else {
+                    console.log('\x1b[31m%s\x1b[0m', "Failed to get workflow execution status. Status code: " + res.statusCode);
+                    console.log('Response:', body);
+                }
             }
         });
     });
 
     req.on('error', function (err) {
-        console.error('\x1b[31m%s\x1b[0m', "❌ Status check error: " + err.message);
+        if (retryCount < 3) {
+            console.log('\x1b[33m%s\x1b[0m', `Network request error: ${err.message}. Retrying in 30 seconds... (Attempt ${retryCount + 1} of 3)`);
+            setTimeout(function () {
+                checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUuid, retryCount + 1);
+            }, 30000);
+        } else {
+            console.error('\x1b[31m%s\x1b[0m', "Status check error: " + err.message);
+        }
     });
 
     req.end();
@@ -455,7 +500,7 @@ function downloadReports(endpoint, apiKey, teamId, testExecutionUuid, folderExec
                     if (!body || body.trim() === '') {
                         console.log('\x1b[33m%s\x1b[0m', "Reports not yet generated, retrying in 30 seconds...");
                         setTimeout(function () {
-                            downloadReports(endpoint, apiKey, teamId, testExecutionUuid, folderExecutionUuid);
+                            downloadReports(endpoint, apiKey, teamId, testExecutionUuid, folderExecutionUuid, expectedCount);
                         }, 30000);
                         return;
                     }
@@ -474,7 +519,6 @@ function downloadReports(endpoint, apiKey, teamId, testExecutionUuid, folderExec
                     console.log('\x1b[32m%s\x1b[0m', "\n📋 Download Reports:");
                     for (let i = 0; i < reports.length; i++) {
                         console.log('\x1b[36m%s\x1b[0m', "\n  Workflow: " + reports[i].workflowName);
-                        // console.log('\x1b[36m%s\x1b[0m', "  Test Execution UUID: " + reports[i].testExecutionUuid);
                         console.log('\x1b[32m%s\x1b[0m', "  📥 Report URL: " + reports[i].ReportsUrl);
                     }
                 } catch (parseError) {
@@ -489,7 +533,7 @@ function downloadReports(endpoint, apiKey, teamId, testExecutionUuid, folderExec
     });
 
     req.on('error', function (err) {
-        console.error('\x1b[31m%s\x1b[0m', "❌ Report download error: " + err.message);
+        console.error('\x1b[31m%s\x1b[0m', "Report download error: " + err.message);
     });
 
     req.end();
