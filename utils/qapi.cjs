@@ -48,7 +48,7 @@ function httpRequest(gatewayUrl, options, payload = null) {
         const req = protocol.request({
             hostname: parsed.hostname,
             port: parsed.port,
-            rejectUnauthorized: false,
+            rejectUnauthorized: true,
             ...options
         }, (res) => {
             const chunks = [];
