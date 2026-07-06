@@ -12,8 +12,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v3
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
       with:
         node-version: '16'
     - name: List
@@ -26,38 +26,17 @@ jobs:
       run: pkg --targets node16-linux-x64,node16-macos-x64,node16-win-x64 .
     - run: ls
     - run: echo ${{ env.RELEASE_VERSION }}
+    - name: Rename binaries
+      run: |
+        mv cli-linux qyrus-cli-linux
+        mv cli-macos qyrus-cli-macos
+        mv cli-win.exe qyrus-cli-win.exe
     - name: Create github release
-      id: create-new-release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ env.RELEASE_VERSION }}
-        release_name: ${{ env.RELEASE_VERSION }}-alpha
-    - name: Upload release assets linux
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create-new-release.outputs.upload_url }}
-        asset_path: ./cli-linux
-        asset_name: qyrus-cli-linux
-        asset_content_type: application/octet-stream
-    - name: Upload release assets macos
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create-new-release.outputs.upload_url }}
-        asset_path: ./cli-macos
-        asset_name: qyrus-cli-macos
-        asset_content_type: application/octet-stream
-    - name: Upload release assets windows
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create-new-release.outputs.upload_url }}
-        asset_path: ./cli-win.exe
-        asset_name: qyrus-cli-win.exe
-        asset_content_type: application/octet-stream
+        name: ${{ env.RELEASE_VERSION }}-alpha
+        files: |
+          qyrus-cli-linux
+          qyrus-cli-macos
+          qyrus-cli-win.exe
