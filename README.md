@@ -21,19 +21,38 @@ Usage: qyrus-cli [options] [command]
 Helps you to manage variables, apps and to run tests on Qyrus platform
 
 Options:
-  -V, --version                         output the version number
-  -h, --help                            display help for command
+  -V, --version                               output the version number
+  -h, --help                                  display help for command
 
 Commands:
-  web [options]                         helps you trigger web tests on the platform
-  update-web-variables [options]        helps you update global variables on web automation service
-  mobility [options]                    helps you trigger mobility tests on the platform
-  update-mobility-variables [options]   helps you update global variables on mobility service
-  upload-app-mobility [options]         helps you upload apps iOS/android to mobility service
-  update-component-variables [options]  helps you update global variables on component service
-  component [options]                   helps you trigger component tests on the platform
-  upload-app-component [options]        helps you upload apps iOS/android to component service
-  help [command]                        display help for command
+  web [options]                               helps you trigger web tests on the platform
+  desktop [options]                           helps you trigger desktop tests on the platform
+  qapi [options]                              Trigger API functional or performance tests on the Qyrus platform
+  apiEnterprise [options]                     Trigger API Enterprise tests on the Qyrus platform
+  update-web-variables [options]              helps you update global variables on web automation service
+  mobility [options]                          helps you trigger mobility tests on the platform
+  update-mobility-variables [options]         helps you update global variables on mobility service
+  upload-app-mobility [options]               helps you upload apps iOS/android to mobility service
+  delete-app-mobility [options]               helps you delete apps iOS/android to mobility service
+  get-apk-count-mobility [options]            helps you to get app count for iOS/android to mobility service
+  get-apk-mobility [options]                  helps you to get uploaded apps from mobility service for iOS/Android project
+  import-mobility-script-from-file [options]  imports script using file data into mobility service
+  update-mobility-script-from-file [options]  updates script steps using file data in mobility service
+  update-component-variables [options]        helps you update global variables on component service
+  component [options]                         helps you trigger component tests on the platform
+  upload-app-component [options]              helps you upload apps iOS/android to component service
+  delete-app-component [options]              helps you delete apps iOS/android to component service
+  get-apk-count-component [options]           helps you to get app count for iOS/android to component service
+  get-apk-component [options]                 helps you to get uploaded app names from component services for iOS/android to mobility service
+  rover [options]                             helps you trigger mobility tests on the platform
+  upload-app-rover [options]                  helps you upload apps iOS/android to component service
+  delete-app-rover [options]                  helps you delete apps iOS/android to component service
+  apiFunctional [options]                     helps you trigger apiFunctional tests on the platform
+  apiProcess [options]                        helps you trigger apiFunctional tests on the platform
+  apiPerformance [options]                    helps you trigger apiFunctional tests on the platform
+  to [options]                                helps you trigger web tests on the platform
+  conn-check [options]                        helps you to check the connectivity with Qyrus platform.
+  help [command]                              display help for command
 ```
 
 ```shell
@@ -43,17 +62,77 @@ Usage: qyrus-cli web [options]
 helps you trigger web tests on the platform
 
 Options:
-  --endPoint <string>          Qyrus endpoint provided by Qyrus admin
-  -u, --username <string>      Qyrus admin provided email
-  -p, --passcode <string>      Qyrus admin provided passcode in base64 format
-  --teamName <string>          Team name you can find by logging into Qyrus app.
-  --projectName <string>       Project name you can find by logging into Qyrus app.
-  --suiteName <string>         Test suite name you can find by logging into Qyrus app.
-  --variableEnvName <string>   (optional) Global variable name you can find by logging into Qyrus app.
-  --browserOS <string>         Browser operating system eg: windows/linux
-  --browser <string>           Browser name eg: chrome/firefox/MicrosoftEdge?
-  --onErrorContinue <boolean>  Continue execution on error?
-  --emailId <string>           (optional) email id to which the reports need to be sent post execution
+  -p, --apiKey <string>           Qyrus admin provided apiKey
+  --teamName <string>             Team name you can find by logging into Qyrus
+                                  app.
+  --projectName <string>          Project name you can find by logging into
+                                  Qyrus app.
+  --suiteName <string>            Test suite name you can find by logging into
+                                  Qyrus app.
+  --env <string>                  (optional) Global variable name you can find
+                                  by logging into Qyrus app.
+  --browserOS <string>            Browser operating system eg: windows/linux
+  --browser <string>              Browser name eg:
+                                  chrome/firefox/MicrosoftEdge?
+  --onErrorContinue <boolean>     Continue execution on error?
+  --parameterFileSource <string>  parameterFileSource name you can find by
+                                  logging into Qyrus app.
+  --emailId <string>              (optional) email id to which the reports need
+                                  to be sent post execution
+  -h, --help                      display help for command
+```
+
+```shell
+./index.cjs help desktop
+Usage: qyrus-cli desktop [options]
+
+helps you trigger desktop tests on the platform
+
+Options:
+  --apiKey <string>               Qyrus admin provided apiKey
+  --teamName <string>             Team name from Qyrus app
+  --projectName <string>          Project name from Qyrus desktop-service
+  --suiteName <string>            Test suite within project
+  --nodeName <string>             Machine(node) name registered in QB
+  --osType <string>               Operating system type
+  --onErrorContinue <boolean>     Continue execution on error?
+  --parameterFileSource <string>  Parameterization type
+  --emailId <string>              report email recipient
+  --env <string>                  (optional) environment variable
+  -h, --help                      display help for command
+```
+
+```shell
+./index.cjs help to
+Usage: qyrus-cli to [options]
+
+helps you trigger web tests on the platform
+
+Options:
+  -p, --apiKey <string>  Qyrus admin provided apiKey
+  --teamName <string>    Team name you can find by logging into Qyrus app.
+  --deepLinkId <string>  Deep Link Id for Folder or WorkFlow
+  -h, --help             display help for command
+```
+
+```shell
+./index.cjs help qapi
+Usage: qyrus-cli qapi [options]
+
+Trigger API functional or performance tests on the Qyrus platform
+
+Options:
+  --executionType <string>     Execution type: "functional" or "performance"
+  --apiKey <string>            API key
+  --workspaceName <string>     Workspace (project) name
+  --suiteName <string>         Test suite name
+  --scriptName <string>        (optional) Script name for script-level
+                               execution
+  --envName <string>           (optional) Environment variable set name
+  --threadCount <string>       (optional, performance only) Thread count
+  --latencyThreshold <string>  (optional, performance only) Latency threshold
+                               in ms
+  --qTokenWalletType <string>  (optional) "PRIVATE" or "SHARED" wallet type
   -h, --help                   display help for command
 ```
 
@@ -64,14 +143,15 @@ Usage: qyrus-cli update-web-variables [options]
 helps you update global variables on web automation service
 
 Options:
-  --endPoint <string>         Qyrus endpoint provided by Qyrus admin
-  -u, --username <string>     Qyrus admin provided email
-  -p, --passcode <string>     Qyrus admin provided passcode in base64 format
+  -p, --apiKey <string>       Qyrus admin provided apiKey
   --teamName <string>         Team name you can find by logging into Qyrus app.
-  --projectName <string>      Project name you can find by logging into Qyrus app.
-  --variableEnvName <string>  Variables environment name, you can find by logging into Qyrus app.
+  --projectName <string>      Project name you can find by logging into Qyrus
+                              app.
+  --variableEnvName <string>  Variables environment name, you can find by
+                              logging into Qyrus app.
   --variableName <string>     Existing variable name eg: Demo
-  --variableType <string>     Existing variable type eg: Custom, BaseURL, Password.
+  --variableType <string>     Existing variable type eg: Custom, BaseURL,
+                              Password.
   --variableValue <string>    Value to update the existing variable.
   -h, --help                  display help for command
 ```
@@ -354,11 +434,20 @@ Options:
 
 ## Samples
 ```shell
-//To trigger test
-// ./index.cjs web --endPoint http://localhost:8087 --username demo@domain.com --passcode ******** --teamName "CTC - STG Common Area" --projectName Test --suiteName Test --browserOS Windows --browser Chrome --onErrorContinue true --emailId saiprasadt@quinnox.com
+//To trigger test web
+// ./index.cjs web --apiKey "YOUR_API_KEY" --teamName "CTC - STG Common Area" --projectName Test --suiteName Test --browserOS Windows --browser Chrome --onErrorContinue true --emailId saiprasadt@quinnox.com
+
+//To trigger test desktop
+// ./index.cjs desktop --apiKey "YOUR_API_KEY" --teamName "CTC - STG Common Area" --projectName Test --suiteName Test --nodeName node1 --osType Windows --onErrorContinue true --emailId saiprasadt@quinnox.com
+
+//To trigger test to
+// ./index.cjs to --apiKey "YOUR_API_KEY" --teamName "CTC - STG Common Area" --deepLinkId "someDeepLinkId"
+
+//To trigger test qapi
+// ./index.cjs qapi --executionType functional --apiKey "YOUR_API_KEY" --workspaceName "CTC - STG Common Area" --suiteName Test
 
 //To update env variables web
-// ./index.cjs update-web-variables --endPoint http://localhost:8087 --username demo@domain.com --passcode ******** --teamName "CTC - STG Common Area" --projectName Test --variableEnvName Test --variableName url --variableType Custom --variableValue PrajwalT
+// ./index.cjs update-web-variables --apiKey "YOUR_API_KEY" --teamName "CTC - STG Common Area" --projectName Test --variableEnvName Test --variableName url --variableType Custom --variableValue PrajwalT
 
 //upload app mobility
 // ./index.cjs upload-app-mobility --endPoint http://localhost:8081 --username demo@domain.com --passcode ******** --teamName "CTC - STG Common Area" --projectName TestAndroid --appPath /Users/saiprasadt/Downloads/qyrus_training.apk
