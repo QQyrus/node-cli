@@ -2,13 +2,13 @@ name: Publish binaries
 
 on:
   push:
-    # branches: [master,develop]
-    tags:
-      - 'v*.*.*'
+    branches: [staging]
+    #tags:
+    #  - 'v*.*.*'
 
 jobs:
   build:
-    name: Publish node cli binaries
+    name: Publish node cli binaries alpha version
     runs-on: ubuntu-latest
 
     steps:
@@ -19,9 +19,9 @@ jobs:
     - name: Set env
       run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
     - name: install pkg
-      run: npm install -g pkg@latest
+      run: npm install -g pkg
     - name: package
-      run: pkg --targets node16-linux-x64,node16-macos-x64,node16-win-x64 .
+      run: pkg .
     - run: ls
     - run: echo ${{ env.RELEASE_VERSION }}
     - name: Create github release
@@ -31,7 +31,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ env.RELEASE_VERSION }}
-        release_name: ${{ env.RELEASE_VERSION }}
+        release_name: ${{ env.RELEASE_VERSION }}-alpha
     - name: Upload release assets linux
       uses: actions/upload-release-asset@v1
       env:
