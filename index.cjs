@@ -4,7 +4,7 @@ const { Command } = require('commander');
 var webUtil = require('./utils/web.cjs');
 var desktopUtil = require('./utils/desktop.cjs');
 var qapiUtil = require('./utils/qapi.cjs');
-var apiEnterpriseUtil = require('./utils/apiEnterprise.cjs');
+// var apiEnterpriseUtil = require('./utils/apiEnterprise.cjs');
 var mobilityUtil = require('./utils/mobility.cjs');
 var componentUtil = require('./utils/component.cjs');
 var globalVarUtil = require('./utils/globalVar.cjs');
@@ -103,32 +103,32 @@ program.command('qapi')
     );
   });
 
-program.command('apiEnterprise')
-  .description('Trigger API Enterprise tests on the Qyrus platform')
-  .requiredOption('--executionType <string>', 'Execution type: "functional" or "performance"')
-  .requiredOption('--apiKey <string>', 'API key')
-  .requiredOption('--teamName <string>', 'Team name')
-  .requiredOption('--workspaceName <string>', 'Workspace (project) name')
-  .requiredOption('--suiteName <string>', 'Test suite name')
-  .option('--scriptName <string>', '(optional) Script name for script-level execution')
-  .option('--envName <string>', '(optional) Environment variable set name')
-  .option('--threadCount <string>', '(optional, performance only) Thread count')
-  .option('--latencyThreshold <string>', '(optional, performance only) Latency threshold in ms')
-  .option('--qTokenWalletType <string>', '(optional) "PRIVATE" or "SHARED" wallet type')
-  .action((options) => {
-    apiEnterpriseUtil.trigger(
-      options.executionType,
-      options.apiKey,
-      options.teamName,
-      options.workspaceName,
-      options.suiteName,
-      options.scriptName,
-      options.envName,
-      options.threadCount,
-      options.latencyThreshold,
-      options.qTokenWalletType
-    );
-  });
+// program.command('apiEnterprise')
+//   .description('Trigger API Enterprise tests on the Qyrus platform')
+//   .requiredOption('--executionType <string>', 'Execution type: "functional" or "performance"')
+//   .requiredOption('--apiKey <string>', 'API key')
+//   .requiredOption('--teamName <string>', 'Team name')
+//   .requiredOption('--workspaceName <string>', 'Workspace (project) name')
+//   .requiredOption('--suiteName <string>', 'Test suite name')
+//   .option('--scriptName <string>', '(optional) Script name for script-level execution')
+//   .option('--envName <string>', '(optional) Environment variable set name')
+//   .option('--threadCount <string>', '(optional, performance only) Thread count')
+//   .option('--latencyThreshold <string>', '(optional, performance only) Latency threshold in ms')
+//   .option('--qTokenWalletType <string>', '(optional) "PRIVATE" or "SHARED" wallet type')
+//   .action((options) => {
+//     apiEnterpriseUtil.trigger(
+//       options.executionType,
+//       options.apiKey,
+//       options.teamName,
+//       options.workspaceName,
+//       options.suiteName,
+//       options.scriptName,
+//       options.envName,
+//       options.threadCount,
+//       options.latencyThreshold,
+//       options.qTokenWalletType
+//     );
+//   });
 
 program.command('update-web-variables')
   .description('helps you update global variables on web automation service')
