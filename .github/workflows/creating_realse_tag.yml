@@ -14,10 +14,28 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+      - name: Set env
+        run: echo "RELEASE_VERSION=${{ github.head_ref || github.ref_name }}" >> $GITHUB_ENV
+      - name: install pkg
+        run: npm install -g pkg@latest
+      - name: package
+        run: pkg --targets node16-linux-x64,node16-macos-x64,node16-win-x64 .
+      - name: Rename binaries
+        run: |
+          mv cli-linux qyrus-cli-linux
+          mv cli-macos qyrus-cli-macos
+          mv cli-win.exe qyrus-cli-win.exe
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.head_ref || github.ref_name }} 
-          name: ${{ github.head_ref || github.ref_name }} 
-          prerelease: false 
+          tag_name: ${{ env.RELEASE_VERSION }} 
+          name: ${{ env.RELEASE_VERSION }} 
+          prerelease: false
+          files: |
+            qyrus-cli-linux
+            qyrus-cli-macos
+            qyrus-cli-win.exe
