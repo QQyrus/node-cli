@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: '16'
       - name: Set Release Version
-        run: echo "RELEASE_VERSION=v6.20.0" >> $GITHUB_ENV"
+        run: echo "RELEASE_VERSION=v6.20.0" >> $GITHUB_ENV
       - name: install pkg
         run: npm install -g pkg@latest
       - name: package
