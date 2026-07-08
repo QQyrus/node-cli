@@ -1,17 +1,14 @@
 on:
   pull_request:
     branches:
-      - master
-    types:
-      - closed
-
-  workflow_dispatch:
+      - 'master'
+    types: [closed]
 
 name: Create Release tag
 
 jobs:
   build:
-    if: github.event.pull_request.merged == false
+    if: github.event.pull_request.merged == true
     name: Create Release
     runs-on: ubuntu-latest
     steps:
@@ -20,8 +17,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '16'
-      - name: Set Release Version
-        run: echo "RELEASE_VERSION=v6.20.0" >> $GITHUB_ENV
+      - name: Set env
+        run: echo "RELEASE_VERSION=${{ github.head_ref || github.ref_name }}" >> $GITHUB_ENV
       - name: install pkg
         run: npm install -g pkg@latest
       - name: package
