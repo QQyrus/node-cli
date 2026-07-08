@@ -11,7 +11,7 @@ name: Create Release tag
 
 jobs:
   build:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == false
     name: Create Release
     runs-on: ubuntu-latest
     steps:
