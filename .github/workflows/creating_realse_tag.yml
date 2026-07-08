@@ -1,8 +1,11 @@
 on:
   pull_request:
     branches:
-      - 'master'
-    types: [closed]
+      - master
+    types:
+      - closed
+
+  workflow_dispatch:
 
 name: Create Release tag
 
