@@ -74,7 +74,7 @@ function apiHeaders(apiKey, teamId, extra = {}) {
 /* ---------------- CORE TRIGGER -------------------- */
 /* -------------------------------------------------- */
 
-async function trigger(executionType, apiKey, teamName, workspaceName, suiteName, scriptName, envName, threadCount, latencyThreshold, virtualUserWalletType) {
+async function trigger(executionType, apiKey, teamName, projectName, suiteName, scriptName, envName, threadCount, latencyThreshold, virtualUserWalletType) {
     try {
         const type = (executionType || 'functional').toUpperCase();
         if (!['FUNCTIONAL', 'PERFORMANCE'].includes(type)) {
@@ -98,8 +98,8 @@ async function trigger(executionType, apiKey, teamName, workspaceName, suiteName
         const teamId = await getTeamId(gatewayUrl, apiKey, teamName);
         console.log('\x1b[36m%s\x1b[0m', `Resolved team: "${teamName}"`);
 
-        const projectId = await getProjectId(gatewayUrl, apiKey, teamId, workspaceName);
-        console.log('\x1b[36m%s\x1b[0m', `Resolved workspace: "${workspaceName}"`);
+        const projectId = await getProjectId(gatewayUrl, apiKey, teamId, projectName);
+        console.log('\x1b[36m%s\x1b[0m', `Resolved project: "${projectName}"`);
 
         const suiteId = await getSuiteId(gatewayUrl, apiKey, teamId, projectId, suiteName);
         console.log('\x1b[36m%s\x1b[0m', `Located suite: "${suiteName}"`);
@@ -350,19 +350,19 @@ async function getTeamId(gatewayUrl, apiKey, teamName) {
     return team.uuid.trim();
 }
 
-async function getProjectId(gatewayUrl, apiKey, teamId, workspaceName) {
+async function getProjectId(gatewayUrl, apiKey, teamId, projectNameArg) {
     const response = await httpRequest(gatewayUrl, {
         path: `${baseContext}/api/projects?teamId=${teamId}&page=0&size=15&sortBy=modifiedDate&sortOrder=DESC&searchTerm=`,
         method: 'GET',
         headers: apiHeaders(apiKey, teamId)
     });
 
-    if (response.statusCode !== 200) throw new Error(`Failed to fetch projects — HTTP ${response.statusCode}`);
+    if (response.statusCode !== 200) throw new Error(`Failed to fetch projects - HTTP ${response.statusCode}`);
 
     const data = JSON.parse(response.body.toString());
     const projects = Array.isArray(data) ? data : (data.content || []);
-    const project = projects.find(p => (p.name || p.projectName)?.toLowerCase() === workspaceName.toLowerCase());
-    if (!project) throw new Error(`Workspace not found: "${workspaceName}"`);
+    const project = projects.find(p => (p.name || p.projectName)?.toLowerCase() === projectNameArg.toLowerCase());
+    if (!project) throw new Error(`Project not found: "${projectNameArg}"`);
     return (project.id || project.uuid).trim();
 }
 
