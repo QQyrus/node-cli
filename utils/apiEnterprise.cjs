@@ -257,8 +257,8 @@ async function showReport(gatewayUrl, apiKey, teamId, run) {
     if (htmlReportUrl) {
         const signedUrl = await getReportUrl(gatewayUrl, apiKey, teamId, htmlReportUrl);
         if (signedUrl) {
-            console.log(`\nReport: ${signedUrl}\n`);
-            console.log('(Click the link to open in browser)\n');
+            process.stdout.write(`\nReport: \x1b]8;;${signedUrl}\x1b\\View Report\x1b]8;;\x1b\\\n`);
+            console.log('(Ctrl+Click to open in browser)\n');
         }
     } else {
         console.log('\x1b[33m%s\x1b[0m', 'HTML report could not be retrieved.');
