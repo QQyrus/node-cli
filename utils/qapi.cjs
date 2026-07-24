@@ -92,29 +92,31 @@ async function trigger(executionType, apiKey, workspaceName, suiteName, scriptNa
 
         const validation = await validateSaltToken(apiKey, gatewayUrl);
         if (!validation.success) throw new Error(validation.message);
-        console.log('\x1b[36m%s\x1b[0m', `✔ Token validated — User: ${validation.login}`);
+        console.log('\x1b[36m%s\x1b[0m', `Token validated — User: ${validation.login}`);
 
         const userEmail = validation.login;
 
-        const teamId = await getTeamId(gatewayUrl, apiKey);
-        console.log('\x1b[36m%s\x1b[0m', `✔ Resolved team → ${teamId}`);
+        const team = await getTeamInfo(gatewayUrl, apiKey);
+        const teamId = team.uuid.trim();
+        const teamName = team.name || team.teamName || teamId;
+        console.log('\x1b[36m%s\x1b[0m', `Resolved team: "${teamName}"`);
 
         const projectId = await getProjectId(gatewayUrl, apiKey, teamId, workspaceName);
-        console.log('\x1b[36m%s\x1b[0m', `✔ Resolved workspace: "${workspaceName}" → ${projectId}`);
+        console.log('\x1b[36m%s\x1b[0m', `Resolved workspace: "${workspaceName}"`);
 
         const suiteId = await getSuiteId(gatewayUrl, apiKey, teamId, projectId, suiteName);
-        console.log('\x1b[36m%s\x1b[0m', `✔ Located suite: "${suiteName}" → ${suiteId}`);
+        console.log('\x1b[36m%s\x1b[0m', `Located suite: "${suiteName}"`);
 
         let scriptId = null;
         if (scriptName && scriptName.trim() !== '') {
             scriptId = await getScriptId(gatewayUrl, apiKey, teamId, projectId, suiteId, scriptName);
-            console.log('\x1b[36m%s\x1b[0m', `✔ Located script: "${scriptName}" → ${scriptId}`);
+            console.log('\x1b[36m%s\x1b[0m', `Located script: "${scriptName}"`);
         }
 
         const envId = await getEnvironmentId(gatewayUrl, apiKey, teamId, projectId, envName);
 
         const runId = await executeTest(gatewayUrl, apiKey, teamId, projectId, suiteId, scriptId, envId, userEmail, type, threadCount, latencyThreshold, walletType);
-        console.log('\x1b[32m%s\x1b[0m', `✔ Execution dispatched — Run ID: ${runId}`);
+        console.log('\x1b[32m%s\x1b[0m', `Execution dispatched — Run ID: ${runId}`);
 
         await pollExecutionStatus(gatewayUrl, apiKey, teamId, runId);
 
@@ -158,12 +160,26 @@ async function executeTest(gatewayUrl, apiKey, teamId, projectId, suiteId, scrip
         })
     }, payload);
 
-    if (![200, 202].includes(response.statusCode)) {
+    if (![200, 202, 422].includes(response.statusCode)) {
         throw new Error(`Execution trigger failed — HTTP ${response.statusCode}: ${response.body.toString()}`);
     }
 
     const data = JSON.parse(response.body.toString());
-    const run = Array.isArray(data) ? data[0] : data;
+    let run;
+
+    if (data && data.initiated && Array.isArray(data.initiated) && data.initiated.length > 0) {
+        run = data.initiated[0];
+        if (data.failed && Array.isArray(data.failed) && data.failed.length > 0) {
+            const reasons = data.failed.map(f => f.reason || 'Unknown reason').join(', ');
+            console.warn('\x1b[33m%s\x1b[0m', `Warning: Some items failed to initiate: ${reasons}`);
+        }
+    } else if (data && data.failed && Array.isArray(data.failed) && data.failed.length > 0) {
+        const reasons = data.failed.map(f => f.reason || 'Unknown reason').join(', ');
+        throw new Error(`Execution trigger failed: ${reasons}`);
+    } else {
+        run = Array.isArray(data) ? data[0] : data;
+    }
+
     if (!run?.id) throw new Error('Run ID absent in execution response.');
     return run.id.toString();
 }
@@ -333,7 +349,7 @@ async function validateSaltToken(apiKey, gatewayUrl) {
     return { success: true, login: data.login || null };
 }
 
-async function getTeamId(gatewayUrl, apiKey) {
+async function getTeamInfo(gatewayUrl, apiKey) {
     const response = await httpRequest(gatewayUrl, {
         path: '/um-noauth/v1/api/team-list',
         method: 'GET',
@@ -347,7 +363,7 @@ async function getTeamId(gatewayUrl, apiKey) {
 
     const teams = JSON.parse(response.body.toString());
     if (!teams?.length) throw new Error('No teams found for this API key.');
-    return teams[0].uuid.trim();
+    return teams[0];
 }
 
 async function getProjectId(gatewayUrl, apiKey, teamId, workspaceName) {
@@ -428,7 +444,7 @@ async function getEnvironmentId(gatewayUrl, apiKey, teamId, projectId, envName) 
 
     if (!selectedEnv) throw new Error('No environment available for this project.');
 
-    console.log('\x1b[36m%s\x1b[0m', `✔ Environment: "${selectedEnv.name}" → ${selectedEnv.id}`);
+    console.log('\x1b[36m%s\x1b[0m', `Environment: "${selectedEnv.name}"`);
     return selectedEnv.id.trim();
 }
 

@@ -157,12 +157,26 @@ async function executeTest(gatewayUrl, apiKey, teamId, projectId, suiteId, scrip
         })
     }, payload);
 
-    if (![200, 202].includes(response.statusCode)) {
+    if (![200, 202, 422].includes(response.statusCode)) {
         throw new Error(`Execution trigger failed â€” HTTP ${response.statusCode}: ${response.body.toString()}`);
     }
 
     const data = JSON.parse(response.body.toString());
-    const run = Array.isArray(data) ? data[0] : data;
+    let run;
+
+    if (data && data.initiated && Array.isArray(data.initiated) && data.initiated.length > 0) {
+        run = data.initiated[0];
+        if (data.failed && Array.isArray(data.failed) && data.failed.length > 0) {
+            const reasons = data.failed.map(f => f.reason || 'Unknown reason').join(', ');
+            console.warn('\x1b[33m%s\x1b[0m', `Warning: Some items failed to initiate: ${reasons}`);
+        }
+    } else if (data && data.failed && Array.isArray(data.failed) && data.failed.length > 0) {
+        const reasons = data.failed.map(f => f.reason || 'Unknown reason').join(', ');
+        throw new Error(`Execution trigger failed: ${reasons}`);
+    } else {
+        run = Array.isArray(data) ? data[0] : data;
+    }
+
     if (!run?.id) throw new Error('Run ID absent in execution response.');
     return run.id.toString();
 }
