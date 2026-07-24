@@ -98,8 +98,6 @@ async function trigger(executionType, apiKey, workspaceName, suiteName, scriptNa
 
         const team = await getTeamInfo(gatewayUrl, apiKey);
         const teamId = team.uuid.trim();
-        const teamName = team.name || team.teamName || teamId;
-        console.log('\x1b[36m%s\x1b[0m', `Resolved team: "${teamName}"`);
 
         const projectId = await getProjectId(gatewayUrl, apiKey, teamId, workspaceName);
         console.log('\x1b[36m%s\x1b[0m', `Resolved workspace: "${workspaceName}"`);
