@@ -13,7 +13,7 @@ const GATEWAY_URLS = {
     prod: 'https://gateway.qyrus.com'
 };
 
-const baseContext = '/api-marketplace-qapi-noauth/v1';
+const baseContext = '/api-marketplace-noauth/v1';
 const POLL_INTERVAL = 30000;
 
 /* -------------------------------------------------- */
@@ -32,8 +32,7 @@ function getEnvName(apiKey) {
     if (!apiKey || typeof apiKey !== 'string') return null;
     const parts = apiKey.split('_');
     if (parts.length < 3) return null;
-    // parts[1] = "stg-qapi" → strip "-qapi" to get "stg"
-    return parts[1].replace(/-qapi$/i, '');
+    return parts[1];
 }
 
 /* -------------------------------------------------- */
@@ -75,7 +74,7 @@ function apiHeaders(apiKey, teamId, extra = {}) {
 /* ---------------- CORE TRIGGER -------------------- */
 /* -------------------------------------------------- */
 
-async function trigger(executionType, apiKey, workspaceName, suiteName, scriptName, envName, threadCount, latencyThreshold, virtualUserWalletType) {
+async function trigger(executionType, apiKey, teamName, projectName, suiteName, scriptName, envName, threadCount, latencyThreshold, virtualUserWalletType) {
     try {
         const type = (executionType || 'functional').toUpperCase();
         if (!['FUNCTIONAL', 'PERFORMANCE'].includes(type)) {
@@ -92,15 +91,15 @@ async function trigger(executionType, apiKey, workspaceName, suiteName, scriptNa
 
         const validation = await validateSaltToken(apiKey, gatewayUrl);
         if (!validation.success) throw new Error(validation.message);
-        console.log('\x1b[36m%s\x1b[0m', `Token validated — User: ${validation.login}`);
+        console.log('\x1b[36m%s\x1b[0m', `Token validated - User: ${validation.login}`);
 
         const userEmail = validation.login;
 
-        const team = await getTeamInfo(gatewayUrl, apiKey);
-        const teamId = team.uuid.trim();
+        const teamId = await getTeamId(gatewayUrl, apiKey, teamName);
+        console.log('\x1b[36m%s\x1b[0m', `Resolved team: "${teamName}"`);
 
-        const projectId = await getProjectId(gatewayUrl, apiKey, teamId, workspaceName);
-        console.log('\x1b[36m%s\x1b[0m', `Resolved workspace: "${workspaceName}"`);
+        const projectId = await getProjectId(gatewayUrl, apiKey, teamId, projectName);
+        console.log('\x1b[36m%s\x1b[0m', `Resolved project: "${projectName}"`);
 
         const suiteId = await getSuiteId(gatewayUrl, apiKey, teamId, projectId, suiteName);
         console.log('\x1b[36m%s\x1b[0m', `Located suite: "${suiteName}"`);
@@ -114,12 +113,12 @@ async function trigger(executionType, apiKey, workspaceName, suiteName, scriptNa
         const envId = await getEnvironmentId(gatewayUrl, apiKey, teamId, projectId, envName);
 
         const runId = await executeTest(gatewayUrl, apiKey, teamId, projectId, suiteId, scriptId, envId, userEmail, type, threadCount, latencyThreshold, walletType);
-        console.log('\x1b[32m%s\x1b[0m', `Execution dispatched — Run ID: ${runId}`);
+        console.log('\x1b[32m%s\x1b[0m', `Execution dispatched - Run ID: ${runId}`);
 
         await pollExecutionStatus(gatewayUrl, apiKey, teamId, runId);
 
     } catch (error) {
-        console.error('\x1b[31m%s\x1b[0m', `✖ ${error.message}`);
+        console.error('\x1b[31m%s\x1b[0m', `Error: ${error.message}`);
         process.exit(1);
     }
 }
@@ -159,7 +158,7 @@ async function executeTest(gatewayUrl, apiKey, teamId, projectId, suiteId, scrip
     }, payload);
 
     if (![200, 202, 422].includes(response.statusCode)) {
-        throw new Error(`Execution trigger failed — HTTP ${response.statusCode}: ${response.body.toString()}`);
+        throw new Error(`Execution trigger failed â€” HTTP ${response.statusCode}: ${response.body.toString()}`);
     }
 
     const data = JSON.parse(response.body.toString());
@@ -245,7 +244,7 @@ async function pollExecutionStatus(gatewayUrl, apiKey, teamId, runId) {
         }
 
         if (TERMINAL_FAILURE_STATUSES.has(status)) {
-            console.error('\x1b[31m%s\x1b[0m', `✖ Run terminated with status: ${status}`);
+            console.error('\x1b[31m%s\x1b[0m', `Run terminated with status: ${status}`);
             process.exit(1);
         }
     }
@@ -321,7 +320,7 @@ async function getReportUrl(gatewayUrl, apiKey, teamId, resourcePath) {
     });
 
     if (response.statusCode !== 200) {
-        console.log('\x1b[33m%s\x1b[0m', `Could not fetch report URL — HTTP ${response.statusCode}`);
+        console.log('\x1b[33m%s\x1b[0m', `Could not fetch report URL - HTTP ${response.statusCode}`);
         return null;
     }
 
@@ -340,16 +339,16 @@ async function validateSaltToken(apiKey, gatewayUrl) {
     });
 
     if (response.statusCode !== 200) {
-        return { success: false, message: `Token validation failed — HTTP ${response.statusCode}: ${response.body.toString()}` };
+        return { success: false, message: `Token validation failed - HTTP ${response.statusCode}: ${response.body.toString()}` };
     }
 
     const data = JSON.parse(response.body.toString());
     return { success: true, login: data.login || null };
 }
 
-async function getTeamInfo(gatewayUrl, apiKey) {
+async function getTeamId(gatewayUrl, apiKey, teamName) {
     const response = await httpRequest(gatewayUrl, {
-        path: '/um-noauth/v1/api/team-list',
+        path: '/um-noauth/v1/api/teams-by-user-and-role',
         method: 'GET',
         headers: {
             'x-api-key': apiKey,
@@ -360,31 +359,25 @@ async function getTeamInfo(gatewayUrl, apiKey) {
     if (response.statusCode !== 200) throw new Error(`Failed to fetch team list — HTTP ${response.statusCode}`);
 
     const teams = JSON.parse(response.body.toString());
-    if (!teams?.length) throw new Error('No teams found for this API key.');
-    return teams[0];
+    const team = teams.find(t => t.teamName?.toLowerCase() === teamName.toLowerCase());
+    if (!team) throw new Error(`Team not found: "${teamName}"`);
+    return team.uuid.trim();
 }
 
-async function getProjectId(gatewayUrl, apiKey, teamId, workspaceName) {
-    const payload = JSON.stringify({
-        type: null, projectName: null, page: 0, size: 0,
-        normalUserId: null, collaborators: null
+async function getProjectId(gatewayUrl, apiKey, teamId, projectNameArg) {
+    const response = await httpRequest(gatewayUrl, {
+        path: `${baseContext}/api/projects?teamId=${teamId}&page=0&size=15&sortBy=modifiedDate&sortOrder=DESC&searchTerm=`,
+        method: 'GET',
+        headers: apiHeaders(apiKey, teamId)
     });
 
-    const response = await httpRequest(gatewayUrl, {
-        path: `${baseContext}/api/project-details`,
-        method: 'POST',
-        headers: apiHeaders(apiKey, teamId, {
-            'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(payload)
-        })
-    }, payload);
+    if (response.statusCode !== 200) throw new Error(`Failed to fetch projects - HTTP ${response.statusCode}`);
 
-    if (response.statusCode !== 200) throw new Error(`Failed to fetch projects — HTTP ${response.statusCode}`);
-
-    const projects = JSON.parse(response.body.toString());
-    const project = projects.find(p => p.name?.toLowerCase() === workspaceName.toLowerCase());
-    if (!project) throw new Error(`Workspace not found: "${workspaceName}"`);
-    return project.id.trim();
+    const data = JSON.parse(response.body.toString());
+    const projects = Array.isArray(data) ? data : (data.content || []);
+    const project = projects.find(p => (p.name || p.projectName)?.toLowerCase() === projectNameArg.toLowerCase());
+    if (!project) throw new Error(`Project not found: "${projectNameArg}"`);
+    return (project.id || project.uuid).trim();
 }
 
 async function getSuiteId(gatewayUrl, apiKey, teamId, projectId, suiteName) {
@@ -394,7 +387,7 @@ async function getSuiteId(gatewayUrl, apiKey, teamId, projectId, suiteName) {
         headers: apiHeaders(apiKey, teamId)
     });
 
-    if (response.statusCode !== 200) throw new Error(`Failed to fetch suites — HTTP ${response.statusCode}`);
+    if (response.statusCode !== 200) throw new Error(`Failed to fetch suites - HTTP ${response.statusCode}`);
 
     const data = JSON.parse(response.body.toString());
     const suite = (data.content || []).find(s => s.name?.toLowerCase() === suiteName.toLowerCase());
@@ -409,7 +402,7 @@ async function getScriptId(gatewayUrl, apiKey, teamId, projectId, suiteId, scrip
         headers: apiHeaders(apiKey, teamId)
     });
 
-    if (response.statusCode !== 200) throw new Error(`Failed to fetch scripts — HTTP ${response.statusCode}`);
+    if (response.statusCode !== 200) throw new Error(`Failed to fetch scripts - HTTP ${response.statusCode}`);
 
     const data = JSON.parse(response.body.toString());
     const scripts = Array.isArray(data) ? data : (data.content || []);
@@ -425,7 +418,7 @@ async function getEnvironmentId(gatewayUrl, apiKey, teamId, projectId, envName) 
         headers: apiHeaders(apiKey, teamId)
     });
 
-    if (response.statusCode !== 200) throw new Error(`Failed to fetch environments — HTTP ${response.statusCode}`);
+    if (response.statusCode !== 200) throw new Error(`Failed to fetch environments - HTTP ${response.statusCode}`);
 
     const envs = JSON.parse(response.body.toString());
 
