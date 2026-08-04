@@ -108,7 +108,7 @@ program.command('apiEnterprise')
   .requiredOption('--executionType <string>', 'Execution type: "functional" or "performance"')
   .requiredOption('--apiKey <string>', 'API key')
   .requiredOption('--teamName <string>', 'Team name')
-  .requiredOption('--workspaceName <string>', 'Workspace (project) name')
+  .requiredOption('--projectName <string>', 'Project name')
   .requiredOption('--suiteName <string>', 'Test suite name')
   .option('--scriptName <string>', '(optional) Script name for script-level execution')
   .option('--envName <string>', '(optional) Environment variable set name')
@@ -120,7 +120,7 @@ program.command('apiEnterprise')
       options.executionType,
       options.apiKey,
       options.teamName,
-      options.workspaceName,
+      options.projectName,
       options.suiteName,
       options.scriptName,
       options.envName,
