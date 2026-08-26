@@ -1,71 +1,40 @@
-var request = require('request');
-const fs = require('fs');
+'use strict';
 
-const trigger = function(gatewayUrl, qyrus_team_name, qyrus_project_name, execCmd, configurationFilePath) {
-    console.log("Fetching the app names in progress...");
-    let inputData = {
-        URL: gatewayUrl,
-        teamName: qyrus_team_name,
-        projectName: qyrus_project_name,
-    }
-    if(configurationFilePath != null)
-        inputData = readInputDataFromFile(inputData, configurationFilePath);
-    validateInputData(inputData);
-    if ( execCmd === 'mobility' ) {
-        var contextPath = '/cli-adapter-mobility/v1';
-    }
-    var options = {
-        'method': 'GET',
-        'url': inputData.URL+contextPath+'/getapk?teamName='+inputData.teamName+'&projectName='+inputData.projectName,
-        'rejectUnauthorized': false
-    };
-    request(options, function (error, response) {
-        if (response.statusCode !=200) {
-            console.log('Failed to fetch app details! Try again.');
-            process.exitCode = 1;
-            throw new Error(error);
-        }
-        console.log(response.body);
-        process.exitCode = 0;
-    });
-}
+const gateway = require('./mobilityGateway.cjs');
 
-function readInputDataFromFile(inputData, configurationFilePath) {
-    let configurationFileData;
-    let fileData = fs.readFileSync(configurationFilePath, (err, file) => {
-        if (err) {
-            console.error("There was an error while trying to read your file.  Check your file and filepath.");
-            process.exit(1);
-        }
-        return file;
-    })
+const trigger = async function(apiKey, qyrus_team_name, qyrus_project_name, configurationFilePath) {
     try {
-        configurationFileData = JSON.parse(fileData);
+        console.log("Fetching the app names in progress...");
+
+        const inputData = resolveInputData(apiKey, qyrus_team_name, qyrus_project_name, configurationFilePath);
+        const gatewayUrl = gateway.deriveGatewayUrlFromApiKey(inputData.apiKey);
+
+        await gateway.validateApiKey(gatewayUrl, inputData.apiKey);
+        const { teamId, projectId } = await gateway.resolveProjectContext(
+            gatewayUrl, inputData.apiKey, inputData.teamName, inputData.projectName);
+
+        const apps = await gateway.listApps(gatewayUrl, inputData.apiKey, teamId, projectId);
+        console.log(JSON.stringify(apps.map((app) => ({ apkName: app.apkName }))));
+        process.exitCode = 0;
+    } catch (error) {
+        console.error('\x1b[31m%s\x1b[0m', `Failed to fetch app details! ${error.message}`);
+        process.exitCode = 1;
     }
-    catch (error) {
-        console.error("Could not parse your JSON file.  Check your configuration.");
-        process.exit(1);
-    }
-    inputData = setInputDataFromConfigurationFile(inputData, configurationFileData);
-    return inputData;
 }
 
-function setInputDataFromConfigurationFile(inputData, configurationFileData) {
-    if (inputData.URL == null)
-        inputData.URL = configurationFileData.configuration.endpoint;
-    if (inputData.teamName == null)
-        inputData.teamName = configurationFileData.projectInfo.teamName;
-    if (inputData.projectName == null)
-        inputData.projectName = configurationFileData.projectInfo.projectName;
-    return inputData;
-}
+function resolveInputData(apiKey, teamName, projectName, configurationFilePath) {
+    const config = configurationFilePath != null ? gateway.readConfigFile(configurationFilePath) : null;
 
-function validateInputData(inputData) {
-    const invalidConfigurationInfo = invalidValue(inputData.URL) || invalidValue(inputData.teamName) || invalidValue(inputData.projectName);
-    if (invalidConfigurationInfo) {
-        console.error('ERROR : Invalid input data');
-        process.exit(1);
+    const inputData = {
+        apiKey: gateway.resolveOption(apiKey, config?.configuration?.apiKey),
+        teamName: gateway.resolveOption(teamName, config?.projectInfo?.teamName),
+        projectName: gateway.resolveOption(projectName, config?.projectInfo?.projectName)
+    };
+
+    if (invalidValue(inputData.apiKey) || invalidValue(inputData.teamName) || invalidValue(inputData.projectName)) {
+        throw new Error('Invalid input data. Check your apiKey, teamName and projectName.');
     }
+    return inputData;
 }
 
 function invalidValue(data) {

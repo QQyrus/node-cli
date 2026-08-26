@@ -163,26 +163,38 @@ Usage: qyrus-cli mobility [options]
 helps you trigger mobility tests on the platform
 
 Options:
-  --endPoint <string>        Qyrus endpoint provided by Qyrus admin
-  -u, --username <string>    Qyrus admin provided email
-  -p, --passcode <string>    Qyrus admin provided passcode in base64 format
-  --teamName <string>        Team name you can find by logging into Qyrus app.
-  --projectName <string>     Project name you can find by logging into Qyrus app.
-  --suiteName <string>       Test suite name you can find by logging into Qyrus app.
-  --appName <string>         Enter android/iOS app name
-  --appActivity <string>     Enter android app activity which will be in the form of
-                             com.example.splash_screen
-  --devicePoolName <string>  Specify your device pool name which you created on Qyrus, a device pool will
-                             have list of devices added and a test run will happen on a device from the
-                             pool.
-  --enableDebug <string>     Prints additional debug information if this option is enabled. ex: yes/no
-  --bundleId <string>        Enter iOS app bundleId which will be in the form of com.example.splash_screen
-                             (Optional, during android runs)
-  --emailId <string>         (Optional) email id to which the reports need to be sent post execution
-  --envName <string>         environment name to run the tests with. (Optional if its Global)
-  --firstAvailableDevice <string> use first available device. ex: yes/no
-  --file <string>            (Optional) File path to read configuration to run command
-  -h, --help                 display help for command
+  -p, --apiKey <string>            Qyrus admin provided apiKey
+  --teamName <string>              Team name you can find by logging into Qyrus
+                                   app.
+  --projectName <string>           Project name you can find by logging into
+                                   Qyrus app.
+  --suiteName <string>             Test suite name you can find by logging into
+                                   Qyrus app.
+  --appName <string>               (Optional) Enter android/iOS app name
+  --appActivity <string>           (Optional - if bundleId is passed) Enter
+                                   android app activity which will be in the
+                                   form of com.example.splash_screen
+  --appPackage <string>            (Optional - if bundleId is passed) Enter
+                                   android app package which will be in the
+                                   form of com.android.chrome (Optional, To run
+                                   tests on preinstalled apps)
+  --devicePoolName <string>        Specify your device pool name which you
+                                   created on Qyrus, a device pool will have
+                                   list of devices added and a test run will
+                                   happen on a device from the pool.
+  --enableDebug <string>           Prints additional debug information if this
+                                   option is enabled. ex: yes/no
+  --bundleId <string>              Enter iOS app bundleId which will be in the
+                                   form of com.example.splash_screen (Optional,
+                                   during android runs)
+  --emailId <string>               (optional) accepted for backward
+                                   compatibility; reports are not emailed
+  --envName <string>               environment name to run the tests with.
+                                   (Optional if its Global)
+  --firstAvailableDevice <string>  use first available device. ex: yes/no
+  --file <string>                  (Optional) File path to read configuration
+                                   to run command
+  -h, --help                       display help for command
 ```
 
 ```shell
@@ -192,16 +204,18 @@ Usage: qyrus-cli update-mobility-variables [options]
 helps you update global variables on mobility service
 
 Options:
-  --endPoint <string>       Qyrus endpoint provided by Qyrus admin
-  -u, --username <string>   Qyrus admin provided email
-  -p, --passcode <string>   Qyrus admin provided passcode in base64 format
+  -p, --apiKey <string>     Qyrus admin provided apiKey
   --teamName <string>       Team name you can find by logging into Qyrus app.
-  --projectName <string>    Project name you can find by logging into Qyrus app.
+  --projectName <string>    Project name you can find by logging into Qyrus
+                            app.
   --variableName <string>   Existing variable name eg: Demo
-  --variableType <string>   Existing variable type eg: Custom, BaseURL, Password.
+  --variableType <string>   Existing variable type eg: Custom, BaseURL,
+                            Password.
   --variableValue <string>  Value to update the existing variable.
-  --envName <string>        environment name to which the value needs to be updated. (Optional if its Global)
-  --file <string>           (Optional) File path to read configuration to run command
+  --envName <string>        environment name to which the value needs to be
+                            updated. (Optional if its Global)
+  --file <string>           (Optional) File path to read configuration to run
+                            command
   -h, --help                display help for command
 ```
 
@@ -212,14 +226,13 @@ Usage: qyrus-cli upload-app-mobility [options]
 helps you upload apps iOS/android to mobility service
 
 Options:
-  --endPoint <string>      Qyrus endpoint provided by Qyrus admin
-  -u, --username <string>  Qyrus admin provided email
-  -p, --passcode <string>  Qyrus admin provided passcode in base64 format
-  --teamName <string>      Team name you can find by logging into Qyrus app.
-  --projectName <string>   Project name you can find by logging into Qyrus app.
-  --appPath <string>'      Path to app to be uploaded
-  --file <string>          (Optional) File path to read configuration to run command
-  -h, --help               display help for command
+  -p, --apiKey <string>   Qyrus admin provided apiKey
+  --teamName <string>     Team name you can find by logging into Qyrus app.
+  --projectName <string>  Project name you can find by logging into Qyrus app.
+  --appPath <string>      Path to app to be uploaded
+  --file <string>         (Optional) File path to read configuration to run
+                          command
+  -h, --help              display help for command
 ```
 
 ```shell
@@ -229,14 +242,13 @@ Usage: qyrus-cli delete-app-mobility [options]
 helps you delete apps iOS/android to mobility service
 
 Options:
-  --endPoint <string>      Qyrus endpoint provided by Qyrus admin
-  -u, --username <string>  Qyrus admin provided email
-  -p, --passcode <string>  Qyrus admin provided passcode in base64 format
-  --teamName <string>      Team name you can find by logging into Qyrus app.
-  --projectName <string>   Project name you can find by logging into Qyrus app.
-  --appName <string>'      Existing app name eg: Demo.apk/Demo.ipa
-  --file <string>          (Optional) File path to read configuration to run command
-  -h, --help               display help for command
+  -p, --apiKey <string>   Qyrus admin provided apiKey
+  --teamName <string>     Team name you can find by logging into Qyrus app.
+  --projectName <string>  Project name you can find by logging into Qyrus app.
+  --appName <string>      Existing app name eg: Demo.apk/Demo.ipa
+  --file <string>         (Optional) File path to read configuration to run
+                          command
+  -h, --help              display help for command
 ```
 
 ```shell
@@ -246,13 +258,12 @@ Usage: qyrus-cli get-apk-count-mobility [options]
 helps you to get app count for iOS/android to mobility service
 
 Options:
-  --endPoint <string>      Qyrus endpoint provided by Qyrus admin
-  -u, --username <string>  Qyrus admin provided email
-  -p, --passcode <string>  Qyrus admin provided passcode in base64 format
-  --teamName <string>      Team name you can find by logging into Qyrus app.
-  --projectName <string>   Project name you can find by logging into Qyrus app.
-  --file <string>          (Optional) File path to read configuration to run command
-  -h, --help               display help for command
+  -p, --apiKey <string>   Qyrus admin provided apiKey
+  --teamName <string>     Team name you can find by logging into Qyrus app.
+  --projectName <string>  Project name you can find by logging into Qyrus app.
+  --file <string>         (Optional) File path to read configuration to run
+                          command
+  -h, --help              display help for command
 ```
 
 ```shell
@@ -262,11 +273,12 @@ Usage: qyrus-cli get-apk-mobility [options]
 helps you to get uploaded apps from mobility service for iOS/Android project
 
 Options:
-  --endPoint <string>      Qyrus endpoint provided by Qyrus admin
-  --teamName <string>      Team name you can find by logging into Qyrus app.
-  --projectName <string>   Project name you can find by logging into Qyrus app.
-  --file <string>          (Optional) File path to read configuration to run command
-  -h, --help               display help for command
+  -p, --apiKey <string>   Qyrus admin provided apiKey
+  --teamName <string>     Team name you can find by logging into Qyrus app.
+  --projectName <string>  Project name you can find by logging into Qyrus app.
+  --file <string>         (Optional) File path to read configuration to run
+                          command
+  -h, --help              display help for command
 ```
 
 ```shell
@@ -276,15 +288,15 @@ Usage: qyrus-cli import-mobility-script-from-file [options]
 imports script using file data into mobility service
 
 Options:
-  --endPoint <string>      Qyrus endpoint provided by Qyrus admin
-  -u, --username <string>  Qyrus admin provided email
-  -p, --passcode <string>  Qyrus admin provided passcode in base64 format
-  --teamName <string>      Team name you can find by logging into Qyrus app.
-  --projectName <string>   Project name you can find by logging into Qyrus app.
-  --suiteName <string>     Test suite name you can find by logging into Qyrus app.
-  --scriptFile <string>    File path to import script data
-  --file <string>          (Optional) File path to read configuration to run command
-  -h, --help               display help for command
+  -p, --apiKey <string>   Qyrus admin provided apiKey
+  --teamName <string>     Team name you can find by logging into Qyrus app.
+  --projectName <string>  Project name you can find by logging into Qyrus app.
+  --suiteName <string>    Test suite name you can find by logging into Qyrus
+                          app.
+  --scriptFile <string>   File path to import script data
+  --file <string>         (Optional) File path to read configuration to run
+                          command
+  -h, --help              display help for command
 ```
 
 ```shell
@@ -294,15 +306,17 @@ Usage: qyrus-cli update-mobility-script-from-file [options]
 updates script steps using file data in mobility service
 
 Options:
-  --endPoint <string>      Qyrus endpoint provided by Qyrus admin
-  -u, --username <string>  Qyrus admin provided email
-  -p, --passcode <string>  Qyrus admin provided passcode in base64 format
-  --teamName <string>      Team name you can find by logging into Qyrus app.
-  --projectName <string>   Project name you can find by logging into Qyrus app.
-  --suiteName <string>     Test suite name you can find by logging into Qyrus app.
-  --scriptFile <string>    File path to update script data
-  --file <string>          (Optional) File path to read configuration to run command
-  -h, --help               display help for command
+  -p, --apiKey <string>   Qyrus admin provided apiKey
+  --teamName <string>     Team name you can find by logging into Qyrus app.
+  --projectName <string>  Project name you can find by logging into Qyrus app.
+  --suiteName <string>    Test suite name you can find by logging into Qyrus
+                          app.
+  --scriptName <string>   Test script name you can find by logging into Qyrus
+                          app.
+  --scriptFile <string>   File path to update script data
+  --file <string>         (Optional) File path to read configuration to run
+                          command
+  -h, --help              display help for command
 ```
 
 ```shell
@@ -432,6 +446,70 @@ Options:
 
 ```
 
+## Authentication
+
+Web, desktop, qapi, to and all mobility commands authenticate with an API key issued by
+your Qyrus admin, passed as `-p` / `--apiKey`. The key has the form
+`sk_<environment>_<uuid>`, and the CLI derives the gateway address from the environment
+segment, so no endpoint needs to be supplied.
+
+Component, rover and the apiFunctional/apiProcess/apiPerformance commands still use
+`--endPoint` with `--username` and a base64 `--passcode`.
+
+### Configuration file
+
+Any command that accepts `--file` can read its inputs from a JSON file instead of flags.
+Command line flags win over file values. The mobility commands expect the API key under
+`configuration`, plus the section matching the command:
+
+```json
+{
+  "configuration": {
+    "apiKey": "sk_staging_00000000-0000-0000-0000-000000000000"
+  },
+  "suiteInfo": {
+    "teamName": "CTC - STG Common Area",
+    "projectName": "TestAndroid",
+    "suiteName": "Demo"
+  },
+  "appInfo": {
+    "appName": "qyrus_training.apk",
+    "appActivity": "com.quinnox.qyrus_training.SplashScreen",
+    "appPackage": "",
+    "bundleId": "",
+    "appPath": "./qyrus_training.apk"
+  },
+  "executionInfo": {
+    "devicePoolName": "Samsung",
+    "envName": "Global",
+    "firstAvailableDevice": "no",
+    "enableDebug": "no"
+  },
+  "projectInfo": {
+    "teamName": "CTC - STG Common Area",
+    "projectName": "TestAndroid"
+  },
+  "variableInfo": {
+    "variableName": "URL",
+    "variableType": "BaseURL",
+    "variableValue": "https://qyrus.com",
+    "envName": ""
+  },
+  "scriptInfo": {
+    "teamName": "CTC - STG Common Area",
+    "projectName": "TestAndroid",
+    "suiteName": "Demo",
+    "scriptName": "Script-1",
+    "scriptFilePath": "./script.xlsx"
+  }
+}
+```
+
+Sections used per command: `mobility` reads `suiteInfo`, `appInfo` and `executionInfo`;
+`update-mobility-variables` reads `projectInfo` and `variableInfo`; `upload-app-mobility`
+and `delete-app-mobility` read `appInfo`; `get-apk-count-mobility` and `get-apk-mobility`
+read `projectInfo`; the script commands read `scriptInfo`.
+
 ## Samples
 ```shell
 //To trigger test web
@@ -450,16 +528,31 @@ Options:
 // ./index.cjs update-web-variables --apiKey "YOUR_API_KEY" --teamName "CTC - STG Common Area" --projectName Test --variableEnvName Test --variableName url --variableType Custom --variableValue PrajwalT
 
 //upload app mobility
-// ./index.cjs upload-app-mobility --endPoint http://localhost:8081 --username demo@domain.com --passcode ******** --teamName "CTC - STG Common Area" --projectName TestAndroid --appPath /Users/saiprasadt/Downloads/qyrus_training.apk
+// ./index.cjs upload-app-mobility --apiKey "YOUR_API_KEY" --teamName "CTC - STG Common Area" --projectName TestAndroid --appPath /Users/saiprasadt/Downloads/qyrus_training.apk
 
 //delete app mobility
-./index.cjs delete-app-mobility --endPoint http://localhost:8081 --username demo@domain.com --passcode ******** --teamName "Some Team" --projectName "Some Project" --appName qyrus_training.apk
+// ./index.cjs delete-app-mobility --apiKey "YOUR_API_KEY" --teamName "Some Team" --projectName "Some Project" --appName qyrus_training.apk
 
 //To update env variables mobility
-// ./index.cjs update-mobility-variables --endPoint http://localhost:8081 --username demo@domain.com --passcode ******** --teamName "CTC - STG Common Area" --projectName TestAndroid --variableName URL --variableType BaseURL --variableValue "https://qyrus.com"
+// ./index.cjs update-mobility-variables --apiKey "YOUR_API_KEY" --teamName "CTC - STG Common Area" --projectName TestAndroid --variableName URL --variableType BaseURL --variableValue "https://qyrus.com"
 
 // trigger test mobility
-// ./index.cjs mobility --endPoint http://localhost:8081 --username demo@domain.com --passcode ******** --teamName "CTC - STG Common Area" --projectName TestAndroid --suiteName Demo --appName qyrus_training.apk --appActivity "com.quinnox.qyrus_training.SplashScreen" --devicePoolName Samsung --enableDebug no --emailId someemail@test.com
+// ./index.cjs mobility --apiKey "YOUR_API_KEY" --teamName "CTC - STG Common Area" --projectName TestAndroid --suiteName Demo --appName qyrus_training.apk --appActivity "com.quinnox.qyrus_training.SplashScreen" --devicePoolName Samsung --enableDebug no
+
+// trigger test mobility on the first available device
+// ./index.cjs mobility --apiKey "YOUR_API_KEY" --teamName "CTC - STG Common Area" --projectName TestAndroid --suiteName Demo --appName qyrus_training.apk --appActivity "com.quinnox.qyrus_training.SplashScreen" --firstAvailableDevice yes
+
+// trigger test mobility against a preinstalled iOS app
+// ./index.cjs mobility --apiKey "YOUR_API_KEY" --teamName "CTC - STG Common Area" --projectName TestiOS --suiteName Demo --bundleId com.example.myapp --devicePoolName iPhones
+
+//import mobility script from file
+// ./index.cjs import-mobility-script-from-file --apiKey "YOUR_API_KEY" --teamName "CTC - STG Common Area" --projectName TestAndroid --suiteName Demo --scriptFile ./script.xlsx
+
+//update mobility script from file
+// ./index.cjs update-mobility-script-from-file --apiKey "YOUR_API_KEY" --teamName "CTC - STG Common Area" --projectName TestAndroid --suiteName Demo --scriptName "Script-1" --scriptFile ./script.xlsx
+
+//connectivity check
+// ./index.cjs conn-check --apiKey "YOUR_API_KEY"
 
 //To update env variables component
 // ./index.cjs update-component-variables --endPoint http://localhost:8087 --username demo@domain.com --passcode ******** --teamName "CTC - STG Common Area" --projectName CliTest --variableName URL --variableType BaseURL --variableValue "https://qyrus.com"
@@ -474,13 +567,13 @@ Options:
 // ./index.cjs get-apk-component --endPoint http://localhost:8087 --username "demo@domain.com" --teamName "example" --projectName "example"
 
 //To get Apk mobility
-// ./index.cjs get-apk-mobility --endPoint http://localhost:8081 --teamName "test" --projectName "test"
+// ./index.cjs get-apk-mobility --apiKey "YOUR_API_KEY" --teamName "test" --projectName "test"
 
 //To get App Count Component
 // ./index.cjs get-apk-count-component --endPoint http://localhost:8087 --username "demo@domain.com" --passcode "*******" --teamName "test" --projectName "test"
 
 //To get App Count Mobility
-// ./index.cjs get-apk-count-mobility --endPoint http://localhost:8081 --username "demo@domain.com" --passcode "******" --teamName "test" --projectName "Test"
+// ./index.cjs get-apk-count-mobility --apiKey "YOUR_API_KEY" --teamName "test" --projectName "Test"
 
 //trigger test Rover
 // ./index.cjs rover --endPoint http://localhost:8097 --username "demo@domain.com" --passcode "*********" --teamName "test" --projectName "test" --appName "test.apk" --deviceId "985b208e" --deviceName "Oneplus 9 5G" --dataListId " " --explorationName "Example apps222"
