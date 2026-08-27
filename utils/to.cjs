@@ -220,9 +220,23 @@ function checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUui
 
         res.on('end', () => {
             if (res.statusCode === 200) {
-                // Status comes as a plain string (e.g. "RUNNING", "PASS", "FAIL")
-                let executionStatus = body.trim().replace(/"/g, '');
-                // console.log('\x1b[36m%s\x1b[0m', "Folder Execution Status: " + executionStatus);
+                let executionStatus;
+                try {
+                    // FolderExecutionStatusDTO — use executionStatus (not businessStatus)
+                    const statusResponse = JSON.parse(body);
+                    executionStatus = statusResponse.executionStatus;
+                } catch (parseError) {
+                    // Backward-compatible fallback for legacy bare-enum responses
+                    executionStatus = body.trim().replace(/"/g, '');
+                }
+
+                if (!executionStatus) {
+                    console.log('\x1b[33m%s\x1b[0m', "Folder execution status unknown, checking again in 30 seconds...");
+                    setTimeout(function () {
+                        checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUuid, workFlowCount, 0);
+                    }, 30000);
+                    return;
+                }
 
                 // if execution status is "ERROR" make it "ERROR IN RUN"
                 if (executionStatus === 'ERROR') {
