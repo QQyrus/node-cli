@@ -1,287 +1,348 @@
-const fs = require('fs');
-const https = require('https')
-const http = require('http')
-const request = require('request')
-const path = require('path')
-const url = require('url')
-const { exec } = require("child_process");
+'use strict';
 
-let baseContext = '/cli-adapter-mobility/v1';
+const gateway = require('./mobilityGateway.cjs');
 
-const trigger = function(gatewayUrl, qyrus_username, qyrus_password, 
-    qyrus_team_name, qyrus_project_name, qyrus_suite_name, appName, 
-    app_activity, device_pool_name, enable_debug, bundle_id, emailId, appPackage, envName, firstAvailable, fromFile) 
-{    
-    if( firstAvailable != null && invalidValueForFirstAvailableDevice(firstAvailable) ) {
-        console.error('ERROR : Invalid value for first available device:', firstAvailable);
+/* -------------------------------------------------- */
+/* ---------------- CONSTANTS ----------------------- */
+/* -------------------------------------------------- */
+
+const STATUS_LABELS = {
+    EXECUTING: 'Test Queued',
+    P1: 'Allocating Device',
+    P2: 'Waiting for Device',
+    P3: 'Running',
+    UPLOADING_RESULTS: 'Uploading Results'
+};
+
+/* -------------------------------------------------- */
+/* ---------------- CORE TRIGGER -------------------- */
+/* -------------------------------------------------- */
+
+const trigger = async function(apiKey, qyrus_team_name, qyrus_project_name, qyrus_suite_name,
+    appName, app_activity, device_pool_name, enable_debug, bundle_id, emailId, appPackage,
+    envName, firstAvailable, fromFile)
+{
+    try {
+        if (firstAvailable != null && invalidValueForFirstAvailableDevice(firstAvailable)) {
+            console.error('ERROR : Invalid value for first available device:', firstAvailable);
+            process.exit(1);
+        }
+
+        const testObject = resolveTestObject({
+            apiKey,
+            teamName: qyrus_team_name,
+            projectName: qyrus_project_name,
+            testSuiteName: qyrus_suite_name,
+            appFileName: appName,
+            appActivity: app_activity,
+            appPackage,
+            bundleId: bundle_id,
+            devicePoolName: device_pool_name,
+            envName,
+            firstAvailable,
+            enableDebug: enable_debug
+        }, fromFile);
+
+        const gatewayUrl = gateway.deriveGatewayUrlFromApiKey(testObject.apiKey);
+        gateway.setDebug(testObject.enableDebug);
+        printDebugInformation(testObject, gatewayUrl);
+
+        console.log('\x1b[32m%s\x1b[0m', "Getting your environment ready, your test will start running soon.");
+
+        const { login } = await gateway.validateApiKey(gatewayUrl, testObject.apiKey);
+
+        const teamId = await gateway.getTeamUuid(gatewayUrl, testObject.apiKey, testObject.teamName);
+        const projectId = await gateway.getProjectUuid(gatewayUrl, testObject.apiKey, teamId, testObject.projectName);
+        const suiteId = await gateway.getSuiteUuid(gatewayUrl, testObject.apiKey, teamId, projectId, testObject.testSuiteName);
+        const environmentId = await gateway.getEnvironmentId(
+            gatewayUrl, testObject.apiKey, teamId, projectId, testObject.envName);
+
+        const devicePoolId = testObject.devicePoolName !== ''
+            ? await gateway.getDevicePoolUuid(gatewayUrl, testObject.apiKey, teamId, projectId, testObject.devicePoolName)
+            : null;
+
+        const deviceConfiguration = await resolveDevices(
+            gatewayUrl, testObject.apiKey, teamId, devicePoolId, deviceTypeFor(testObject.appActivity));
+
+        const appDetails = requiresAppLookup(testObject)
+            ? await resolveAppDetails(gatewayUrl, testObject.apiKey, teamId, projectId, testObject.appFileName)
+            : null;
+
+        const payload = buildExecutePayload(testObject, {
+            login, projectId, suiteId, environmentId, deviceConfiguration, appDetails
+        });
+
+        const runId = await executeTest(gatewayUrl, testObject.apiKey, teamId, payload);
+        console.log('\x1b[32m%s\x1b[0m', 'Triggered the test suite', testObject.testSuiteName, 'Successfully!');
+
+        const finalStatus = await pollExecutionStatus(gatewayUrl, testObject.apiKey, teamId, runId);
+        await reportResult(gatewayUrl, testObject.apiKey, teamId, finalStatus, testObject.testSuiteName);
+    } catch (error) {
+        console.error('\x1b[31m%s\x1b[0m', `ERROR : ${error.message}`);
+        process.exit(1);
+    }
+}
+
+/* -------------------------------------------------- */
+/* ---------------- DEVICE RESOLUTION --------------- */
+/* -------------------------------------------------- */
+
+/**
+ * An app activity is Android-only, so its absence means the run targets iOS.
+ */
+function deviceTypeFor(appActivity) {
+    return appActivity == null || appActivity === '' ? 'IOS' : 'ANDROID';
+}
+
+async function resolveDevices(gatewayUrl, apiKey, teamId, devicePoolId, deviceType) {
+    const path = devicePoolId != null
+        ? `${gateway.MOBILITY_CONTEXT}/api/devices-in-pool/${devicePoolId}`
+        : `${gateway.MOBILITY_CONTEXT}/api/get-all-available-devices-for-project?deviceType=${deviceType}&teamId=${teamId}`;
+
+    const devices = await gateway.getJson(gatewayUrl, apiKey, teamId, path, 'devices');
+
+    // Shared devices cannot be claimed by a first-available run.
+    const usable = devicePoolId != null ? devices : devices.filter((d) => d.isSharedDevice !== true);
+
+    // The service expects each device as a JSON string, not an object.
+    const deviceConfiguration = usable.map((device) => JSON.stringify({
+        deviceId: device.sauceId,
+        deviceDataCenter: device.deviceDataCenter,
+        deviceVersion: device.version,
+        deviceName: device.deviceName
+    }));
+
+    if (deviceConfiguration.length === 0) throw new Error('Unable to find devices to run execution!');
+    return deviceConfiguration;
+}
+
+/* -------------------------------------------------- */
+/* ---------------- APP RESOLUTION ------------------ */
+/* -------------------------------------------------- */
+
+/**
+ * An app name means the app was uploaded to Qyrus and needs its record
+ * (appLocation, resolved appPackage) looked up. Runs against a pre-installed
+ * app skip this and identify the app by appPackage or bundleId instead.
+ */
+function requiresAppLookup(testObject) {
+    return testObject.appFileName !== '';
+}
+
+async function resolveAppDetails(gatewayUrl, apiKey, teamId, projectId, appFileName) {
+    const apps = await gateway.listApps(gatewayUrl, apiKey, teamId, projectId);
+    const app = apps.find((entry) => gateway.matchesName(entry.apkName, appFileName));
+    if (!app) {
+        throw new Error('Unable to find app with the given name! Please verify given app exists on Qyrus.');
+    }
+    return {
+        appUuid: app.uuid,
+        appPackage: app.apkPackage != null ? app.apkPackage : '',
+        appLocation: app.apkLocation,
+        appName: app.apkName
+    };
+}
+
+/* -------------------------------------------------- */
+/* ---------------- EXECUTION ----------------------- */
+/* -------------------------------------------------- */
+
+function buildExecutePayload(testObject, context) {
+    const { login, projectId, suiteId, environmentId, deviceConfiguration, appDetails } = context;
+
+    const payload = {
+        testScriptID: '',
+        userEmail: login,
+        testSuiteId: suiteId,
+        isEmail: false,
+        projectId: projectId,
+        appActivity: testObject.appActivity,
+        appPackage: testObject.appPackage,
+        appLocation: null,
+        deviceConfiguration: deviceConfiguration,
+        configuration: null,
+        isExtraValue: false,
+        isDryRun: false,
+        isHealer: false,
+        resetApp: true,
+        installFlag: false,
+        bundleId: testObject.bundleId !== '' ? testObject.bundleId : null,
+        useFirstAvailableDevice: testObject.useFirstAvailableDevice,
+        globalVariableEnvironmentId: environmentId,
+        pluginName: 'AZURE'
+    };
+
+    if (appDetails != null) {
+        payload.appPackage = appDetails.appPackage;
+        payload.appLocation = appDetails.appLocation;
+        payload.installFlag = true;
+        payload.bundleId = testObject.bundleId;
+    }
+
+    return payload;
+}
+
+async function executeTest(gatewayUrl, apiKey, teamId, payload) {
+    const path = `${gateway.MOBILITY_CONTEXT}/api/execute-test`;
+    const response = await gateway.postJson(gatewayUrl, apiKey, teamId, path, payload);
+
+    if (![200, 202].includes(response.statusCode)) {
+        throw new Error(`Execution trigger failed — ${gateway.describeFailure('POST', path, response, JSON.stringify(payload))}`);
+    }
+
+    const data = JSON.parse(response.body);
+    if (!data.uuid) throw new Error('Run ID absent in execution response.');
+    return data.uuid.toString();
+}
+
+/* -------------------------------------------------- */
+/* ---------------- POLLING ------------------------- */
+/* -------------------------------------------------- */
+
+async function pollExecutionStatus(gatewayUrl, apiKey, teamId, runId) {
+    while (true) {
+        const data = await gateway.getJson(gatewayUrl, apiKey, teamId,
+            `${gateway.MOBILITY_CONTEXT}/api/test-status?runId=${runId}`, 'execution status');
+
+        if (data.executionStatus === 'COMPLETED') return data;
+
+        const label = STATUS_LABELS[data.executionStatus];
+        if (label) console.log('Current execution status:', label);
+
+        await new Promise((resolve) => setTimeout(resolve, gateway.POLL_INTERVAL));
+    }
+}
+
+/* -------------------------------------------------- */
+/* ---------------- REPORT -------------------------- */
+/* -------------------------------------------------- */
+
+async function reportResult(gatewayUrl, apiKey, teamId, statusData, suiteName) {
+    if (statusData.status != null && statusData.status.toUpperCase() === 'ERROR IN RUN') {
+        console.log('\x1b[31m%s\x1b[0m', 'Unable to execute test suite', suiteName);
+        console.log('\x1b[31m%s\x1b[0m', "Cause of error:", statusData.errorMessage);
         process.exit(1);
     }
 
-    let configuration;
-    let testObject = {
-        "userName": qyrus_username,
-        "encodedPassword": qyrus_password,
-        "teamName": qyrus_team_name,
-        "projectName": qyrus_project_name,
-        "testSuiteName": qyrus_suite_name,
-        "devicePoolName": device_pool_name,
-        "appFileName": appName,
-        "appActivity": app_activity,
-        "appPackage": appPackage,
-        "bundleId": bundle_id,
-        "envName": envName
+    const reportUrl = await buildReportUrl(gatewayUrl, apiKey, teamId, statusData);
+
+    if (statusData.status === 'Pass') {
+        console.log('\x1b[32m%s\x1b[0m', 'Execution of test suite', suiteName, 'is now complete!');
+        console.log('\x1b[32m%s\x1b[0m', "Test Passed! Click on the below link to download the run report");
+        console.log('\x1b[34m%s\x1b[0m', reportUrl);
+        process.exit(0);
     }
-    
-    if(firstAvailable != null)
-        testObject["useFirstAvailableDevice"] = firstAvailable.toLowerCase() == 'yes' ? true : false;
-    
-    if(fromFile != null)
-        configuration = getFileResults(fromFile)               
-    testObject = setTestObjectData(testObject,configuration);
-    gatewayUrl = gatewayUrl != null ? gatewayUrl : configuration.configuration.endpoint
-    validateConfigurationInfo(testObject.userName, testObject.encodedPassword,gatewayUrl);
-    
-    let apiCallConfig = buildAPICallConfiguration(gatewayUrl)
-    enableDebug = enable_debug != null ? enable_debug : configuration?.executionInfo?.enableDebug
-    printDebugInformation(enableDebug, testObject, apiCallConfig)    
 
-    console.log('\x1b[32m%s\x1b[0m',"Getting your environment ready, your test will start running soon.");
-
-
-    var reqPost = https.request ( apiCallConfig, function(response) {
-        let responseBody = '';
-        response.on('data', chunk => {
-            responseBody += chunk.toString();
-        });
-        response.on('end', () => {
-            if (response.statusCode != 200) {
-                console.error(responseBody);
-                process.exitCode = 1;
-                return;
-            }
-            console.log('\x1b[32m%s\x1b[0m','Triggered the test suite', testObject.testSuiteName,'Successfully!');
-            checkExecStatus(apiCallConfig.host, apiCallConfig.port, responseBody, testObject.testSuiteName, emailId);
-        });
-    });
-    reqPost.on('error', function(error) {
-        console.log('Error making api request, try again.', error);
-        process.exitCode = 1;
-        return;
-    });
-    reqPost.write(JSON.stringify(testObject));
-    reqPost.end();
-
+    console.log('\x1b[31m%s\x1b[0m', 'Execution of test suite', suiteName, 'is now complete!');
+    console.log('\x1b[31m%s\x1b[0m', "Test Failed! Click on the below link to download the run report");
+    console.log(reportUrl);
+    process.exit(1);
 }
 
-function getFileResults(fromFile) {
-    let fileInfo = fs.readFileSync(fromFile, (err,file) => {
-        if (err) {
-            console.error("There was an error while trying to read your file.  Check your file and filepath.")  
-            process.exit(1)
-        }       
-        return file         
-    })
+/**
+ * Reports live behind a signed CloudFront URL; the service supplies both the
+ * domain and the signature query string.
+ */
+async function buildReportUrl(gatewayUrl, apiKey, teamId, statusData) {
+    const organizationId = statusData.organization;
+    const runId = statusData.uuid;
 
-    try{
-         return JSON.parse(fileInfo)             
-    }
-    catch(error){
-        console.error("Could not parse your JSON file.  Check your configuration.")
-        process.exit(1)
-    }     
+    const path = `${gateway.MOBILITY_CONTEXT}/api/get-cdn-access-for-reports` +
+        `?organizationId=${organizationId}&runId=${runId}`;
+    const access = await gateway.getJson(gatewayUrl, apiKey, teamId, path, 'report access');
+    const reportName = encodeURIComponent(statusData.name);
+
+    return `https://${access.cloudFrontDomain}/${organizationId}/${runId}/${reportName}.zip${access.signature}`;
 }
 
-function setTestObjectData(testObject, configuration) {   
-    if(testObject.userName == null)
-        testObject["userName"] = configuration.configuration.username
-    if(testObject.encodedPassword == null)
-        testObject["encodedPassword"] = configuration.configuration.passcode
-    if(testObject.teamName == null)
-        testObject["teamName"] = configuration.suiteInfo.teamName
-    if(testObject.projectName == null)
-        testObject["projectName"] = configuration.suiteInfo.projectName
-    if(testObject.testSuiteName == null)
-        testObject["testSuiteName"]= configuration.suiteInfo.suiteName
-    if(testObject.devicePoolName == null)
-        testObject["devicePoolName"] = configuration?.executionInfo?.devicePoolName
-    if(testObject.appFileName == null)
-        testObject["appFileName"] = configuration?.appInfo?.appName != null ? configuration.appInfo.appName : ''
-    if(testObject.appActivity == null)
-        testObject["appActivity"] = configuration?.appInfo?.appActivity != null ? configuration.appInfo.appActivity : ''
-    if(testObject.appPackage == null)
-        testObject["appPackage"] = configuration?.appInfo?.appPackage != null ? configuration.appInfo.appPackage : ''
-    if(testObject.bundleId == null) 
-        testObject["bundleId"] = configuration?.appInfo?.bundleId != null ? configuration.appInfo.bundleId : ''
-    if(testObject.envName == null)
-        testObject["envName"] = configuration?.executionInfo?.envName != null ? configuration.executionInfo.envName : ''
-    if(testObject.useFirstAvailableDevice == null) {
-        firstAvailable = configuration.executionInfo.firstAvailableDevice;
-        validateFirstAvailableDeviceValue(firstAvailable);
-        testObject["useFirstAvailableDevice"] = firstAvailable != null ? firstAvailable.toString().toLowerCase() == 'yes' : false;   
+/* -------------------------------------------------- */
+/* ---------------- INPUT RESOLUTION ---------------- */
+/* -------------------------------------------------- */
+
+function resolveTestObject(flags, fromFile) {
+    const config = fromFile != null ? gateway.readConfigFile(fromFile) : null;
+
+    const testObject = {
+        apiKey: gateway.resolveOption(flags.apiKey, config?.configuration?.apiKey),
+        teamName: gateway.resolveOption(flags.teamName, config?.suiteInfo?.teamName),
+        projectName: gateway.resolveOption(flags.projectName, config?.suiteInfo?.projectName),
+        testSuiteName: gateway.resolveOption(flags.testSuiteName, config?.suiteInfo?.suiteName),
+        devicePoolName: gateway.resolveOption(flags.devicePoolName, config?.executionInfo?.devicePoolName, ''),
+        appFileName: gateway.resolveOption(flags.appFileName, config?.appInfo?.appName, ''),
+        appActivity: gateway.resolveOption(flags.appActivity, config?.appInfo?.appActivity, ''),
+        appPackage: gateway.resolveOption(flags.appPackage, config?.appInfo?.appPackage, ''),
+        bundleId: gateway.resolveOption(flags.bundleId, config?.appInfo?.bundleId, ''),
+        envName: gateway.resolveOption(flags.envName, config?.executionInfo?.envName, ''),
+        enableDebug: gateway.resolveOption(flags.enableDebug, config?.executionInfo?.enableDebug)
+    };
+
+    testObject.useFirstAvailableDevice = resolveFirstAvailableDevice(flags.firstAvailable, config);
+
+    if (invalidValue(testObject.apiKey)) {
+        throw new Error('Invalid apiKey. Provide it with --apiKey or in your configuration file.');
     }
+    const missing = ['teamName', 'projectName', 'testSuiteName'].filter((field) => invalidValue(testObject[field]));
+    if (missing.length > 0) {
+        throw new Error(`Invalid suite info. Check: ${missing.join(', ')}.`);
+    }
+
     validateDevicePoolValue(testObject.useFirstAvailableDevice, testObject.devicePoolName);
     return testObject;
 }
 
+function resolveFirstAvailableDevice(firstAvailable, config) {
+    if (firstAvailable != null) return firstAvailable.toString().toLowerCase() === 'yes';
+
+    const fromConfig = config?.executionInfo?.firstAvailableDevice;
+    if (fromConfig == null) return false;
+
+    validateFirstAvailableDeviceValue(fromConfig);
+    return fromConfig.toString().toLowerCase() === 'yes';
+}
+
 function validateFirstAvailableDeviceValue(firstAvailable) {
-    const invalidValue = firstAvailable == null || invalidValueForFirstAvailableDevice(firstAvailable);
-    if(invalidValue) {
+    if (firstAvailable == null || invalidValueForFirstAvailableDevice(firstAvailable)) {
         console.error('ERROR : Invalid value for first available device:', firstAvailable);
         process.exit(1);
     }
 }
 
 function invalidValueForFirstAvailableDevice(firstAvailable) {
-    return firstAvailable?.toString()?.toLowerCase() != 'yes' && firstAvailable?.toString()?.toLowerCase() != 'no';
+    const value = firstAvailable?.toString()?.toLowerCase();
+    return value != 'yes' && value != 'no';
 }
 
 function validateDevicePoolValue(useFirstAvailableDevice, devicePoolName) {
-    const invalidValue = !useFirstAvailableDevice && (devicePoolName == null || devicePoolName == '');
-    if(invalidValue) {
+    if (!useFirstAvailableDevice && (devicePoolName == null || devicePoolName == '')) {
         console.error('ERROR : Device pool name is missing');
         process.exit(1);
     }
 }
 
-function validateConfigurationInfo  (username,password,URL)
-{
-    if ( username == null || password == null || URL == null ) {
-        console.error('ERROR : Invalid login info.  Check your username, password and login URL.');
-        process.exit(1);
-    }
+function invalidValue(data) {
+    return data == null || data.toString() == '';
 }
 
-function buildAPICallConfiguration(gatewayUrl) {
-    const gatewayURLParse = new URL(gatewayUrl);
-    let host_name = gatewayURLParse.hostname;
-    let port = gatewayURLParse.port;
-    let apiCallConfig = {
-        host: host_name,
-        port: port,
-        path: baseContext+'/mobilityTrigger',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        rejectUnauthorized: false
-    }
-    return apiCallConfig
-}
+function printDebugInformation(testObject, gatewayUrl) {
+    if (testObject.enableDebug != 'yes') return;
 
-function printDebugInformation(enableDebug,testObject, apiCallConfig) {
-    if ( enableDebug == 'yes' ) {
-        console.log('******* QYRUS Cloud - INPUT PARAMETERS *******');
-        console.log('App Name :',testObject.appFileName);
-        console.log('Username :',testObject.userName);
-        console.log('Password :',testObject.encodedPassword);
-        console.log('Team Name :',testObject.teamName);
-        console.log('Project Name :',testObject.projectName);
-        console.log('Suite Name :',testObject.testSuiteName);
-        console.log('App Activity :',testObject.appActivity);
-        console.log('Bundle ID :',testObject.bundleId);
-        console.log('Device Pool Name :' ,testObject.devicePoolName);
-        console.log('Host Name :', apiCallConfig.host);
-        console.log('Port :',apiCallConfig.port);
-        console.log('First available device: ', testObject.useFirstAvailableDevice ? "yes" : "no");
-    }
-}
-
-//method to check the execution status
-function checkExecStatus (host_name, port, testRunResponseBody, qyrus_suite_name, emailId) {
-    let apiCallConfig = {
-        host: host_name,
-        port: port,
-        path: baseContext+'/checkExecutionStatus',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        rejectUnauthorized: false
-    }
-    var reqPost = https.request(apiCallConfig, function(response) {
-        let responseBody = '';
-        response.on('data', chunk => {
-            responseBody += chunk.toString(); // convert Buffer to string
-        });
-        response.on('end', () => {   
-            if(response.statusCode!=200){
-                console.log(responseBody);
-                process.exitCode = 1;
-                return;
-            }
-            if(responseBody.trim() === "COMPLETED"){
-                completedTest(host_name, port, testRunResponseBody, qyrus_suite_name, emailId);
-                return;
-            }
-            else {
-                console.log('Current execution status:', responseBody);
-                setTimeout(() => {  checkExecStatus(host_name, port, testRunResponseBody, qyrus_suite_name, emailId); }, 30000);
-            }
-        });
-    });
-    reqPost.on('error', function(error) {
-        console.log("Error in checking the execution status : "+error);
-        process.exitCode = 1;
-        return;
-    });
-    reqPost.write(testRunResponseBody);
-    reqPost.end();
-}
-
-//run the below method if the test status is completed.
-function completedTest (host_name, port, execStatusResponse, qyrus_suite_name, emailId) {
-    let apiCallConfig = {
-        host: host_name,
-        port: port,
-        path: baseContext+'/checkExecutionResult?emailId='+emailId,
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        rejectUnauthorized: false
-    }
-    var reqPost = https.request(apiCallConfig, function(response) {
-        if(response.statusCode!=200){
-            console.log('Failed to run test, Try again.');
-            return;
-        }
-
-        let responseBody = '';
-        response.on('data', chunk => {
-            responseBody += chunk.toString(); // convert Buffer to string
-        });
-        response.on('end', () => {
-            var parsedJson = JSON.parse(responseBody);
-            let exitCode = 1;
-            if (parsedJson.finalStatus === 'Pass' ) {
-                console.log('\x1b[32m%s\x1b[0m','Execution of test suite', qyrus_suite_name, 'is now complete!');
-                console.log('\x1b[32m%s\x1b[0m',"Test Passed! Click on the below link to download the run report");
-                console.log('\x1b[34m%s\x1b[0m',parsedJson.report);
-                exitCode = 0;
-                return;
-            }
-            else if(parsedJson.finalStatus === 'Error in Test') {
-                console.log('\x1b[31m%s\x1b[0m','Unable to execute test suite', qyrus_suite_name);
-                console.log('\x1b[31m%s\x1b[0m',"Cause of error:", parsedJson.errorMessage);
-            }
-            else {
-                console.log('\x1b[31m%s\x1b[0m','Execution of test suite', qyrus_suite_name, 'is now complete!');
-                console.log('\x1b[31m%s\x1b[0m',"Test Failed! Click on the below link to download the run report");
-                console.log(parsedJson.report);   
-            }
-            process.exitCode = exitCode;
-            return;
-        });
-    });
-    reqPost.on('error', function(error) {
-        console.error("Error in checking the execution status : "+error);
-        process.exitCode = 1;
-        return;
-    });
-    reqPost.write(execStatusResponse);
-    reqPost.end();
+    const parsed = new URL(gatewayUrl);
+    console.log('******* QYRUS Cloud - INPUT PARAMETERS *******');
+    console.log('App Name :', testObject.appFileName);
+    console.log('Team Name :', testObject.teamName);
+    console.log('Project Name :', testObject.projectName);
+    console.log('Suite Name :', testObject.testSuiteName);
+    console.log('App Activity :', testObject.appActivity);
+    console.log('App Package :', testObject.appPackage);
+    console.log('Bundle ID :', testObject.bundleId);
+    console.log('Device Pool Name :', testObject.devicePoolName);
+    console.log('Environment Name :', testObject.envName);
+    console.log('Host Name :', parsed.hostname);
+    console.log('Port :', parsed.port);
+    console.log('First available device: ', testObject.useFirstAvailableDevice ? "yes" : "no");
 }
 
 module.exports = {
-    trigger
+    trigger,
+    buildReportUrl
 }
