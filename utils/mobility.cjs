@@ -250,8 +250,9 @@ async function buildReportUrl(gatewayUrl, apiKey, teamId, statusData) {
     const path = `${gateway.MOBILITY_CONTEXT}/api/get-cdn-access-for-reports` +
         `?organizationId=${organizationId}&runId=${runId}`;
     const access = await gateway.getJson(gatewayUrl, apiKey, teamId, path, 'report access');
+    const reportName = encodeURIComponent(statusData.name);
 
-    return `https://${access.cloudFrontDomain}/${organizationId}/${runId}/${statusData.name}.zip${access.signature}`;
+    return `https://${access.cloudFrontDomain}/${organizationId}/${runId}/${reportName}.zip${access.signature}`;
 }
 
 /* -------------------------------------------------- */
@@ -342,5 +343,6 @@ function printDebugInformation(testObject, gatewayUrl) {
 }
 
 module.exports = {
-    trigger
+    trigger,
+    buildReportUrl
 }
