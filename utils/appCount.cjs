@@ -4,9 +4,6 @@ const fs = require('fs');
 const trigger = function(gatewayUrl, qyrus_username, qyrus_password, qyrus_team_name, qyrus_project_name, execCmd, configurationFilePath) {
     console.log("Fetching the app count in progress...");
     var contextPath = '/cli-adapter-component/v1';
-    if ( execCmd === 'mobility' ) {
-        contextPath = '/cli-adapter-mobility/v1';
-    }
     let inputData = {
         URL: gatewayUrl,
         username: qyrus_username,
