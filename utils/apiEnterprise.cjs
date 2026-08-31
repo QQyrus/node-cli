@@ -8,7 +8,7 @@ const http = require('http');
 /* -------------------------------------------------- */
 
 const GATEWAY_URLS = {
-    stg: 'https://stg-gateway.qyrus.com:8243',
+    stg: 'https://stg-gateway.qyrus.com',
     uat: 'https://uat-gateway.qyrus.com',
     prod: 'https://gateway.qyrus.com'
 };

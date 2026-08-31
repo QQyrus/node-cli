@@ -1,135 +1,105 @@
-var https = require('https');
-var http = require('http');
-var url = require('url');
-const fs = require('fs');
+'use strict';
 
-let baseContext = '/cli-adapter-mobility/v1';
+const gateway = require('./mobilityGateway.cjs');
 
-const trigger = function(endpoint, username, passcode, teamName, projectName, varName, varType, varValue, envName, fromFile) {   
-    //construct body for rest call
-    var triggerObject = {
-        "userName": username,
-        "encodedPassword": passcode,
-        "teamName": teamName,
-        "projectName": projectName,
-        "varName": varName,
-        "varType": varType,
-        "varValue": varValue,
-        "envName": envName
+const trigger = async function(apiKey, teamName, projectName, varName, varType, varValue, envName, fromFile) {
+    try {
+        const inputData = resolveInputData(apiKey, teamName, projectName, varName, varType, varValue, envName, fromFile);
+
+        console.log("Updating global variable...");
+
+        const gatewayUrl = gateway.deriveGatewayUrlFromApiKey(inputData.apiKey);
+        await gateway.validateApiKey(gatewayUrl, inputData.apiKey);
+        const { teamId, projectId } = await gateway.resolveProjectContext(
+            gatewayUrl, inputData.apiKey, inputData.teamName, inputData.projectName);
+
+        const value = inputData.varType.toLowerCase() === 'password'
+            ? Buffer.from(inputData.varValue, 'base64').toString('utf8')
+            : inputData.varValue;
+
+        const environmentId = inputData.envName === ''
+            ? null
+            : await resolveEnvironmentId(gatewayUrl, inputData.apiKey, teamId, projectId, inputData.envName);
+
+        // The service replaces the whole variable set, so read it, patch the one
+        // entry and write it all back.
+        const variables = await getVariables(gatewayUrl, inputData.apiKey, teamId, projectId, environmentId);
+        const updated = applyVariableUpdate(variables, inputData.varName, value, environmentId);
+
+        const response = await gateway.postJson(gatewayUrl, inputData.apiKey, teamId,
+            `${gateway.MOBILITY_CONTEXT}/api/variables?projectId=${projectId}`, updated);
+
+        if (response.statusCode !== 200) {
+            console.log('Failed to update variable:', gateway.extractErrorMessage(response.body));
+            process.exitCode = 1;
+            return;
+        }
+
+        console.log("Update to variable -", inputData.varName, "- is successfull!");
+        process.exitCode = 0;
+    } catch (error) {
+        console.error('\x1b[31m%s\x1b[0m', `ERROR : ${error.message}`);
+        process.exitCode = 1;
+    }
+}
+
+async function resolveEnvironmentId(gatewayUrl, apiKey, teamId, projectId, envName) {
+    const environments = await gateway.getEnvironments(gatewayUrl, apiKey, teamId, projectId);
+    const environment = environments.find((e) => gateway.matchesName(e.environmentName, envName));
+    if (!environment) throw new Error('Invalid environmentName, please provide valid environmentName!');
+    return environment.environmentId;
+}
+
+async function getVariables(gatewayUrl, apiKey, teamId, projectId, environmentId) {
+    const path = `${gateway.MOBILITY_CONTEXT}/api/variables?projectId=${projectId}` +
+        `&environmentId=${environmentId != null ? environmentId : ''}`;
+    return gateway.getJson(gatewayUrl, apiKey, teamId, path, 'variables');
+}
+
+/**
+ * Environment-scoped updates also stamp every entry with the environment,
+ * matching what the service expects on write.
+ */
+function applyVariableUpdate(variables, varName, value, environmentId) {
+    let found = false;
+
+    const updated = variables.map((variable) => {
+        const entry = { ...variable };
+        if (environmentId != null) entry.environment = { environmentId };
+        if (gateway.matchesName(entry.name, varName)) {
+            entry.value = value;
+            found = true;
+        }
+        return entry;
+    });
+
+    if (!found) throw new Error(`Unable to find variable "${varName}" in the given project/environment.`);
+    return updated;
+}
+
+function resolveInputData(apiKey, teamName, projectName, varName, varType, varValue, envName, fromFile) {
+    const config = fromFile != null ? gateway.readConfigFile(fromFile) : null;
+
+    const inputData = {
+        apiKey: gateway.resolveOption(apiKey, config?.configuration?.apiKey),
+        teamName: gateway.resolveOption(teamName, config?.projectInfo?.teamName),
+        projectName: gateway.resolveOption(projectName, config?.projectInfo?.projectName),
+        varName: gateway.resolveOption(varName, config?.variableInfo?.variableName),
+        varType: gateway.resolveOption(varType, config?.variableInfo?.variableType),
+        varValue: gateway.resolveOption(varValue, config?.variableInfo?.variableValue),
+        envName: gateway.resolveOption(envName, config?.variableInfo?.envName, '')
     };
 
-    let configuration;
-
-    if(fromFile != null) {
-        configuration = getFileResults(fromFile);   
-        triggerObject = setTriggerObjectData(triggerObject, configuration);
+    if (invalidValue(inputData.apiKey)) {
+        throw new Error('Invalid apiKey. Provide it with --apiKey or in your configuration file.');
     }
-
-    endpoint = endpoint != null ? endpoint : configuration?.configuration?.endpoint
-    validateConfigurationInfo(triggerObject.userName, triggerObject.encodedPassword, endpoint);
-    let apiCallConfig = buildAPICallConfiguration(endpoint);
-    
-    if (triggerObject.envName == null) {
-        triggerObject.envName = '';
+    const missing = ['teamName', 'projectName', 'varName', 'varType', 'varValue']
+        .filter((field) => invalidValue(inputData[field]));
+    if (missing.length > 0) {
+        throw new Error(`Invalid variable info. Check: ${missing.join(', ')}.`);
     }
-    validateProjectAndVariableInfo(triggerObject);
-
-    console.log("Updating global variable...");
-     //http request to update the global variables
-     var reqPost = https.request(apiCallConfig, function(res) {
-        //If the response from the request is not 200 then fail the pipeline 
-        var body = '';
-        res.on('data', chunk => {
-            body += chunk.toString(); // convert Buffer to strin
-        });
-        res.on('end', () => {
-            if(res.statusCode!=200) {
-                console.log('Failed to update variable:', body);
-                process.exitCode = 1;
-                return;
-            }
-            console.log("Update to variable -", triggerObject.varName, "- is successfull!");
-        });
-     });
-     reqPost.on('error', function(err) {
-        console.log("ERROR : "+ err.message);
-        process.exitCode = 1;
-        return
-    }); 
-    reqPost.write(JSON.stringify(triggerObject));
-    reqPost.end();
-}
-
-function getFileResults(fromFile) {
-    let fileInfo = fs.readFileSync(fromFile, (err,file) => {
-        if (err) {
-            console.error("There was an error while trying to read your file.  Check your file and filepath.")  
-            process.exit(1)
-        }       
-        return file         
-    })
-
-    try{
-         return JSON.parse(fileInfo)             
-    }
-    catch(error){
-        console.error("Could not parse your JSON file.  Check your configuration.")
-        process.exit(1)
-    } 
-
-}
-
-function setTriggerObjectData(triggerObject, configuration) {
-    if(triggerObject.userName == null)
-        triggerObject["userName"] = configuration.configuration.username
-    if(triggerObject.encodedPassword == null)
-        triggerObject["encodedPassword"] = configuration.configuration.passcode
-    if(triggerObject.teamName == null)
-        triggerObject["teamName"] = configuration.projectInfo.teamName
-    if(triggerObject.projectName == null)
-        triggerObject["projectName"] = configuration.projectInfo.projectName
-    if(triggerObject.varName == null)
-        triggerObject["varName"] = configuration.variableInfo.variableName
-    if(triggerObject.varType == null)
-        triggerObject["varType"] = configuration.variableInfo.variableType
-    if(triggerObject.varValue == null)
-        triggerObject["varValue"] = configuration.variableInfo.variableValue  
-    if(triggerObject["envName"] == null)  
-        triggerObject["envName"] = configuration.variableInfo.envName != null ? configuration.variableInfo.envName : ''     
-    return triggerObject
-}
-
-function validateConfigurationInfo (username, password, URL)
-{
-    if ( username == null || password == null || URL == null ) {
-        console.error('ERROR : Invalid login info.  Check your username, password and login URL.');
-        process.exit(1);
-    }
-}
-
-function buildAPICallConfiguration(gatewayUrl) {
-    const gatewayURLParse = new URL(gatewayUrl);
-    let host_name = gatewayURLParse.hostname;
-    let port = gatewayURLParse.port;
-    let apiCallConfig = {
-        host: host_name,
-        port: port,
-        path: baseContext+'/variables',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        rejectUnauthorized: false
-    }
-    return apiCallConfig
-}
-
-function validateProjectAndVariableInfo(inputData) {
-    const invalidConfigurationInfo = invalidValue(inputData.teamName) || invalidValue(inputData.projectName) || invalidValue(inputData.varName) || invalidValue(inputData.varType) || invalidValue(inputData.varValue);
-    if (invalidConfigurationInfo) {
-        console.error('ERROR : Invalid variable info.');
-        process.exit(1);
-    }
+    if (inputData.envName == null) inputData.envName = '';
+    return inputData;
 }
 
 function invalidValue(data) {
