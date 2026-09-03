@@ -22,6 +22,8 @@ jobs:
       run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
     - name: install pkg
       run: npm install -g pkg@latest
+    - name: install dependencies
+      run: npm install
     - name: package
       run: pkg --targets node16-linux-x64,node16-macos-x64,node16-win-x64 .
     - run: ls
