@@ -1184,7 +1184,7 @@ const executeTestForWebRepoAutomation = function (
             const testMap = {
                 testSuite: { uuid: testSuiteId },
                 testScript: null,
-                pluginName: 'AZURE',
+                pluginName: 'CLI',
                 isJenkins: false,
                 isExtraValue: false,
                 moduleRun: false,
