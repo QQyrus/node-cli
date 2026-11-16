@@ -476,10 +476,14 @@ program.command('to')
   .description('helps you trigger web tests on the platform')
   .option('-p, --apiKey <string>', 'Qyrus admin provided apiKey')
   .option('--teamName <string>', 'Team name you can find by logging into Qyrus app.')
-  .option('--deepLinkId <string>', 'Deep Link Id for Folder or WorkFlow')
+  .option('--deepLinkId <string>', 'Deep Link Id for Folder or WorkFlow on orchestrator-service')
+  .option('--qyContext <string>', 'Qyrus Loops gateway context path', '/workflow-store-noauth/v1')
+  .option('--qyTeamName <string>', 'Team name for a Qyrus Loops run')
+  .option('--qyDeepLinkId <string>', 'Deep Link Id for a Folder or Workflow on Qyrus Loops')
+  .option('--qyGatewayUrl <string>', 'Optional Qyrus Loops gateway origin. Replaces the host derived from the API key')
 
   .action((options) => {
-    toUtil.trigger(options.apiKey, options.teamName, options.deepLinkId);
+    toUtil.trigger(options.apiKey, options.teamName, options.deepLinkId, options.qyContext, options.qyTeamName, options.qyDeepLinkId, options.qyGatewayUrl);
   });
 
 //--- Connectivity check
