@@ -8,24 +8,67 @@ let oldSet = new Set();
 let newSet = new Set();
 let array3 = [];
 const toContext = '/orchestration-noauth/v1';
+const defaultWorkflowStoreContext = '/workflow-store-noauth/v1';
 const umContext = '/um-noauth/v1';
+let activeContext = toContext;
+
+function normalizeContext(contextPath) {
+    let context = (contextPath || '').trim();
+    if (!context.startsWith('/')) {
+        context = '/' + context;
+    }
+    if (context.length > 1 && context.endsWith('/')) {
+        context = context.slice(0, -1);
+    }
+    return context;
+}
+
+function gatewayFromApiKey(apiKey) {
+    const env = getEnvName(apiKey);
+    if (env == 'staging') {
+        return 'https://stg-gateway.qyrus.com';
+    }
+    if (env == 'qyrus') {
+        return 'https://gateway.qyrus.com';
+    }
+    return 'https://' + env + '-gateway.qyrus.com';
+}
 
 const trigger = function (apiKey, teamName,
-    deepLinkId) {
+    deepLinkId, qyContext, qyTeamName, qyDeepLinkId, qyGatewayUrl) {
 
     // Input validation
     if (!apiKey || typeof apiKey !== 'string' || apiKey.trim() === '') {
         console.log('\x1b[31m%s\x1b[0m', "Error: apiKey is required and cannot be empty.");
         process.exit(1);
     }
-    if (!teamName || typeof teamName !== 'string' || teamName.trim() === '') {
-        console.log('\x1b[31m%s\x1b[0m', "Error: teamName is required and cannot be empty.");
+
+    const orchestratorDeepLink = deepLinkId && deepLinkId.trim() !== '' ? deepLinkId.trim() : '';
+    const workflowStoreDeepLink = qyDeepLinkId && qyDeepLinkId.trim() !== '' ? qyDeepLinkId.trim() : '';
+    if (orchestratorDeepLink && workflowStoreDeepLink) {
+        console.log('\x1b[31m%s\x1b[0m', "Error: Set either --deepLinkId or --qyDeepLinkId, not both.");
         process.exit(1);
     }
-    if (!deepLinkId || typeof deepLinkId !== 'string' || deepLinkId.trim() === '') {
+    if (!orchestratorDeepLink && !workflowStoreDeepLink) {
         console.log('\x1b[31m%s\x1b[0m', "Error: deepLinkId is required and cannot be empty.");
         process.exit(1);
     }
+
+    const usingWorkflowStore = workflowStoreDeepLink !== '';
+    const selectedDeepLink = usingWorkflowStore ? workflowStoreDeepLink : orchestratorDeepLink;
+    const selectedTeamName = usingWorkflowStore ? qyTeamName : teamName;
+    if (!selectedTeamName || typeof selectedTeamName !== 'string' || selectedTeamName.trim() === '') {
+        console.log('\x1b[31m%s\x1b[0m', usingWorkflowStore
+            ? "Error: qyTeamName is required and cannot be empty."
+            : "Error: teamName is required and cannot be empty.");
+        process.exit(1);
+    }
+
+    deepLinkId = selectedDeepLink;
+    teamName = selectedTeamName.trim();
+    activeContext = usingWorkflowStore
+        ? normalizeContext(qyContext || defaultWorkflowStoreContext)
+        : toContext;
 
     const ids = deepLinkId.split(',').map(id => id.trim());
     const regex = /^[A-Za-z0-9]+-[FW]\d+$/i;
@@ -52,16 +95,13 @@ const trigger = function (apiKey, teamName,
 
     let isFolder = hasFolder;
 
-    let endpoint = '';
-    const env = getEnvName(apiKey);
-    if (env == 'staging') {
-        endpoint = 'https://stg-gateway.qyrus.com';
-    }
-    else if (env == 'qyrus') {
-        endpoint = 'https://gateway.qyrus.com';
-    }
-    else {
-        endpoint = 'https://' + env + '-gateway.qyrus.com';
+    let endpoint = gatewayFromApiKey(apiKey);
+    if (usingWorkflowStore && qyGatewayUrl && qyGatewayUrl.trim() !== '') {
+        const override = url.parse(qyGatewayUrl.trim());
+        endpoint = override.protocol + '//' + override.host;
+        if (override.pathname && override.pathname !== '/') {
+            activeContext = normalizeContext(override.pathname);
+        }
     }
 
     console.log('\x1b[32m%s\x1b[0m', "Getting your environment ready, your test will start running soon.");
@@ -128,7 +168,7 @@ function executeFolder(endpoint, login, organizationName, apiKey, teamId, deepLi
     const options = {
         host: hostName,
         port: port,
-        path: toContext + '/api/execute-folder',
+        path: activeContext + '/api/execute-folder',
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -202,7 +242,7 @@ function checkFolderExecutionStatus(endpoint, apiKey, teamId, folderExecutionUui
     const options = {
         host: hostName,
         port: port,
-        path: toContext + '/api/folder-execution-status?folderExecutionUuid=' + encodeURIComponent(folderExecutionUuid),
+        path: activeContext + '/api/folder-execution-status?folderExecutionUuid=' + encodeURIComponent(folderExecutionUuid),
         method: 'GET',
         headers: {
             'Team-Id': teamId,
@@ -303,7 +343,7 @@ function executeWorkflow(endpoint, login, organizationName, apiKey, teamId, deep
     const options = {
         host: hostName,
         port: port,
-        path: toContext + '/api/execute-workflow',
+        path: activeContext + '/api/execute-workflow',
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -377,7 +417,7 @@ function checkWorkflowExecutionStatus(endpoint, apiKey, teamId, testExecutionUui
     const options = {
         host: hostName,
         port: port,
-        path: toContext + '/api/get-workflow-execution-details?testExecutionUUID=' + encodeURIComponent(testExecutionUuid),
+        path: activeContext + '/api/get-workflow-execution-details?testExecutionUUID=' + encodeURIComponent(testExecutionUuid),
         method: 'GET',
         headers: {
             // 'Authorization': gatewayAuth,
@@ -490,7 +530,7 @@ function downloadReports(endpoint, apiKey, teamId, testExecutionUuid, folderExec
     const options = {
         host: hostName,
         port: port,
-        path: toContext + '/api/download-html-reports-plugin?' + queryParam,
+        path: activeContext + '/api/download-html-reports-plugin?' + queryParam,
         method: 'GET',
         headers: {
             // 'Authorization': gatewayAuth,
